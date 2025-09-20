@@ -1,25 +1,13 @@
-﻿using Shared.Enums;
+﻿using Shared.DTOs;
+using Shared.Enums;
 
 namespace Backend.Models.Produtos
 {
-    public class ProdutosModel
+    internal class ProdutosModel
     {
         private string? _validade;
 
-        public ProdutosModel(string? descricaoSimples, DateTime dataEntrega, string? nFe, string? descricaoDetalhada, UnidadeEnum unidade, CategoriaEnum categoria, 
-            int quantidade = 0, string? validade = null, int estoqueDisponivel = 0)
-        {
-            Codigo = GeraCodigo(categoria);
-            DescricaoSimples = descricaoSimples;
-            DataEntrega = dataEntrega;
-            NFe = nFe;
-            DescricaoDetalhada = descricaoDetalhada;
-            Unidade = unidade;
-            Categoria = categoria;
-            Quantidade = quantidade;
-            Validade = validade;
-            EstoqueDisponivel = estoqueDisponivel;
-        }
+        public ProdutosModel() { }
 
         public string Codigo { get; init; } = string.Empty;
         public string? DescricaoSimples { get; set; }
@@ -41,26 +29,21 @@ namespace Backend.Models.Produtos
         public DateTime DataHoraInsercaoRegistro { get; set; }
         public int EstoqueDisponivel { get; set; }
 
-        private static string GeraCodigo(CategoriaEnum categoria)
+        public static implicit operator ProdutosModel(ProdutosDTO dto)
         {
-            var codigo = string.Empty;
-            var catString = categoria.ToString();
-            var categoriaCompostaSN = catString.Contains('_', StringComparison.CurrentCulture);
-
-            if (catString.Length < 3)
-                codigo += catString[..];
-            else
-                codigo += catString[..3];
-
-            if (categoriaCompostaSN)
+            return new ProdutosModel()
             {
-                var i = catString.IndexOf('_', StringComparison.CurrentCulture);
-                codigo += catString.Substring(i + 1, 1);
-            }
-
-            codigo += Guid.NewGuid().ToString().Replace("-", "");
-
-            return codigo;
+                Codigo = dto.Codigo,
+                DescricaoSimples = dto.DescricaoSimples,
+                DataEntrega = dto.DataEntrega,
+                NFe = dto.NFe,
+                DescricaoDetalhada = dto.DescricaoDetalhada,
+                Unidade = dto.Unidade,
+                Categoria = dto.Categoria,
+                Quantidade = dto.Quantidade,
+                Validade = dto.Validade,
+                EstoqueDisponivel = dto.EstoqueDisponivel
+            };
         }
     }
 }
