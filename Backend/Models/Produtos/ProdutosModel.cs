@@ -3,7 +3,7 @@ using Shared.Enums;
 
 namespace Backend.Models.Produtos
 {
-    internal class ProdutosModel
+    public class ProdutosModel
     {
         private string? _validade;
 
@@ -29,6 +29,7 @@ namespace Backend.Models.Produtos
         public DateTime DataHoraInsercaoRegistro { get; set; }
         public int EstoqueDisponivel { get; set; }
 
+
         public static implicit operator ProdutosModel(ProdutosDTO dto)
         {
             return new ProdutosModel()
@@ -43,6 +44,23 @@ namespace Backend.Models.Produtos
                 Quantidade = dto.Quantidade,
                 Validade = dto.Validade,
                 EstoqueDisponivel = dto.EstoqueDisponivel
+            };
+        }
+
+        public static implicit operator ProdutosDTO(ProdutosModel model)
+        {
+            return new ProdutosDTO()
+            {
+                Codigo = model.Codigo,
+                DescricaoSimples = model.DescricaoSimples,
+                DataEntrega = model.DataEntrega,
+                NFe = model.NFe,
+                DescricaoDetalhada = model.DescricaoDetalhada,
+                Unidade = model.Unidade,
+                Categoria = model.Categoria,
+                Quantidade = model.Quantidade,
+                Validade = model.Validade,
+                EstoqueDisponivel = model.EstoqueDisponivel
             };
         }
     }

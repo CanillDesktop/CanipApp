@@ -4,6 +4,7 @@ namespace Shared.DTOs
 {
     public class ProdutosDTO
     {
+        public ProdutosDTO() { }
         public ProdutosDTO(string? descricaoSimples, DateTime dataEntrega, string? nFe, string? descricaoDetalhada, UnidadeEnum unidade, CategoriaEnum categoria,
             int quantidade = 0, string? validade = null, int estoqueDisponivel = 0)
         {
@@ -52,5 +53,4 @@ namespace Shared.DTOs
             return codigo;
         }
     }
-}
 }
