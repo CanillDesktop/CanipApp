@@ -5,7 +5,7 @@ namespace Backend.Services
 {
     public class ProdutosService
     {
-        private readonly List<ProdutosModel> _produtos = [];
+        private static readonly List<ProdutosModel> _produtos = [];
 
         public ProdutosService() { }
 
