@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Frontend.ViewModels;
+using Microsoft.Extensions.Logging;
 
 namespace Frontend;
 
@@ -15,6 +16,12 @@ public static class MauiProgram
 			});
 
 		builder.Services.AddMauiBlazorWebView();
+
+		builder.Services.AddScoped<ProdutosViewModel>();
+		builder.Services.AddScoped(sp => new HttpClient
+		{
+			BaseAddress = new Uri("https://localhost:7019/")
+		});
 
 #if DEBUG
 		builder.Services.AddBlazorWebViewDeveloperTools();

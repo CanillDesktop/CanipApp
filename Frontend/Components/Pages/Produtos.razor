@@ -1,0 +1,20 @@
+﻿@page "/produtos"
+@inject Frontend.ViewModels.ProdutosViewModel VM
+
+<h1>Produtos</h1>
+
+@if (VM.Carregando)
+{
+    <p>Carregando...</p>
+}
+else
+{
+    <ul>
+        @foreach (var p in VM.Produtos)
+        {
+            <li>@p.DescricaoSimples - @p.Quantidade</li>
+        }
+    </ul>
+}
+
+<button @onclick="VM.CarregarProdutosAsync">Atualizar</button>
