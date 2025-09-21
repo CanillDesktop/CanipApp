@@ -1,5 +1,6 @@
 
 using Backend.Context;
+using Backend.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend
@@ -19,6 +20,8 @@ namespace Backend
             string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<CanilAppDbContext>(options =>
                 options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
+
+            builder.Services.AddScoped<ProdutosService>();
 
             var app = builder.Build();
 
