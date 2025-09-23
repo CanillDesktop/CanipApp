@@ -2,10 +2,11 @@
 
 public partial class App : Application
 {
-	public App()
-	{
-		InitializeComponent();
+    public App()
+    {
+        InitializeComponent();
 
-		MainPage = new MainPage();
-	}
+        // Define a LoginPage como a primeira página a ser exibida
+        MainPage = new NavigationPage(new LoginPage());
+    }
 }
