@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Frontend.LoginPage"
+             Title="Login"
+             NavigationPage.HasNavigationBar="False">
+
+	<VerticalStackLayout
+        Spacing="15"
+        Padding="30"
+        VerticalOptions="Center">
+
+		<Label
+            Text="Bem-vindo ao Estoque"
+            FontSize="28"
+            FontAttributes="Bold"
+            HorizontalOptions="Center" />
+
+		<Label
+            Text="Faça login para continuar"
+            FontSize="16"
+            HorizontalOptions="Center"
+            Margin="0,0,0,20"/>
+
+		<Entry
+            x:Name="UsernameEntry"
+            Placeholder="Nome de usuário" />
+
+		<Entry
+            x:Name="PasswordEntry"
+            Placeholder="Senha"
+            IsPassword="True" />
+
+		<Button
+            x:Name="LoginButton"
+            Text="Entrar"
+            Clicked="OnLoginButtonClicked"
+            HorizontalOptions="Fill" />
+
+		<Button
+            x:Name="RegisterButton"
+            Text="Registrar"
+            Clicked="OnRegisterButtonClicked"
+            HorizontalOptions="Fill"
+            BackgroundColor="Transparent"
+            TextColor="Gray"
+            BorderColor="Transparent"/>
+
+	</VerticalStackLayout>
+</ContentPage>
