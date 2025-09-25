@@ -16,20 +16,20 @@ namespace Backend.Repositories
             _context = context;
         }
 
-        public IEnumerable<MedicamentosModel> GetMedicamentosModel()
+        public IEnumerable<MedicamentosModel> Get()
         {
-          var  medicamentosRepository =  _context.Medicamentos.ToList();
+            var medicamentosRepository = _context.Medicamentos.ToList();
 
             return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
         }
 
-        public MedicamentosModel GetMedicamentosModel(int id)
+        public MedicamentosModel GetMedicamento(int id)
         {
 
             var medicamentosRepository = _context.Medicamentos.FirstOrDefault(p =>p.CodigoId == id);
             return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
         }
-        public MedicamentosModel CreateMedicamentosModel(MedicamentosModel Medicamento)
+        public MedicamentosModel CreateMedicamento(MedicamentosModel Medicamento)
         {
             if (Medicamento is null)
             {
@@ -43,7 +43,7 @@ namespace Backend.Repositories
         }
 
 
-        public MedicamentosModel UpdateMedicamentosModel(MedicamentosModel Medicamento)
+        public MedicamentosModel UpdateMedicamento(MedicamentosModel Medicamento)
         {
             if (Medicamento is null)
             {
@@ -54,7 +54,7 @@ namespace Backend.Repositories
             return Medicamento;
         }
 
-        public MedicamentosModel DeleteMedicamentosModel(int id)
+        public MedicamentosModel DeleteMedicamento(int id)
         {
             var medicamentosRepository = _context.Medicamentos.Find(id);
 

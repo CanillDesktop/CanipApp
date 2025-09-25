@@ -3,49 +3,44 @@ using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
 using Backend.Context;
 using Backend.Models.Medicamentos;
-using Microsoft.EntityFrameworkCore;
+using Backend.Repositories;
 
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
 
-    public class MedicamentosController : Controller
+    public class MedicamentosController : ControllerBase
     {
-        private readonly CanilAppDbContext _context;
+        private readonly IMedicamentosRepository _repository;
 
-        public MedicamentosController(CanilAppDbContext context)
+        public MedicamentosController(IMedicamentosRepository repository)
         {
-            _context = context;
+           _repository = repository;
         }
 
         [HttpGet]
-        public async Task< ActionResult<IEnumerable<MedicamentosModel>>> Get()
+        public  ActionResult<IEnumerable<MedicamentosModel>>Get()
         {
-            var medicamentos = await _context.Medicamentos.AsNoTracking().ToListAsync();
+            var medicamentos = _repository.Get();
 
-            if (medicamentos is null)
-            {
-                return NotFound();
-            }
-
-            return medicamentos;
+            return Ok(medicamentos);
         }
 
 
         [HttpGet("{id:int}")]
 
-        public async Task <ActionResult<MedicamentosModel>> Get(int id)
+        public  ActionResult<MedicamentosModel> Get(int id)
         {
 
-            var medicamento = await _context.Medicamentos.AsNoTracking().FirstOrDefaultAsync(p => p.CodigoId == id);
+            var medicamentos = _repository.GetMedicamento(id);
 
-            if (medicamento is null)
+            if (medicamentos is null)
             {
-                return NotFound();
+                return NotFound(id);
             }
 
-            return medicamento;
+            return medicamentos;
 
         }
 
@@ -53,27 +48,32 @@ namespace Backend.Controllers
         [HttpPost]
         public ActionResult Post(MedicamentosModel medicamento)
         {
-            _context.Medicamentos.Add(medicamento);
-            _context.SaveChanges();
 
-            return new CreatedAtRouteResult("Medicamento Obtido", new { id = medicamento.CodigoId }, medicamento);
+            if (medicamento is null)
+            {
+                return BadRequest("Dados invalidos");
+
+            }
+            var medicamentoCriado =_repository.UpdateMedicamento(medicamento);
+
+            return new CreatedAtRouteResult("Medicamento Obtido", new { id = medicamentoCriado.CodigoId }, medicamentoCriado);
         }
 
-
+       
 
         [HttpDelete("{id:int}")]
 
         public ActionResult Delete(int id)
         {
-            var medicamento = _context.Medicamentos.Find(id);
-            if (medicamento is null)
+            var medicamentoCriado = _repository.GetMedicamento(id);
+            if (medicamentoCriado is null)
             {
                 return NotFound("Medicamento nao encontrado na base de dados");
             }
 
-            _context.Medicamentos.Remove(medicamento);
-            _context.SaveChanges();
-            return Ok(medicamento);
+            var medicamentoExcluido = _repository.DeleteMedicamento(id);
+      
+            return Ok(medicamentoExcluido);
 
 
         }

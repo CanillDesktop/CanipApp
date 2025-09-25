@@ -4,13 +4,13 @@ namespace Backend.Repositories
 {
     public interface IMedicamentosRepository
     {
-        IEnumerable<MedicamentosModel> GetMedicamentosModel();
-       MedicamentosModel GetMedicamentosModel(int id);
+        IEnumerable<MedicamentosModel> Get();
+       MedicamentosModel GetMedicamento(int id);
         
-        MedicamentosModel CreateMedicamentosModel(MedicamentosModel Medicamento);
+        MedicamentosModel CreateMedicamento(MedicamentosModel Medicamento);
 
-        MedicamentosModel UpdateMedicamentosModel(MedicamentosModel Medicamento);
+        MedicamentosModel UpdateMedicamento(MedicamentosModel Medicamento);
 
-        MedicamentosModel DeleteMedicamentosModel(int id);
+        MedicamentosModel DeleteMedicamento(int id);
     }
 }
