@@ -20,9 +20,9 @@ namespace Backend.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<MedicamentosModel>> Get()
+        public async Task< ActionResult<IEnumerable<MedicamentosModel>>> Get()
         {
-            var medicamentos = _context.Medicamentos.AsNoTracking().ToList();
+            var medicamentos = await _context.Medicamentos.AsNoTracking().ToListAsync();
 
             if (medicamentos is null)
             {
@@ -35,10 +35,10 @@ namespace Backend.Controllers
 
         [HttpGet("{id:int}")]
 
-        public ActionResult<MedicamentosModel> Get(int id)
+        public async Task <ActionResult<MedicamentosModel>> Get(int id)
         {
 
-            var medicamento = _context.Medicamentos.FirstOrDefault(p => p.CodigoId == id);
+            var medicamento = await _context.Medicamentos.AsNoTracking().FirstOrDefaultAsync(p => p.CodigoId == id);
 
             if (medicamento is null)
             {
