@@ -6,7 +6,6 @@ public partial class App : Application
     {
         InitializeComponent();
 
-        // Define a LoginPage como a primeira página a ser exibida
-        MainPage = new NavigationPage(new LoginPage());
+        MainPage = new MainPage();
     }
 }

@@ -1,0 +1,100 @@
+/* Centralização do container */
+.login-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f5f7fa;
+    padding: 1rem;
+}
+
+/* Card de login */
+.login-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+    /* Inputs */
+    .login-container input {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    /* Botões */
+    .login-container button {
+        width: 100%;
+        margin: 10px 0;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+    .btn-primary:hover {
+        background-color: #0069d9;
+    }
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+
+
+/* Tablets */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 1.5rem;
+        max-width: 90%;
+    }
+
+        .login-container h1 {
+            font-size: 1.5rem;
+        }
+}
+
+/* Celulares */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 1rem;
+        max-width: 100%; 
+        border-radius: 8px;
+    }
+
+        .login-container h1 {
+            font-size: 1.2rem;
+        }
+
+        .login-container p {
+            font-size: 0.9rem;
+        }
+
+        .login-container input,
+        .login-container button {
+            font-size: 14px;
+            padding: 10px;
+        }
+}

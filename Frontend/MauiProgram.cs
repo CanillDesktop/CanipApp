@@ -5,29 +5,33 @@ namespace Frontend;
 
 public static class MauiProgram
 {
-	public static MauiApp CreateMauiApp()
-	{
-		var builder = MauiApp.CreateBuilder();
-		builder
-			.UseMauiApp<App>()
-			.ConfigureFonts(fonts =>
-			{
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-			});
+    public static MauiApp CreateMauiApp()
+    {
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+            });
 
-		builder.Services.AddMauiBlazorWebView();
+        builder.Services.AddMauiBlazorWebView();
 
-		builder.Services.AddScoped<ProdutosViewModel>();
-		builder.Services.AddScoped(sp => new HttpClient
-		{
-			BaseAddress = new Uri("https://localhost:7019/")
-		});
+        builder.Services.AddScoped<ProdutosViewModel>();
+
+        // ▼▼▼ ADICIONE ESTA LINHA DE VOLTA ▼▼▼
+        builder.Services.AddScoped<LoginViewModel>();
+
+        builder.Services.AddScoped(sp => new HttpClient
+        {
+            BaseAddress = new Uri("https://localhost:7019/")
+        });
 
 #if DEBUG
-		builder.Services.AddBlazorWebViewDeveloperTools();
-		builder.Logging.AddDebug();
+        builder.Services.AddBlazorWebViewDeveloperTools();
+        builder.Logging.AddDebug();
 #endif
 
-		return builder.Build();
-	}
+        return builder.Build();
+    }
 }
