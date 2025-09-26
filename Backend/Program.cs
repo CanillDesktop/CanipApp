@@ -1,5 +1,6 @@
 
 using Backend.Context;
+using Backend.Repositories;
 using Backend.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,7 @@ namespace Backend
                 options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
 
             builder.Services.AddScoped<ProdutosService>();
+            builder.Services.AddScoped<IMedicamentosRepository,MedicamentoModelRepository > ();
 
             var app = builder.Build();
 

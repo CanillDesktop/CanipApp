@@ -1,31 +1,26 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using Shared.Enums;
 
 namespace Backend.Models.Medicamentos
 {
     
     public class MedicamentosModel
     {
-        public enum PrioridadeEnum
-        {
 
-            Baixa,
-            Media,
-            Alta
-        }
 
+        [Key]
+        public int CodigoId { get; set; }
         public PrioridadeEnum Prioridade { get; set; }
         public required String DescricaoMedicamentos { get; set; }
         public DateTime DataEntrega { get; set; }
-        public string NotaFiscal { get; set; }
-        public string NomeComercial { get; set; }
-        public string HorV { get; set; }// Esse perguntar pra eles oq significa para melhorar o nome
+        public string? NotaFiscal { get; set; }
+        public required string NomeComercial { get; set; }
+        public PublicoAlvoMedicamentoEnum PublicoAlvo { get; set; }
         public int ConsumoMensal { get; set; }
         public int ConsumoAnual { get; set; }
-        public DateTime Validade { get; set; }
-        [Key]                      
-        public string CodigoId {  get; set; }
+        public required DateTime Validade { get; set; }
         public int EstoqueDisponivel { get; set; }
         public int EntradaEstoque {  get; set; }
         public int SaidaTotalEstoque {  get; set; }
