@@ -16,47 +16,47 @@ namespace Backend.Repositories
             _context = context;
         }
 
-        public IEnumerable<MedicamentosModel> Get()
+        public async Task<IEnumerable<MedicamentosModel>> Get()
         {
-            var medicamentosRepository = _context.Medicamentos.ToList();
+            var  medicamentosRepository = await _context.Medicamentos.ToListAsync();
 
             return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
         }
 
-        public MedicamentosModel GetMedicamento(int id)
+        public async Task<MedicamentosModel> GetMedicamento(int id)
         {
 
-            var medicamentosRepository = _context.Medicamentos.FirstOrDefault(p =>p.CodigoId == id);
+            var medicamentosRepository = await _context.Medicamentos.FirstOrDefaultAsync(p =>p.CodigoId == id);
             return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
         }
-        public MedicamentosModel CreateMedicamento(MedicamentosModel Medicamento)
+        public async Task<MedicamentosModel> CreateMedicamento(MedicamentosModel Medicamento)
         {
             if (Medicamento is null)
             {
-                throw new ArgumentException(nameof(Medicamento));
+                throw new ArgumentNullException(nameof(Medicamento));
             }
 
-            _context.Medicamentos.Add(Medicamento);
-            _context.SaveChanges();
+            await _context.Medicamentos.AddAsync(Medicamento);
+           await  _context.SaveChangesAsync();
             return Medicamento;
 
         }
 
 
-        public MedicamentosModel UpdateMedicamento(MedicamentosModel Medicamento)
+        public async Task<MedicamentosModel> UpdateMedicamento(MedicamentosModel Medicamento)
         {
             if (Medicamento is null)
             {
                 throw new ArgumentException(nameof(Medicamento));
             }
             _context.Entry(Medicamento).State = EntityState.Modified;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return Medicamento;
         }
 
-        public MedicamentosModel DeleteMedicamento(int id)
+        public async Task<MedicamentosModel> DeleteMedicamento(int id)
         {
-            var medicamentosRepository = _context.Medicamentos.Find(id);
+            var medicamentosRepository = await _context.Medicamentos.FindAsync(id);
 
             if (medicamentosRepository is null)
             {
@@ -64,7 +64,7 @@ namespace Backend.Repositories
             }
 
             _context.Medicamentos.Remove(medicamentosRepository);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return medicamentosRepository;
         }
 
