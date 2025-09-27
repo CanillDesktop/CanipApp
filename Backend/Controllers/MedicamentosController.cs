@@ -20,47 +20,123 @@ namespace Backend.Controllers
         }
 
         [HttpGet]
-        public async Task< ActionResult<IEnumerable<MedicamentosModel>>>Get()
+        public async Task<ActionResult<IEnumerable<MedicamentoDTO>>> Get()
         {
             var medicamentos = await _repository.Get();
 
-            return Ok(medicamentos);
+            var medicamentosDto = new List<MedicamentoDTO>();
+            {
+
+                foreach (var i in medicamentos)
+                {
+                    var medicamentoDto = new MedicamentoDTO()
+                    {
+                        CodigoId = i.CodigoId,
+                        Prioridade = i.Prioridade,
+                        DescricaoMedicamentos = i.DescricaoMedicamentos,
+                        DataDeEntradaDoMedicamento = i.DataDeEntradaDoMedicamento,
+                        NotaFiscal = i.NotaFiscal,
+                        NomeComercial = i.NomeComercial,
+                        PublicoAlvo = i.PublicoAlvo,
+                        ConsumoMensal = i.ConsumoMensal,
+                        ConsumoAnual = i.ConsumoAnual,
+                        ValidadeMedicamento = i.ValidadeMedicamento,
+                        EstoqueDisponivel = i.EstoqueDisponivel,
+                        EntradaEstoque = i.EntradaEstoque,
+                        SaidaTotalEstoque = i.SaidaTotalEstoque
+
+                    };
+
+                    medicamentosDto.Add(medicamentoDto);
+                }
+                ;
+
+                return Ok(medicamentosDto);
+            }
         }
 
 
         [HttpGet("{id:int}")]
 
-        public async Task< ActionResult<MedicamentosModel>> GetMedicamentoById(int id)
+        public async Task<ActionResult<MedicamentoDTO>> GetMedicamentoById(int id)
         {
 
             var medicamentos =await _repository.GetMedicamento(id);
 
-            return Ok(medicamentos);
+            var medicamentoauxDto = new MedicamentoDTO()
+            { 
+                CodigoId = medicamentos.CodigoId,
+                Prioridade = medicamentos.Prioridade,
+                DescricaoMedicamentos = medicamentos.DescricaoMedicamentos,
+                DataDeEntradaDoMedicamento = medicamentos.DataDeEntradaDoMedicamento,
+                NotaFiscal = medicamentos.NotaFiscal,
+                NomeComercial = medicamentos.NomeComercial,
+                PublicoAlvo = medicamentos.PublicoAlvo,
+                ConsumoMensal = medicamentos.ConsumoMensal,
+                ConsumoAnual = medicamentos.ConsumoAnual,
+                ValidadeMedicamento = medicamentos.ValidadeMedicamento,
+                EstoqueDisponivel = medicamentos.EstoqueDisponivel,
+                EntradaEstoque = medicamentos.EntradaEstoque,
+                SaidaTotalEstoque = medicamentos.SaidaTotalEstoque
+            
+            };
+
+            return Ok(medicamentoauxDto);
 
         }
 
 
         [HttpPost]
-        public async Task<ActionResult> Post(MedicamentosModel medicamento)
+        public async Task<ActionResult<MedicamentoDTO>> Post(MedicamentoDTO medicamento)
         {
+            var medicamentoauxmodel = new MedicamentosModel()
+            {
+                CodigoId = medicamento.CodigoId,
+                Prioridade = medicamento.Prioridade,
+                DescricaoMedicamentos = medicamento.DescricaoMedicamentos,
+                DataDeEntradaDoMedicamento = medicamento.DataDeEntradaDoMedicamento,
+                NotaFiscal = medicamento.NotaFiscal,
+                NomeComercial = medicamento.NomeComercial,
+                PublicoAlvo = medicamento.PublicoAlvo,
+                ConsumoMensal = medicamento.ConsumoMensal,
+                ConsumoAnual = medicamento.ConsumoAnual,
+                ValidadeMedicamento = medicamento.ValidadeMedicamento,
+                EstoqueDisponivel = medicamento.EstoqueDisponivel,
+                EntradaEstoque = medicamento.EntradaEstoque,
+                SaidaTotalEstoque = medicamento.SaidaTotalEstoque
 
-         
-            var medicamentoCriado =await _repository.CreateMedicamento(medicamento);
+            };
 
-            return CreatedAtAction(
-                    nameof(GetMedicamentoById),
-                    new {id = medicamentoCriado.CodigoId},
-                    medicamentoCriado
-                    
-                );
+            var medicamentocriado = await _repository.CreateMedicamento(medicamentoauxmodel);
+
+            return Ok(medicamentocriado);
+
         }
 
 
         [HttpPut]
 
-        public async Task<ActionResult> Put(MedicamentosModel medicamento)
+        public async Task<ActionResult<MedicamentoDTO>> Put(MedicamentoDTO medicamento)
         {
-            var medicamentoCriado = await _repository.UpdateMedicamento(medicamento);
+            var medicamentoauxmodel = new MedicamentosModel()
+            {
+                CodigoId = medicamento.CodigoId,
+                Prioridade = medicamento.Prioridade,
+                DescricaoMedicamentos = medicamento.DescricaoMedicamentos,
+                DataDeEntradaDoMedicamento = medicamento.DataDeEntradaDoMedicamento,
+                NotaFiscal = medicamento.NotaFiscal,
+                NomeComercial = medicamento.NomeComercial,
+                PublicoAlvo = medicamento.PublicoAlvo,
+                ConsumoMensal = medicamento.ConsumoMensal,
+                ConsumoAnual = medicamento.ConsumoAnual,
+                ValidadeMedicamento = medicamento.ValidadeMedicamento,
+                EstoqueDisponivel = medicamento.EstoqueDisponivel,
+                EntradaEstoque = medicamento.EntradaEstoque,
+                SaidaTotalEstoque = medicamento.SaidaTotalEstoque
+
+            };
+
+            var medicamentoCriado = await _repository.UpdateMedicamento(medicamentoauxmodel);
 
             return Ok(medicamentoCriado);
         }
@@ -68,11 +144,28 @@ namespace Backend.Controllers
 
         [HttpDelete("{id:int}")]
 
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult<MedicamentoDTO>> Delete(int id)
         {
-            
             var medicamentoExcluido = await _repository.DeleteMedicamento(id);
-      
+
+            var medicamentoDtoExcluido = new MedicamentoDTO()
+            {
+                CodigoId = medicamentoExcluido.CodigoId,
+                Prioridade = medicamentoExcluido.Prioridade,
+                DescricaoMedicamentos = medicamentoExcluido.DescricaoMedicamentos,
+                DataDeEntradaDoMedicamento = medicamentoExcluido.DataDeEntradaDoMedicamento,
+                NotaFiscal = medicamentoExcluido.NotaFiscal,
+                NomeComercial = medicamentoExcluido.NomeComercial,
+                PublicoAlvo = medicamentoExcluido.PublicoAlvo,
+                ConsumoMensal = medicamentoExcluido.ConsumoMensal,
+                ConsumoAnual = medicamentoExcluido.ConsumoAnual,
+                ValidadeMedicamento = medicamentoExcluido.ValidadeMedicamento,
+                EstoqueDisponivel = medicamentoExcluido.EstoqueDisponivel,
+                EntradaEstoque = medicamentoExcluido.EntradaEstoque,
+                SaidaTotalEstoque = medicamentoExcluido.SaidaTotalEstoque
+
+            };
+
             return Ok(medicamentoExcluido);
 
 

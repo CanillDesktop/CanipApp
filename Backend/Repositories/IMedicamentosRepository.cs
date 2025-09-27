@@ -1,4 +1,5 @@
 ﻿using Backend.Models.Medicamentos;
+using Shared.DTOs;
 
 namespace Backend.Repositories
 {
@@ -12,5 +13,6 @@ namespace Backend.Repositories
         Task<MedicamentosModel> UpdateMedicamento(MedicamentosModel Medicamento);
 
         Task <MedicamentosModel> DeleteMedicamento(int id);
+      
     }
 }

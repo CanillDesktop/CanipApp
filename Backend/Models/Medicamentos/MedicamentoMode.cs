@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using Shared.Enums;
+using System.Text.Json.Serialization;
 
 namespace Backend.Models.Medicamentos
 {
@@ -11,6 +12,7 @@ namespace Backend.Models.Medicamentos
 
 
         [Key]
+      
         public int CodigoId { get; set; }
         public PrioridadeEnum Prioridade { get; set; }
         public required String DescricaoMedicamentos { get; set; }
@@ -20,8 +22,7 @@ namespace Backend.Models.Medicamentos
         public PublicoAlvoMedicamentoEnum PublicoAlvo { get; set; }
         public int ConsumoMensal { get; set; }
         public int ConsumoAnual { get; set; }
-        [Required]
-        public required DateOnly ValidadeMedicamento { get; set; }
+        public required DateOnly? ValidadeMedicamento { get; set; }
         public int EstoqueDisponivel { get; set; }
         public int EntradaEstoque {  get; set; }
         public int SaidaTotalEstoque {  get; set; }
