@@ -24,36 +24,26 @@ namespace Backend.Controllers
         {
             var medicamentos = await _repository.Get();
 
-            var medicamentosDto = new List<MedicamentoDTO>();
+            var medicamentosDto = medicamentos.Select(i => new MedicamentoDTO
             {
-
-                foreach (var i in medicamentos)
-                {
-                    var medicamentoDto = new MedicamentoDTO()
-                    {
-                        CodigoId = i.CodigoId,
-                        Prioridade = i.Prioridade,
-                        DescricaoMedicamentos = i.DescricaoMedicamentos,
-                        DataDeEntradaDoMedicamento = i.DataDeEntradaDoMedicamento,
-                        NotaFiscal = i.NotaFiscal,
-                        NomeComercial = i.NomeComercial,
-                        PublicoAlvo = i.PublicoAlvo,
-                        ConsumoMensal = i.ConsumoMensal,
-                        ConsumoAnual = i.ConsumoAnual,
-                        ValidadeMedicamento = i.ValidadeMedicamento,
-                        EstoqueDisponivel = i.EstoqueDisponivel,
-                        EntradaEstoque = i.EntradaEstoque,
-                        SaidaTotalEstoque = i.SaidaTotalEstoque
-
-                    };
-
-                    medicamentosDto.Add(medicamentoDto);
-                }
-                ;
-
+                CodigoId = i.CodigoId,
+                Prioridade = i.Prioridade,
+                DescricaoMedicamentos = i.DescricaoMedicamentos,
+                DataDeEntradaDoMedicamento = i.DataDeEntradaDoMedicamento,
+                NotaFiscal = i.NotaFiscal,
+                NomeComercial = i.NomeComercial,
+                PublicoAlvo = i.PublicoAlvo,
+                ConsumoMensal = i.ConsumoMensal,
+                ConsumoAnual = i.ConsumoAnual,
+                ValidadeMedicamento = i.ValidadeMedicamento,
+                EstoqueDisponivel = i.EstoqueDisponivel,
+                EntradaEstoque = i.EntradaEstoque,
+                SaidaTotalEstoque = i.SaidaTotalEstoque
+             }).ToList();
+                
                 return Ok(medicamentosDto);
             }
-        }
+        
 
 
         [HttpGet("{id:int}")]
