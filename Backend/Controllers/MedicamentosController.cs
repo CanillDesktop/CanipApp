@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
 using Backend.Context;
 using Backend.Models.Medicamentos;
-using Backend.Repositories;
+
+using Backend.Services;
 
 namespace Backend.Controllers
 {
@@ -12,123 +13,53 @@ namespace Backend.Controllers
 
     public class MedicamentosController : ControllerBase
     {
-        private readonly IMedicamentosRepository _repository;
+        private readonly IMedicamentosService _service;
 
-        public MedicamentosController(IMedicamentosRepository repository)
+        public MedicamentosController(IMedicamentosService service)
         {
-           _repository = repository;
+           _service = service;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MedicamentoDTO>>> Get()
         {
-            var medicamentos = await _repository.Get();
+            var medicamentos = await _service.GetAllMedicamentos();
+            return Ok(medicamentos);
 
-            var medicamentosDto = medicamentos.Select(i => new MedicamentoDTO
-            {
-                CodigoId = i.CodigoId,
-                Prioridade = i.Prioridade,
-                DescricaoMedicamentos = i.DescricaoMedicamentos,
-                DataDeEntradaDoMedicamento = i.DataDeEntradaDoMedicamento,
-                NotaFiscal = i.NotaFiscal,
-                NomeComercial = i.NomeComercial,
-                PublicoAlvo = i.PublicoAlvo,
-                ConsumoMensal = i.ConsumoMensal,
-                ConsumoAnual = i.ConsumoAnual,
-                ValidadeMedicamento = i.ValidadeMedicamento,
-                EstoqueDisponivel = i.EstoqueDisponivel,
-                EntradaEstoque = i.EntradaEstoque,
-                SaidaTotalEstoque = i.SaidaTotalEstoque
-             }).ToList();
-                
-                return Ok(medicamentosDto);
-            }
-        
+        }
 
 
         [HttpGet("{id:int}")]
 
         public async Task<ActionResult<MedicamentoDTO>> GetMedicamentoById(int id)
         {
-
-            var medicamentos =await _repository.GetMedicamento(id);
-
-            var medicamentoauxDto = new MedicamentoDTO()
-            { 
-                CodigoId = medicamentos.CodigoId,
-                Prioridade = medicamentos.Prioridade,
-                DescricaoMedicamentos = medicamentos.DescricaoMedicamentos,
-                DataDeEntradaDoMedicamento = medicamentos.DataDeEntradaDoMedicamento,
-                NotaFiscal = medicamentos.NotaFiscal,
-                NomeComercial = medicamentos.NomeComercial,
-                PublicoAlvo = medicamentos.PublicoAlvo,
-                ConsumoMensal = medicamentos.ConsumoMensal,
-                ConsumoAnual = medicamentos.ConsumoAnual,
-                ValidadeMedicamento = medicamentos.ValidadeMedicamento,
-                EstoqueDisponivel = medicamentos.EstoqueDisponivel,
-                EntradaEstoque = medicamentos.EntradaEstoque,
-                SaidaTotalEstoque = medicamentos.SaidaTotalEstoque
-            
-            };
-
-            return Ok(medicamentoauxDto);
-
+            var medicamento = await _service.GetMedById(id);
+            if (medicamento == null)
+            {
+                return NotFound($"Medicamento com o ID {id} não foi encontrado.");
+            }
+            return Ok(medicamento);
         }
 
 
         [HttpPost]
-        public async Task<ActionResult<MedicamentoDTO>> Post(MedicamentoDTO medicamento)
+        public async Task<ActionResult<MedicamentoDTO>> Post(MedicamentoDTO medicamentoDto)
         {
-            var medicamentoauxmodel = new MedicamentosModel()
-            {
-                CodigoId = medicamento.CodigoId,
-                Prioridade = medicamento.Prioridade,
-                DescricaoMedicamentos = medicamento.DescricaoMedicamentos,
-                DataDeEntradaDoMedicamento = medicamento.DataDeEntradaDoMedicamento,
-                NotaFiscal = medicamento.NotaFiscal,
-                NomeComercial = medicamento.NomeComercial,
-                PublicoAlvo = medicamento.PublicoAlvo,
-                ConsumoMensal = medicamento.ConsumoMensal,
-                ConsumoAnual = medicamento.ConsumoAnual,
-                ValidadeMedicamento = medicamento.ValidadeMedicamento,
-                EstoqueDisponivel = medicamento.EstoqueDisponivel,
-                EntradaEstoque = medicamento.EntradaEstoque,
-                SaidaTotalEstoque = medicamento.SaidaTotalEstoque
-
-            };
-
-            var medicamentocriado = await _repository.CreateMedicamento(medicamentoauxmodel);
-
-            return Ok(medicamentocriado);
-
+            var novoMedicamento = await _service.CreateMedicamento(medicamentoDto);
+            return CreatedAtAction(nameof(GetMedicamentoById), new { id = novoMedicamento.CodigoId }, novoMedicamento);
         }
 
 
         [HttpPut]
 
-        public async Task<ActionResult<MedicamentoDTO>> Put(MedicamentoDTO medicamento)
+        public async Task<ActionResult<MedicamentoDTO>> Put(MedicamentoDTO medicamentoDto)
         {
-            var medicamentoauxmodel = new MedicamentosModel()
+            var medicamentoAtualizado = await _service.UpdateMedicamento(medicamentoDto);
+            if (medicamentoAtualizado == null)
             {
-                CodigoId = medicamento.CodigoId,
-                Prioridade = medicamento.Prioridade,
-                DescricaoMedicamentos = medicamento.DescricaoMedicamentos,
-                DataDeEntradaDoMedicamento = medicamento.DataDeEntradaDoMedicamento,
-                NotaFiscal = medicamento.NotaFiscal,
-                NomeComercial = medicamento.NomeComercial,
-                PublicoAlvo = medicamento.PublicoAlvo,
-                ConsumoMensal = medicamento.ConsumoMensal,
-                ConsumoAnual = medicamento.ConsumoAnual,
-                ValidadeMedicamento = medicamento.ValidadeMedicamento,
-                EstoqueDisponivel = medicamento.EstoqueDisponivel,
-                EntradaEstoque = medicamento.EntradaEstoque,
-                SaidaTotalEstoque = medicamento.SaidaTotalEstoque
-
-            };
-
-            var medicamentoCriado = await _repository.UpdateMedicamento(medicamentoauxmodel);
-
-            return Ok(medicamentoCriado);
+                return NotFound($"Medicamento com o ID não foi encontrado.");
+            }
+            return Ok(medicamentoAtualizado);
         }
        
 
@@ -136,29 +67,13 @@ namespace Backend.Controllers
 
         public async Task<ActionResult<MedicamentoDTO>> Delete(int id)
         {
-            var medicamentoExcluido = await _repository.DeleteMedicamento(id);
-
-            var medicamentoDtoExcluido = new MedicamentoDTO()
+            var sucesso = await _service.DeleteMedicamento(id);
+            if (!sucesso)
             {
-                CodigoId = medicamentoExcluido.CodigoId,
-                Prioridade = medicamentoExcluido.Prioridade,
-                DescricaoMedicamentos = medicamentoExcluido.DescricaoMedicamentos,
-                DataDeEntradaDoMedicamento = medicamentoExcluido.DataDeEntradaDoMedicamento,
-                NotaFiscal = medicamentoExcluido.NotaFiscal,
-                NomeComercial = medicamentoExcluido.NomeComercial,
-                PublicoAlvo = medicamentoExcluido.PublicoAlvo,
-                ConsumoMensal = medicamentoExcluido.ConsumoMensal,
-                ConsumoAnual = medicamentoExcluido.ConsumoAnual,
-                ValidadeMedicamento = medicamentoExcluido.ValidadeMedicamento,
-                EstoqueDisponivel = medicamentoExcluido.EstoqueDisponivel,
-                EntradaEstoque = medicamentoExcluido.EntradaEstoque,
-                SaidaTotalEstoque = medicamentoExcluido.SaidaTotalEstoque
-
-            };
-
-            return Ok(medicamentoExcluido);
-
-
+                return NotFound($"Medicamento com o ID {id} não foi encontrado.");
+            }
+            // Retorna um status 204 (No Content), ideal para deleções bem-sucedidas
+            return NoContent();
         }
     }
 }
