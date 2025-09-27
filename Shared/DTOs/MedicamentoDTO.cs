@@ -12,7 +12,7 @@ namespace Shared.DTOs
    public class MedicamentoDTO
     {
         [Key]
-        [JsonIgnore]
+      
         public int CodigoId { get; set; }
         public PrioridadeEnum Prioridade { get; set; }
         public required String DescricaoMedicamentos { get; set; }

@@ -77,7 +77,7 @@ namespace Backend.Services
             return true;
         }
 
-        // --- Métodos de Mapeamento Privados ---
+       
 
         private MedicamentoDTO MapModelToDto(MedicamentosModel model)
         {

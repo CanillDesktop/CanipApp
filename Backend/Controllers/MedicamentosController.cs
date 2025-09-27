@@ -72,7 +72,7 @@ namespace Backend.Controllers
             {
                 return NotFound($"Medicamento com o ID {id} não foi encontrado.");
             }
-            // Retorna um status 204 (No Content), ideal para deleções bem-sucedidas
+          
             return NoContent();
         }
     }

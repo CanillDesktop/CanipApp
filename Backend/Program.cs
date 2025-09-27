@@ -24,6 +24,7 @@ namespace Backend
 
             builder.Services.AddScoped<ProdutosService>();
             builder.Services.AddScoped<IMedicamentosRepository,MedicamentoModelRepository > ();
+            builder.Services.AddScoped<IMedicamentosService, MedicamentosService>();
 
             var app = builder.Build();
 
