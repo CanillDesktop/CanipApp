@@ -47,7 +47,7 @@ namespace Backend.Repositories
         {
             if (Medicamento is null)
             {
-                throw new ArgumentException(nameof(Medicamento));
+                throw new ArgumentException(null, nameof(Medicamento));
             }
             _context.Entry(Medicamento).State = EntityState.Modified;
             await _context.SaveChangesAsync();

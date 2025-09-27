@@ -14,5 +14,10 @@ namespace Backend.Context
         {
             throw new NotImplementedException();
         }
+
+        internal async Task FindAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

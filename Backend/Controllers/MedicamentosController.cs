@@ -20,9 +20,9 @@ namespace Backend.Controllers
         }
 
         [HttpGet]
-        public  ActionResult<IEnumerable<MedicamentosModel>>Get()
+        public async Task< ActionResult<IEnumerable<MedicamentosModel>>>Get()
         {
-            var medicamentos = _repository.Get();
+            var medicamentos = await _repository.Get();
 
             return Ok(medicamentos);
         }
@@ -30,48 +30,48 @@ namespace Backend.Controllers
 
         [HttpGet("{id:int}")]
 
-        public  ActionResult<MedicamentosModel> Get(int id)
+        public async Task< ActionResult<MedicamentosModel>> GetMedicamentoById(int id)
         {
 
-            var medicamentos = _repository.GetMedicamento(id);
+            var medicamentos =await _repository.GetMedicamento(id);
 
-            if (medicamentos is null)
-            {
-                return NotFound(id);
-            }
-
-            return medicamentos;
+            return Ok(medicamentos);
 
         }
 
 
         [HttpPost]
-        public ActionResult Post(MedicamentosModel medicamento)
+        public async Task<ActionResult> Post(MedicamentosModel medicamento)
         {
 
-            if (medicamento is null)
-            {
-                return BadRequest("Dados invalidos");
+         
+            var medicamentoCriado =await _repository.CreateMedicamento(medicamento);
 
-            }
-            var medicamentoCriado =_repository.UpdateMedicamento(medicamento);
-
-            return new CreatedAtRouteResult("Medicamento Obtido", new { id = medicamentoCriado.CodigoId }, medicamentoCriado);
+            return CreatedAtAction(
+                    nameof(GetMedicamentoById),
+                    new {id = medicamentoCriado.CodigoId},
+                    medicamentoCriado
+                    
+                );
         }
 
+
+        [HttpPut]
+
+        public async Task<ActionResult> Put(MedicamentosModel medicamento)
+        {
+            var medicamentoCriado = await _repository.UpdateMedicamento(medicamento);
+
+            return Ok(medicamentoCriado);
+        }
        
 
         [HttpDelete("{id:int}")]
 
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            var medicamentoCriado = _repository.GetMedicamento(id);
-            if (medicamentoCriado is null)
-            {
-                return NotFound("Medicamento nao encontrado na base de dados");
-            }
-
-            var medicamentoExcluido = _repository.DeleteMedicamento(id);
+            
+            var medicamentoExcluido = await _repository.DeleteMedicamento(id);
       
             return Ok(medicamentoExcluido);
 
