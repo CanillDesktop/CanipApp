@@ -4,10 +4,10 @@ namespace Backend.Services
 {
     public interface IMedicamentosService
     {
-        Task<IEnumerable<MedicamentoDTO>> GetAllMedicamentos();
-        Task<MedicamentoDTO?> GetMedById(int id);
-        Task<MedicamentoDTO> CreateMedicamento(MedicamentoDTO medicamentoDto);
-        Task<MedicamentoDTO?> UpdateMedicamento(MedicamentoDTO medicamentoDto);
-        Task<bool> DeleteMedicamento(int id);
+        Task<IEnumerable<MedicamentoDTO>> RetornarMedicamentos();
+        Task<MedicamentoDTO?> RetornarMedicamentoId(int id);
+        Task<MedicamentoDTO>CriarMedicamento(MedicamentoDTO medicamentoDto);
+        Task<MedicamentoDTO?> AtualizarMedicamento(MedicamentoDTO medicamentoDto);
+        Task<bool> DeletarMedicamento(int id);
     }
 }
