@@ -59,10 +59,18 @@
 
     <ItemGroup>
       <Content Remove="Components\Layout\Component1.razor" />
+      <Content Remove="Components\Pages\Component.razor" />
+      <Content Remove="Components\Pages\Component1.razor" />
+      <Content Remove="Components\Pages\Component2.razor" />
+      <Content Remove="Components\Pages\Component3.razor" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
