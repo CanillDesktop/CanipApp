@@ -10,7 +10,8 @@ namespace Frontend.ViewModels
     {
         private readonly HttpClient _http;
 
-        public ObservableCollection<ProdutosDTO> Produtos { get; } = [];
+        public ObservableCollection<ProdutosDTO> Produtos { get; } = new ObservableCollection<ProdutosDTO>();
+
 
         [ObservableProperty]
         private bool carregando;

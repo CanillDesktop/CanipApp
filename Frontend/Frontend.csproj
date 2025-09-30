@@ -59,8 +59,6 @@
 
     <ItemGroup>
       <Content Remove="Components\Layout\Component1.razor" />
-      <Content Remove="Components\Pages\Component.razor" />
-      <Content Remove="Components\Pages\Component1.razor" />
       <Content Remove="Components\Pages\Component2.razor" />
       <Content Remove="Components\Pages\Component3.razor" />
     </ItemGroup>

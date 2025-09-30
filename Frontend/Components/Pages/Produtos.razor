@@ -1,7 +1,10 @@
-﻿@page "/produtos"
-
+﻿
+@page "/produtos"
+@using Frontend.ViewModels
 
 @inject NavigationManager Navigation
+@inject ProdutosViewModel VM
+
 
 <PageTitle>Produtos</PageTitle>
 
@@ -42,4 +45,3 @@
 
 </div>
 <button @onclick="VM.CarregarProdutosAsync">Atualizar</button>
-
