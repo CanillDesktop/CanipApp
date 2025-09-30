@@ -40,7 +40,7 @@ namespace Backend.Controllers
                 return NotFound(id);
             }
 
-            return medicamentos;
+            return Ok();//medicamentos;
 
         }
 
@@ -56,7 +56,7 @@ namespace Backend.Controllers
             }
             var medicamentoCriado =_repository.UpdateMedicamento(medicamento);
 
-            return new CreatedAtRouteResult("Medicamento Obtido", new { id = medicamentoCriado.CodigoId }, medicamentoCriado);
+            return Ok();// new CreatedAtRouteResult("Medicamento Obtido", new { id = medicamentoCriado.CodigoId }, medicamentoCriado);
         }
 
        
