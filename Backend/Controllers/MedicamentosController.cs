@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
-using Backend.Context;
 using Backend.Models.Medicamentos;
-using Backend.Repositories;
+
+using Backend.Services;
 
 namespace Backend.Controllers
 {
@@ -12,70 +12,67 @@ namespace Backend.Controllers
 
     public class MedicamentosController : ControllerBase
     {
-        private readonly IMedicamentosRepository _repository;
+        private readonly IMedicamentosService _service;
 
-        public MedicamentosController(IMedicamentosRepository repository)
+        public MedicamentosController(IMedicamentosService service)
         {
-           _repository = repository;
+           _service = service;
         }
 
         [HttpGet]
-        public  ActionResult<IEnumerable<MedicamentosModel>>Get()
+        public async Task<ActionResult<IEnumerable<MedicamentoDTO>>> Get()
         {
-            var medicamentos = _repository.Get();
-
+            var medicamentos = await _service.RetornarMedicamentos();
             return Ok(medicamentos);
+
         }
 
 
         [HttpGet("{id:int}")]
 
-        public  ActionResult<MedicamentosModel> Get(int id)
+        public async Task<ActionResult<MedicamentoDTO>> GetMedicamentoById(int id)
         {
-
-            var medicamentos = _repository.GetMedicamento(id);
-
-            if (medicamentos is null)
+            var medicamento = await _service.RetornarMedicamentoId(id);
+            if (medicamento == null)
             {
-                return NotFound(id);
+                return NotFound($"Medicamento com o ID {id} não foi encontrado.");
             }
-
-            return Ok();//medicamentos;
-
+            return Ok(medicamento);
         }
 
 
         [HttpPost]
-        public ActionResult Post(MedicamentosModel medicamento)
+        public async Task<ActionResult<MedicamentoDTO>> Post(MedicamentoDTO medicamentoDto)
         {
-
-            if (medicamento is null)
-            {
-                return BadRequest("Dados invalidos");
-
-            }
-            var medicamentoCriado =_repository.UpdateMedicamento(medicamento);
-
-            return Ok();// new CreatedAtRouteResult("Medicamento Obtido", new { id = medicamentoCriado.CodigoId }, medicamentoCriado);
+            var novoMedicamento = await _service.CriarMedicamento(medicamentoDto);
+            return CreatedAtAction(nameof(GetMedicamentoById), new { id = novoMedicamento.CodigoId }, novoMedicamento);
         }
 
+
+        [HttpPut]
+
+        public async Task<ActionResult<MedicamentoDTO>> Put(MedicamentoDTO medicamentoDto)
+        {
+            var medicamentoAtualizado = await _service.AtualizarMedicamento(medicamentoDto);
+            if (medicamentoAtualizado == null)
+            {
+                return NotFound($"Medicamento com o ID não foi encontrado.");
+            }
+            return Ok(medicamentoAtualizado);
+        }
        
 
         [HttpDelete("{id:int}")]
 
-        public ActionResult Delete(int id)
+        public async Task<ActionResult<MedicamentoDTO>> Delete(int id)
         {
-            var medicamentoCriado = _repository.GetMedicamento(id);
-            if (medicamentoCriado is null)
+            var sucesso = await _service.DeletarMedicamento(id);
+            if (!sucesso)
             {
-                return NotFound("Medicamento nao encontrado na base de dados");
+                return NotFound($"Medicamento com o ID {id} não foi encontrado.");
             }
-
-            var medicamentoExcluido = _repository.DeleteMedicamento(id);
-      
-            return Ok(medicamentoExcluido);
-
-
+          
+            return NoContent();
         }
     }
 }

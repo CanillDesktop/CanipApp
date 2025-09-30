@@ -23,7 +23,8 @@ namespace Backend
                 options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
 
             builder.Services.AddScoped<ProdutosService>();
-           // builder.Services.AddScoped<IMedicamentosRepository,MedicamentoModelRepository > ();
+            builder.Services.AddScoped<IMedicamentosRepository,MedicamentoModelRepository > ();
+            builder.Services.AddScoped<IMedicamentosService, MedicamentosService>();
 
             var app = builder.Build();
 

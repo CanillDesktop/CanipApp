@@ -10,9 +10,5 @@ namespace Backend.Context
 
         public DbSet<MedicamentosModel> Medicamentos {  get; set; }
 
-        internal object EntryAsync(MedicamentosModel medicamento)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
