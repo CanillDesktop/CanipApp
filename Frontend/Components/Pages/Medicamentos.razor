@@ -1,0 +1,20 @@
+﻿@page "/medicamentos"
+
+@inject NavigationManager Navigation
+
+<PageTitle>Medicamentos</PageTitle>
+
+<h3>Medicamentos</h3>
+
+<button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+    <i class="bi bi-arrow-left"></i> Voltar para Home
+</button>
+
+<p>Bem-vindo à página de Medicamentos!</p>
+
+@code {
+    private void VoltarParaHome()
+    {
+        Navigation.NavigateTo("/home");// rota raiz
+    }
+}

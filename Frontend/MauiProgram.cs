@@ -19,7 +19,7 @@ public static class MauiProgram
 
         builder.Services.AddScoped<ProdutosViewModel>();
 
-        // ▼▼▼ ADICIONE ESTA LINHA DE VOLTA ▼▼▼
+        
         builder.Services.AddScoped<LoginViewModel>();
 
         builder.Services.AddScoped(sp => new HttpClient

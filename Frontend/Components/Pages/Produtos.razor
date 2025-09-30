@@ -1,5 +1,26 @@
 ﻿@page "/produtos"
-@inject Frontend.ViewModels.ProdutosViewModel VM
+
+
+@inject NavigationManager Navigation
+
+<PageTitle>Produtos</PageTitle>
+
+<h3>Produtos</h3>
+
+
+<button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+    <i class="bi bi-arrow-left"></i> Voltar para Home
+</button>
+
+<p>Bem-vindo à página de Produtos!</p>
+
+@code {
+    private void VoltarParaHome()
+    {
+        Navigation.NavigateTo("/home");
+        // rota raiz
+    }
+}
 
 <div>
     <label class="textoSimples">Home / Bancos / Produtos</label>
@@ -21,3 +42,4 @@
 
 </div>
 <button @onclick="VM.CarregarProdutosAsync">Atualizar</button>
+

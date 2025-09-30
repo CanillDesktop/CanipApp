@@ -1,7 +1,9 @@
 ﻿@inherits LayoutComponentBase
 
+<button class="menu-toggle" @onclick="ToggleSidebar">☰</button>
+
 <div class="page">
-    <div class="sidebar">
+    <div class="sidebar @(isSidebarOpen ? "" : "closed")">
         <NavMenu />
     </div>
 
@@ -15,3 +17,12 @@
         </article>
     </main>
 </div>
+
+@code {
+    private bool isSidebarOpen = true;
+
+    private void ToggleSidebar()
+    {
+        isSidebarOpen = !isSidebarOpen;
+    }
+}
