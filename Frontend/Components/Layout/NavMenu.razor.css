@@ -80,7 +80,10 @@
 
 .nav-scrollable {
     display: none;
+    background: linear-gradient(to bottom, #024873, #03A6A6);
 }
+
+
 
 .navbar-toggler:checked ~ .nav-scrollable {
     display: block;
