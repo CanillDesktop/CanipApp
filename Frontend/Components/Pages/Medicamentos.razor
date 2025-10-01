@@ -6,17 +6,6 @@
 @inject MedicamentosViewModel VM
 
 
-<PageTitle>Produtos</PageTitle>
-
-<h3>Produtos</h3>
-
-
-<button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
-    <i class="bi bi-arrow-left"></i> Voltar para Home
-</button>
-
-<p>Bem-vindo à página de Produtos!</p>
-
 @code {
     private void VoltarParaHome()
     {
@@ -25,16 +14,20 @@
     }
 }
 
-<div>
-    <label class="textoSimples">Home / Bancos / Produtos</label>
+<button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+    <i class="bi bi-arrow-left"></i> Voltar para Home
+</button>
 
+<div>
+
+    <PageTitle>Medicamentos</PageTitle>
     <h1>Medicamentos</h1>
 
     <div class="caixaBranca"> </div>
 
         @if (VM.Carregando)
         {
-            <p>Carregando...</p>
+        <div class="spinner"></div>
         }
         else
         {
@@ -66,6 +59,9 @@
        
 
 </div>
-<button @onclick="VM.CarregarProdutosAsync">Carregar Banco de Dados</button>
-<button @onclick="VM.CriarProdutosAsync">Cadastrar</button>
-<button @onclick="VM.DeletarProduto">Deletar Produto</button>
+
+<div class="botoes">
+    <button @onclick="VM.CarregarProdutosAsync">Carregar Banco de Dados</button>
+    <button @onclick="VM.CriarProdutosAsync">Cadastrar</button>
+    <button @onclick="VM.DeletarProduto">Deletar Produto</button>
+</div>

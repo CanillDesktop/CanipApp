@@ -5,14 +5,6 @@
 @inject NavigationManager Navigation
 @inject ProdutosViewModel VM
 
-
-<div class="centralizarObjetosVerticalmente">
-    <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
-        <i class="bi bi-arrow-left"></i> Voltar para Home
-    </button>
-    <p class="textoSimples">Home / Bancos / Produtos</p>
-</div>
-
 @code {
     private void VoltarParaHome()
     {
@@ -21,10 +13,15 @@
     }
 }
 
+<div class="centralizarObjetosVerticalmente">
+    <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+        <i class="bi bi-arrow-left"></i> Voltar para Home
+    </button>
+</div>
+
 <div>
-
-
-    <h1 class="pageTitle">Produtos</h1>
+    <PageTitle>Produtos</PageTitle>
+    <h1>Produtos</h1>
 
     <div class="caixaBranca">
     @if (VM.Carregando){
@@ -42,4 +39,9 @@
     
 
 </div>
-<button @onclick="VM.CarregarProdutosAsync">Atualizar</button>
+
+<div class="botoes">
+    <button @onclick="VM.CarregarProdutosAsync">Carregar Banco de Dados</button>
+    <button >Cadastrar</button>
+    <button >Deletar Produto</button>
+</div>
