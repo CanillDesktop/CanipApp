@@ -6,16 +6,12 @@
 @inject ProdutosViewModel VM
 
 
-<PageTitle>Produtos</PageTitle>
-
-<h3>Produtos</h3>
-
-
-<button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
-    <i class="bi bi-arrow-left"></i> Voltar para Home
-</button>
-
-<p>Bem-vindo à página de Produtos!</p>
+<div class="centralizarObjetosVerticalmente">
+    <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+        <i class="bi bi-arrow-left"></i> Voltar para Home
+    </button>
+    <p class="textoSimples">Home / Bancos / Produtos</p>
+</div>
 
 @code {
     private void VoltarParaHome()
@@ -26,14 +22,13 @@
 }
 
 <div>
-    <label class="textoSimples">Home / Bancos / Produtos</label>
 
-    <h1>Produtos</h1>
 
-    <div class="caixaBranca"></div>
+    <h1 class="pageTitle">Produtos</h1>
 
+    <div class="caixaBranca">
     @if (VM.Carregando){
-        <p>Carregando...</p>
+        <div class="spinner"></div>
     }
     else{
         <ul>
@@ -42,6 +37,9 @@
             }
         </ul>
     }
+    </div>
+
+    
 
 </div>
 <button @onclick="VM.CarregarProdutosAsync">Atualizar</button>
