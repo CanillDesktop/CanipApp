@@ -1,20 +1,68 @@
 ﻿@page "/medicamentos"
+@using Frontend.ViewModels
 
 @inject NavigationManager Navigation
+@inject MedicamentosViewModel VM
 
-<PageTitle>Medicamentos</PageTitle>
 
-<h3>Medicamentos</h3>
+<PageTitle>Produtos</PageTitle>
+
+<h3>Produtos</h3>
+
 
 <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
     <i class="bi bi-arrow-left"></i> Voltar para Home
 </button>
 
-<p>Bem-vindo à página de Medicamentos!</p>
+<p>Bem-vindo à página de Produtos!</p>
 
 @code {
     private void VoltarParaHome()
     {
-        Navigation.NavigateTo("/home");// rota raiz
+        Navigation.NavigateTo("/home");
+        // rota raiz
     }
 }
+
+<div>
+    <label class="textoSimples">Home / Bancos / Produtos</label>
+
+    <h1>Medicamentos</h1>
+
+    <div class="caixaBranca">
+
+        @if (VM.Carregando)
+        {
+            <p>Carregando...</p>
+        }
+        else
+        {
+            <ul>
+                <li>
+                @foreach (var p in VM.Medicamentos)
+                {
+                        <table>
+                      <tr>Nome Comercial: @p.NomeComercial</tr>
+                      <tr>Descricao do medicamento: @p.DescricaoMedicamentos</tr>
+                       <tr>Codigo do medicamento: @p.CodigoId</tr>
+                        <tr>Nota Fiscal: @p.NotaFiscal</tr>
+                        <tr>Consumo mensal: @p.ConsumoMensal</tr>
+                        <tr>Consumo Anual: @p.ConsumoAnual</tr>
+                        <tr>Entradas no Estoque: @p.EntradaEstoque</tr>
+                        <tr>Saidas no Estoque: @p.SaidaTotalEstoque</tr>
+                        <tr>Estoque Disponivel: @p.EstoqueDisponivel</tr>
+                        <tr> Validade: @p.ValidadeMedicamento</tr>
+                        <tr> Publico Alvo: @p.PublicoAlvo</tr>
+                        <tr>Prioridade: @p.Prioridade</tr>
+                        <tr> Data da entrada: @p.DataDeEntradaDoMedicamento</tr>
+                   
+                  </table>
+                }
+
+                </li>
+            </ul>
+        }
+        </div>
+
+</div>
+<button @onclick="VM.CarregarProdutosAsync">Atualizar</button>
