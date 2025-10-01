@@ -1,8 +1,9 @@
-
-using Backend.Context;
 using Backend.Repositories;
 using Backend.Services;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace Backend
 {
@@ -16,16 +17,60 @@ namespace Backend
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Minha API", Version = "v1" });
 
-            string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddDbContext<CanilAppDbContext>(options =>
-                options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+            });
+
+            //string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+            //builder.Services.AddDbContext<CanilAppDbContext>(options =>
+            //    options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
 
             builder.Services.AddScoped<ProdutosService>();
-            builder.Services.AddScoped<IMedicamentosRepository,MedicamentoModelRepository > ();
+            //builder.Services.AddScoped<IMedicamentosRepository,MedicamentoModelRepository > ();
+            builder.Services.AddScoped<UsuariosService>();
 
-            var app = builder.Build();
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = "backend",
+                        ValidAudience = "CanilApp",
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("chave_simetrica_de_teste_validacao"))
+                    };
+                });
+
+
+var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -36,8 +81,8 @@ namespace Backend
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

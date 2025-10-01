@@ -1,5 +1,6 @@
 ﻿using Backend.Models.Produtos;
 using Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
 
@@ -7,6 +8,7 @@ namespace Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ProdutosController : ControllerBase
     {
         private readonly ProdutosService _service;
@@ -17,9 +19,9 @@ namespace Backend.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<ProdutosDTO> Get()
+        public ActionResult<IEnumerable<ProdutosDTO>> Get()
         {
-            return _service.GetAll().Select(p => (ProdutosDTO)p);
+            return Ok(_service.GetAll().Select(p => (ProdutosDTO)p));
         }
 
         [HttpGet("{id}")]
@@ -31,7 +33,7 @@ namespace Backend.Controllers
                 return NotFound();
 
 
-            return (ProdutosDTO)model;
+            return Ok((ProdutosDTO)model);
         }
 
         [HttpPost]
