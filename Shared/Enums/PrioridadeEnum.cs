@@ -9,9 +9,9 @@ namespace Shared.Enums
     public enum PrioridadeEnum
     {
         
-           BAIXA,
-            MEDIA,
-            ALTA
+           Baixa,
+            Media,
+            Alta
         
     }
 }

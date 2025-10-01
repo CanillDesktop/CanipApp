@@ -1,16 +1,8 @@
 ﻿@page "/insumos"
+@using Frontend.ViewModels
+
 @inject NavigationManager Navigation
-
-<PageTitle>Insumos</PageTitle>
-
-<h3>Insumos</h3>
-
-
-<button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
-    <i class="bi bi-arrow-left"></i> Voltar para Home
-</button>
-
-<p>Bem-vindo à página de Insumos!</p>
+@inject ProdutosViewModel VM
 
 @code {
     private void VoltarParaHome()
@@ -19,3 +11,39 @@
         // rota raiz
     }
 }
+
+<div class="centralizarObjetosVerticalmente">
+    <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+        <i class="bi bi-arrow-left"></i> Voltar para Home
+    </button>
+</div>
+
+<div>
+    <PageTitle>Insumos</PageTitle>
+    <h1>Insumos</h1>
+
+    <div class="caixaBranca">
+        @if (VM.Carregando)
+        {
+            <div class="spinner"></div>
+        }
+        else
+        {
+            <ul>
+                @foreach (var p in VM.Produtos)
+                {
+                    <li>@p.Codigo - @p.DescricaoDetalhada</li>
+                }
+            </ul>
+        }
+    </div>
+
+
+
+</div>
+
+<div class="botoes">
+    <button @onclick="VM.CarregarProdutosAsync">Carregar Banco de Dados</button>
+    <button>Cadastrar</button>
+    <button>Deletar Produto</button>
+</div>

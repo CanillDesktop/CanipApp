@@ -1,19 +1,10 @@
-﻿@page "/produtos"
+
+@page "/produtos"
 @using Frontend.ViewModels
 
 @inject NavigationManager Navigation
-@inject ProdutosViewModel VM  
+@inject ProdutosViewModel VM
 
-<PageTitle>Produtos</PageTitle>
-
-<h3>Produtos</h3>
-
-
-<button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
-    <i class="bi bi-arrow-left"></i> Voltar para Home
-</button>
-
-<p>Bem-vindo à página de Produtos!</p>
 
 @code {
     private void VoltarParaHome()
@@ -23,24 +14,35 @@
     }
 }
 
-<div>
-    <label class="textoSimples">Home / Bancos / Produtos</label>
+<div class="centralizarObjetosVerticalmente">
+    <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+        <i class="bi bi-arrow-left"></i> Voltar para Home
+    </button>
+</div>
 
+<div>
+    <PageTitle>Produtos</PageTitle>
     <h1>Produtos</h1>
 
-    <div class="caixaBranca"></div>
-
+    <div class="caixaBranca">
     @if (VM.Carregando){
-        <p>Carregando...</p>
+        <div class="spinner"></div>
     }
     else{
         <ul>
             @foreach (var p in VM.Produtos){
-                <li>@p.DescricaoSimples - @p.Quantidade</li>
+                <li>@p.Codigo - @p.DescricaoDetalhada</li>
             }
         </ul>
     }
+    </div>
+
+    
 
 </div>
-<button @onclick="VM.CarregarProdutosAsync">Atualizar</button>
 
+<div class="botoes">
+    <button @onclick="VM.CarregarProdutosAsync">Carregar Banco de Dados</button>
+    <button >Cadastrar</button>
+    <button >Deletar Produto</button>
+</div>

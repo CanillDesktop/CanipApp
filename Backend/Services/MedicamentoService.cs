@@ -13,14 +13,14 @@ namespace Backend.Services
             _repository = repository;
         }
 
-        public async Task<IEnumerable<MedicamentoDTO>> GetAllMedicamentos()
+        public async Task<IEnumerable<MedicamentoDTO>> RetornarMedicamentos()
         {
             var medicamentos = await _repository.Get();
  
             return medicamentos.Select(model => MapModelToDto(model));
         }
 
-        public async Task<MedicamentoDTO?> GetMedById(int id)
+        public async Task<MedicamentoDTO?> RetornarMedicamentoId(int id)
         {
             var medicamento = await _repository.GetMedicamento(id);
             if (medicamento == null)
@@ -31,16 +31,16 @@ namespace Backend.Services
             return MapModelToDto(medicamento);
         }
 
-        public async Task<MedicamentoDTO> CreateMedicamento(MedicamentoDTO medicamentoDto)
+        public async Task<MedicamentoDTO> CriarMedicamento(MedicamentoDTO medicamentoDto)
         {
-            // Mapeia o DTO para Model antes de enviar para o repositório
+            
             var medicamentoModel = MapDtoToModel(medicamentoDto);
             var novoMedicamento = await _repository.CreateMedicamento(medicamentoModel);
-            // Retorna o DTO do objeto criado
+           
             return MapModelToDto(novoMedicamento);
         }
 
-        public async Task<MedicamentoDTO?> UpdateMedicamento( MedicamentoDTO medicamentoDto)
+        public async Task<MedicamentoDTO?> AtualizarMedicamento( MedicamentoDTO medicamentoDto)
         {
             var medicamentoExistente = await _repository.GetMedicamento(medicamentoDto.CodigoId);
             if (medicamentoExistente == null)
@@ -48,25 +48,14 @@ namespace Backend.Services
                 return null;
             }
 
-            // Atualiza o modelo existente com os dados do DTO
-            medicamentoExistente.Prioridade = medicamentoDto.Prioridade;
-            medicamentoExistente.DescricaoMedicamentos = medicamentoDto.DescricaoMedicamentos;
-            medicamentoExistente.DataDeEntradaDoMedicamento = medicamentoDto.DataDeEntradaDoMedicamento;
-            medicamentoExistente.NotaFiscal = medicamentoDto.NotaFiscal;
-            medicamentoExistente.NomeComercial = medicamentoDto.NomeComercial;
-            medicamentoExistente.PublicoAlvo = medicamentoDto.PublicoAlvo;
-            medicamentoExistente.ConsumoMensal = medicamentoDto.ConsumoMensal;
-            medicamentoExistente.ConsumoAnual = medicamentoDto.ConsumoAnual;
-            medicamentoExistente.ValidadeMedicamento = medicamentoDto.ValidadeMedicamento;
-            medicamentoExistente.EstoqueDisponivel = medicamentoDto.EstoqueDisponivel;
-            medicamentoExistente.EntradaEstoque = medicamentoDto.EntradaEstoque;
-            medicamentoExistente.SaidaTotalEstoque = medicamentoDto.SaidaTotalEstoque;
+           PersistirModel(medicamentoExistente, medicamentoDto);
 
+          
             var medicamentoAtualizado = await _repository.UpdateMedicamento(medicamentoExistente);
             return MapModelToDto(medicamentoAtualizado);
         }
 
-        public async Task<bool> DeleteMedicamento(int id)
+        public async Task<bool> DeletarMedicamento(int id)
         {
             var medicamento = await _repository.GetMedicamento(id);
             if (medicamento == null)
@@ -77,9 +66,7 @@ namespace Backend.Services
             return true;
         }
 
-       
-
-        private MedicamentoDTO MapModelToDto(MedicamentosModel model)
+        private static MedicamentoDTO MapModelToDto(MedicamentosModel model)
         {
             return new MedicamentoDTO
             {
@@ -99,7 +86,7 @@ namespace Backend.Services
             };
         }
 
-        private MedicamentosModel MapDtoToModel(MedicamentoDTO dto)
+        private static MedicamentosModel MapDtoToModel(MedicamentoDTO dto)
         {
             return new MedicamentosModel
             {
@@ -118,5 +105,24 @@ namespace Backend.Services
                 SaidaTotalEstoque = dto.SaidaTotalEstoque
             };
         }
+        
+        private void PersistirModel(MedicamentosModel model, MedicamentoDTO modelDto)
+        {
+            model.CodigoId = modelDto.CodigoId;
+           model.Prioridade = modelDto.Prioridade;
+            model.DescricaoMedicamentos = modelDto.DescricaoMedicamentos;
+            model.NotaFiscal = modelDto.NotaFiscal;
+            model.NomeComercial = modelDto.NomeComercial;
+            model.PublicoAlvo = modelDto.PublicoAlvo;
+            model.DataDeEntradaDoMedicamento = modelDto.DataDeEntradaDoMedicamento;
+            model.ConsumoMensal =   modelDto.ConsumoMensal;
+            model.ConsumoAnual = modelDto.ConsumoAnual;
+            model.ValidadeMedicamento = modelDto.ValidadeMedicamento;
+            model.EstoqueDisponivel = modelDto.EstoqueDisponivel;
+            model.EntradaEstoque =  modelDto.EntradaEstoque;
+            model.EntradaEstoque = modelDto.EntradaEstoque;
+        }
+    
+    
     }
 }

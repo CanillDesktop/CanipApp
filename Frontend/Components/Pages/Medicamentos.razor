@@ -1,20 +1,67 @@
 ﻿@page "/medicamentos"
+@using Frontend.ViewModels
+@using Shared.ExtensionMethods;
 
 @inject NavigationManager Navigation
+@inject MedicamentosViewModel VM
 
-<PageTitle>Medicamentos</PageTitle>
 
-<h3>Medicamentos</h3>
+@code {
+    private void VoltarParaHome()
+    {
+        Navigation.NavigateTo("/home");
+        // rota raiz
+    }
+}
 
 <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
     <i class="bi bi-arrow-left"></i> Voltar para Home
 </button>
 
-<p>Bem-vindo à página de Medicamentos!</p>
+<div>
 
-@code {
-    private void VoltarParaHome()
-    {
-        Navigation.NavigateTo("/home");// rota raiz
-    }
-}
+    <PageTitle>Medicamentos</PageTitle>
+    <h1>Medicamentos</h1>
+
+    <div class="caixaBranca"> 
+
+        @if (VM.Carregando)
+        {
+            <div class="spinner"></div>
+            }
+            else
+            {
+                <ul>
+                    <li>
+                    @foreach (var p in VM.Medicamentos)
+                    {
+                            <table>
+                          <tr>Nome Comercial: @p.NomeComercial</tr>
+                          <tr>Descricao do medicamento: @p.DescricaoMedicamentos</tr>
+                           <tr>Codigo do medicamento: @p.CodigoId</tr>
+                            <tr>Nota Fiscal: @p.NotaFiscal</tr>
+                            <tr>Consumo mensal: @p.ConsumoMensal</tr>
+                            <tr>Consumo Anual: @p.ConsumoAnual</tr>
+                            <tr>Entradas no Estoque: @p.EntradaEstoque</tr>
+                            <tr>Saidas no Estoque: @p.SaidaTotalEstoque</tr>
+                            <tr>Estoque Disponivel: @p.EstoqueDisponivel</tr>
+                            <tr> Validade: @p.ValidadeMedicamento</tr>
+                            <tr> Publico Alvo: @p.PublicoAlvo.GetDescription()</tr>
+                            <tr>Prioridade: @p.Prioridade</tr>
+                            <tr> Data da entrada: @p.DataDeEntradaDoMedicamento</tr>
+                   
+                      </table>
+                    }
+
+                    </li>
+                </ul>
+            }
+        </div>
+
+</div>
+
+<div class="botoes">
+    <button @onclick="VM.CarregarProdutosAsync">Carregar Banco de Dados</button>
+    <button @onclick="VM.CriarProdutosAsync">Cadastrar</button>
+    <button @onclick="VM.DeletarProduto">Deletar Produto</button>
+</div>

@@ -10,7 +10,8 @@ namespace Frontend.ViewModels
     {
         private readonly HttpClient _http;
 
-        public ObservableCollection<ProdutosDTO> Produtos { get; } = [];
+        public ObservableCollection<ProdutosDTO> Produtos { get; } = new ObservableCollection<ProdutosDTO>();
+
 
         [ObservableProperty]
         private bool carregando;
@@ -25,7 +26,7 @@ namespace Frontend.ViewModels
         {
             Carregando = true;
 
-            var produtos = await _http.GetFromJsonAsync<ProdutosDTO[]>("api/produtos");
+            var produtos = await _http.GetFromJsonAsync<ProdutosDTO[]>("api/medicamentos");
 
             Produtos.Clear();
             foreach (var p in produtos ?? [])
