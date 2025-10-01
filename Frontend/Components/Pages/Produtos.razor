@@ -1,20 +1,45 @@
-﻿@page "/produtos"
-@inject Frontend.ViewModels.ProdutosViewModel VM
+﻿
+@page "/produtos"
+@using Frontend.ViewModels
 
-<h1>Produtos</h1>
+@inject NavigationManager Navigation
+@inject ProdutosViewModel VM
 
-@if (VM.Carregando)
-{
-    <p>Carregando...</p>
+
+<div class="centralizarObjetosVerticalmente">
+    <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+        <i class="bi bi-arrow-left"></i> Voltar para Home
+    </button>
+    <p class="textoSimples">Home / Bancos / Produtos</p>
+</div>
+
+@code {
+    private void VoltarParaHome()
+    {
+        Navigation.NavigateTo("/home");
+        // rota raiz
+    }
 }
-else
-{
-    <ul>
-        @foreach (var p in VM.Produtos)
-        {
-            <li>@p.DescricaoSimples - @p.Quantidade</li>
-        }
-    </ul>
-}
 
+<div>
+
+
+    <h1 class="pageTitle">Produtos</h1>
+
+    <div class="caixaBranca">
+    @if (VM.Carregando){
+        <div class="spinner"></div>
+    }
+    else{
+        <ul>
+            @foreach (var p in VM.Produtos){
+                <li>@p.Codigo - @p.DescricaoDetalhada</li>
+            }
+        </ul>
+    }
+    </div>
+
+    
+
+</div>
 <button @onclick="VM.CarregarProdutosAsync">Atualizar</button>

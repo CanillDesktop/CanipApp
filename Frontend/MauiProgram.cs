@@ -1,6 +1,5 @@
 ﻿using Frontend.ViewModels;
 using Microsoft.Extensions.Logging;
-
 namespace Frontend;
 
 public static class MauiProgram
@@ -18,8 +17,9 @@ public static class MauiProgram
         builder.Services.AddMauiBlazorWebView();
 
         builder.Services.AddScoped<ProdutosViewModel>();
+        builder.Services.AddScoped<MedicamentosViewModel>();
 
-        // ▼▼▼ ADICIONE ESTA LINHA DE VOLTA ▼▼▼
+
         builder.Services.AddScoped<LoginViewModel>();
 
         builder.Services.AddScoped(sp => new HttpClient

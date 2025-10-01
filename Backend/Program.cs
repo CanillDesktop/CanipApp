@@ -1,6 +1,8 @@
+using Backend.Context;
 using Backend.Repositories;
 using Backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -46,12 +48,11 @@ namespace Backend
                 });
             });
 
-            //string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
-            //builder.Services.AddDbContext<CanilAppDbContext>(options =>
-            //    options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
+            string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<CanilAppDbContext>(options =>
+                options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
 
             builder.Services.AddScoped<ProdutosService>();
-            //builder.Services.AddScoped<IMedicamentosRepository,MedicamentoModelRepository > ();
             builder.Services.AddScoped<UsuariosService>();
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -69,8 +70,10 @@ namespace Backend
                     };
                 });
 
+            builder.Services.AddScoped<IMedicamentosRepository, MedicamentoModelRepository>();
+            builder.Services.AddScoped<IMedicamentosService, MedicamentosService>();
 
-var app = builder.Build();
+            var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
