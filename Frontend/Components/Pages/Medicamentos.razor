@@ -1,5 +1,6 @@
 ﻿@page "/medicamentos"
 @using Frontend.ViewModels
+@using Shared.ExtensionMethods;
 
 @inject NavigationManager Navigation
 @inject MedicamentosViewModel VM
@@ -29,7 +30,7 @@
 
     <h1>Medicamentos</h1>
 
-    <div class="caixaBranca">
+    <div class="caixaBranca"> </div>
 
         @if (VM.Carregando)
         {
@@ -52,7 +53,7 @@
                         <tr>Saidas no Estoque: @p.SaidaTotalEstoque</tr>
                         <tr>Estoque Disponivel: @p.EstoqueDisponivel</tr>
                         <tr> Validade: @p.ValidadeMedicamento</tr>
-                        <tr> Publico Alvo: @p.PublicoAlvo</tr>
+                        <tr> Publico Alvo: @p.PublicoAlvo.GetDescription()</tr>
                         <tr>Prioridade: @p.Prioridade</tr>
                         <tr> Data da entrada: @p.DataDeEntradaDoMedicamento</tr>
                    
@@ -62,7 +63,8 @@
                 </li>
             </ul>
         }
-        </div>
+       
 
 </div>
-<button @onclick="VM.CarregarProdutosAsync">Atualizar</button>
+<button @onclick="VM.CarregarProdutosAsync">Carregar Banco de Dados</button>
+<button @onclick="VM.CriarProdutosAsync">Cadastrar</button>
