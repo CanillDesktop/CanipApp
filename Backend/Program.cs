@@ -48,9 +48,12 @@ namespace Backend
                 });
             });
 
-            string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+            /* string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+             builder.Services.AddDbContext<CanilAppDbContext>(options =>
+                 options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));*/
+
             builder.Services.AddDbContext<CanilAppDbContext>(options =>
-                options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
+                options.UseSqlite("Data Source=canilapp.db"));
 
             builder.Services.AddScoped<ProdutosService>();
             builder.Services.AddScoped<UsuariosService>();
