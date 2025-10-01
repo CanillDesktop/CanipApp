@@ -66,5 +66,16 @@ namespace Frontend.ViewModels
             var response = await _http.PostAsJsonAsync("api/medicamentos", medicamentoCriado);
         }
 
+        public async Task DeletarProduto()
+        {
+            Carregando = true;
+
+
+            int medicamentoId = 5;
+
+
+            var response = await _http.DeleteAsync($"api/medicamentos/{medicamentoId}");
+        }
+
     }
 }
