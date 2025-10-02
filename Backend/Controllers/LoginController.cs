@@ -26,37 +26,46 @@ namespace Backend.Controllers
         [HttpPost]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            var usuario = _usuariosService.ValidaUsuario(request.Email, request.Senha);
-            if (usuario == null)
-                return Unauthorized("Email ou senha inválidos.");
-
-            var claims = new[]
+            try
             {
-                new Claim(ClaimTypes.Email, request.Email),
+                var usuario = _usuariosService.ValidaUsuario(request.Login, request.Senha);
+                if (usuario == null)
+                    return Unauthorized("Usuário ou senha inválidos.");
+
+                var claims = new[]
+                {
+                new Claim(ClaimTypes.Email, usuario.Email),
                 new Claim(ClaimTypes.Role, usuario.Permissao.ToString() ?? PermissoesEnum.LEITURA.ToString())
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(
-                issuer: "backend",
-                audience: "CanilApp",
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: creds
-            );
+                var token = new JwtSecurityToken(
+                    issuer: "backend",
+                    audience: "CanilApp",
+                    claims: claims,
+                    expires: DateTime.Now.AddMinutes(30),
+                    signingCredentials: creds
+                );
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-            var refreshToken = Guid.NewGuid().ToString();
-            _usuariosService.SalvarRefreshToken(usuario.Id, refreshToken, DateTime.Now.AddDays(7));
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                var refreshToken = Guid.NewGuid().ToString();
+                _usuariosService.SalvarRefreshToken(usuario.Id, refreshToken, DateTime.Now.AddDays(7));
 
-            UsuarioResponseDTO dto = usuario;
+                UsuarioResponseDTO dto = usuario;
 
-            return Ok(new { 
-                token = tokenString,
-                usuario = dto
-            });
+                return Ok(new
+                {
+                    token = tokenString,
+                    refreshToken,
+                    usuario = dto
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocorreu um erro inesperado no servidor: {ex}");
+            }
         }
 
         [HttpPost("refresh")]
@@ -69,7 +78,7 @@ namespace Backend.Controllers
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Email, usuario.Email ?? ""),
+                new Claim(ClaimTypes.Email, usuario.Email),
                 new Claim(ClaimTypes.Role, usuario.Permissao.ToString() ?? PermissoesEnum.LEITURA.ToString())
             };
 
@@ -96,5 +105,5 @@ namespace Backend.Controllers
     }
 
 
-    public record LoginRequest(string Email, string Senha);
+    public record LoginRequest(string Login, string Senha);
 }

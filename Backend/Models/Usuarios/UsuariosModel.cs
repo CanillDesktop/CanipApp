@@ -7,7 +7,7 @@ namespace Backend.Models.Usuarios
 {
     public class UsuariosModel
     {
-        public UsuariosModel(string? primeiroNome, string? sobrenome, string? email, string? hashSenha, PermissoesEnum? permissao)
+        public UsuariosModel(string? primeiroNome, string? sobrenome, string email, string? hashSenha, PermissoesEnum? permissao)
         {
             Id = new Random().Next(1000);
             PrimeiroNome = primeiroNome;
@@ -22,7 +22,7 @@ namespace Backend.Models.Usuarios
         public int Id { get; set; }
         public string? PrimeiroNome { get; set; }
         public string? Sobrenome { get; set; }
-        public string? Email { get; set; }
+        public string Email { get; set; }
         public string? HashSenha { get; set; }
 
         [EnumDataType(typeof(PermissoesEnum))]
@@ -37,26 +37,26 @@ namespace Backend.Models.Usuarios
         [JsonIgnore]
         public DateTime DataHoraCriacao { get; init; }
 
-        public static implicit operator UsuariosModel(UsuarioRequestDTO? dto)
+        public static implicit operator UsuariosModel(UsuarioRequestDTO dto)
         {
             return new UsuariosModel(
-                dto?.PrimeiroNome,
-                dto?.Sobrenome,
-                dto?.Email,
-                dto?.Senha,
-                dto?.Permissao
+                dto.PrimeiroNome,
+                dto.Sobrenome,
+                dto.Email,
+                dto.Senha,
+                dto.Permissao
             );
         }
 
-        public static implicit operator UsuarioResponseDTO(UsuariosModel? model)
+        public static implicit operator UsuarioResponseDTO(UsuariosModel model)
         {
             return new UsuarioResponseDTO()
             {
-                Id = model?.Id,
-                PrimeiroNome = model?.PrimeiroNome,
-                Sobrenome = model?.Sobrenome,
-                Email = model?.Email,
-                Permissao = model?.Permissao
+                Id = model.Id,
+                PrimeiroNome = model.PrimeiroNome,
+                Sobrenome = model.Sobrenome,
+                Email = model.Email,
+                Permissao = model.Permissao
             };
         }
     }

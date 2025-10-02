@@ -9,7 +9,7 @@
         <h1>Seja Bem-Vindo!</h1>
         <p>Faça login para continuar</p>
 
-        <input type="text" placeholder="Nome de usuário" @bind="ViewModel.Username" @bind:event="oninput" />
+        <input type="text" placeholder="Nome de usuário" @bind="ViewModel.Login" @bind:event="oninput" />
         <input type="password" placeholder="Senha" @bind="ViewModel.Password" @bind:event="oninput" />
 
         <button class="btn-primary" @onclick="async () => await ViewModel.LoginCommand.ExecuteAsync(null)">Entrar</button>

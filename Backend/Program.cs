@@ -48,15 +48,8 @@ namespace Backend
                 });
             });
 
-            /* string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
-             builder.Services.AddDbContext<CanilAppDbContext>(options =>
-                 options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));*/
-
             builder.Services.AddDbContext<CanilAppDbContext>(options =>
                 options.UseSqlite("Data Source=canilapp.db"));
-
-            builder.Services.AddScoped<ProdutosService>();
-            builder.Services.AddScoped<UsuariosService>();
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -75,6 +68,8 @@ namespace Backend
 
             builder.Services.AddScoped<IMedicamentosRepository, MedicamentoModelRepository>();
             builder.Services.AddScoped<IMedicamentosService, MedicamentosService>();
+            builder.Services.AddScoped<ProdutosService>();
+            builder.Services.AddScoped<UsuariosService>();
 
             var app = builder.Build();
 
