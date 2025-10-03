@@ -1,5 +1,4 @@
 ﻿using Backend.Services;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Shared.DTOs;
@@ -7,6 +6,7 @@ using Shared.Enums;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Shared.Models;
 
 namespace Backend.Controllers
 {
@@ -26,46 +26,44 @@ namespace Backend.Controllers
         [HttpPost]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            try
-            {
-                var usuario = _usuariosService.ValidaUsuario(request.Login, request.Senha);
-                if (usuario == null)
-                    return Unauthorized("Usuário ou senha inválidos.");
-
-                var claims = new[]
+            var usuario = _usuariosService.ValidaUsuario(request.Login, request.Senha);
+            if (usuario == null)
+                return Unauthorized(new ErrorResponse
                 {
+                    Title = "Acesso não autorizado",
+                    StatusCode = 401,
+                    Message = "Usuário ou senha inválidos."
+                });
+
+            var claims = new[]
+            {
                 new Claim(ClaimTypes.Email, usuario.Email),
                 new Claim(ClaimTypes.Role, usuario.Permissao.ToString() ?? PermissoesEnum.LEITURA.ToString())
             };
 
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
-                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-                var token = new JwtSecurityToken(
-                    issuer: "backend",
-                    audience: "CanilApp",
-                    claims: claims,
-                    expires: DateTime.Now.AddMinutes(30),
-                    signingCredentials: creds
-                );
+            var token = new JwtSecurityToken(
+                issuer: "backend",
+                audience: "CanilApp",
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(30),
+                signingCredentials: creds
+            );
 
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-                var refreshToken = Guid.NewGuid().ToString();
-                _usuariosService.SalvarRefreshToken(usuario.Id, refreshToken, DateTime.Now.AddDays(7));
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            var refreshToken = Guid.NewGuid().ToString();
+            _usuariosService.SalvarRefreshToken(usuario.Id, refreshToken, DateTime.Now.AddDays(7));
 
-                UsuarioResponseDTO dto = usuario;
+            UsuarioResponseDTO dto = usuario;
 
-                return Ok(new
-                {
-                    token = tokenString,
-                    refreshToken,
-                    usuario = dto
-                });
-            }
-            catch (Exception ex)
+            return Ok(new
             {
-                return StatusCode(500, $"Ocorreu um erro inesperado no servidor: {ex}");
-            }
+                token = tokenString,
+                refreshToken,
+                usuario = dto
+            });
         }
 
         [HttpPost("refresh")]

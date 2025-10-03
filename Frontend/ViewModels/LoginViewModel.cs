@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Frontend.Models;
 using Microsoft.AspNetCore.Components; // Necessário para NavigationManager
 using Microsoft.Maui.Controls;
+using Shared.Models;
 using System.Net.Http.Json;
 
 namespace Frontend.ViewModels;
@@ -65,8 +66,8 @@ public partial class LoginViewModel : ObservableObject
         }
         else
         {
-            var errorMessage = await response.Content.ReadAsStringAsync();
-            await Application.Current!.MainPage!.DisplayAlert("Erro de Login", errorMessage, "OK");
+            var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            await Application.Current!.MainPage!.DisplayAlert(error!.Title, error!.Message, "OK");
         }
     }
 
