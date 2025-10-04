@@ -18,7 +18,7 @@ namespace Backend.Controllers
         }
 
         [HttpPost]
-        public ActionResult<UsuarioRequestDTO> Create([FromBody] UsuarioRequestDTO? dto)
+        public ActionResult<UsuarioRequestDTO> Create([FromBody] UsuarioRequestDTO dto)
         {
             try
             {

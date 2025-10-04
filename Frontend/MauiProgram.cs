@@ -1,4 +1,6 @@
-﻿using Frontend.ViewModels;
+﻿using Frontend.Models;
+using Frontend.ViewModels;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 namespace Frontend;
 
@@ -18,10 +20,8 @@ public static class MauiProgram
 
         builder.Services.AddScoped<ProdutosViewModel>();
         builder.Services.AddScoped<MedicamentosViewModel>();
-
-
         builder.Services.AddScoped<LoginViewModel>();
-
+        builder.Services.AddScoped<CadastroViewModel>();
         builder.Services.AddScoped(sp => new HttpClient
         {
             BaseAddress = new Uri("https://localhost:7019/")
