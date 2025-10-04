@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Frontend.Models;
 using Microsoft.AspNetCore.Components; // Necessário para NavigationManager
 using Shared.Models;
 using System.Net.Http.Json;
@@ -54,8 +53,8 @@ public partial class LoginViewModel : ObservableObject
         {
             var result = await response.Content.ReadFromJsonAsync<LoginResponseModel>();
 
-            await SecureStorage.SetAsync("auth_token", result!.Token!);
-            await SecureStorage.SetAsync("refresh_token", result.RefreshToken!);
+            await SecureStorage.SetAsync("auth_token", result!.Token!.AccessToken!);
+            await SecureStorage.SetAsync("refresh_token", result!.Token!.RefreshToken!);
 
             Preferences.Set("user_email", result.Usuario!.Email);
             Preferences.Set("user_fullname", result.Usuario.NomeCompleto());

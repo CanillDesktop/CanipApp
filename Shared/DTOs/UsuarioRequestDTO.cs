@@ -6,6 +6,7 @@ namespace Shared.DTOs
     {
         public UsuarioRequestDTO() { }
 
+        public int Id { get; set; }
         public string? PrimeiroNome { get; set; } = string.Empty;
         public string? Sobrenome { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
@@ -16,6 +17,7 @@ namespace Shared.DTOs
         {
             return new UsuarioResponseDTO()
             {
+                Id = req.Id,
                 PrimeiroNome = req.PrimeiroNome,
                 Sobrenome = req.Sobrenome,
                 Email = req.Email,

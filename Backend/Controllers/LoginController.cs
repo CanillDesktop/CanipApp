@@ -58,11 +58,14 @@ namespace Backend.Controllers
 
             UsuarioResponseDTO dto = usuario;
 
-            return Ok(new
+            return Ok(new LoginResponseModel()
             {
-                token = tokenString,
-                refreshToken,
-                usuario = dto
+                Token = new TokenResponse
+                {
+                    AccessToken = tokenString,
+                    RefreshToken = refreshToken
+                },
+                Usuario = dto
             });
         }
 
@@ -93,10 +96,10 @@ namespace Backend.Controllers
 
             var novoAccessTokenString = new JwtSecurityTokenHandler().WriteToken(novoAccessToken);
 
-            return Ok(new
+            return Ok(new TokenResponse()
             {
-                accessToken = novoAccessTokenString,
-                refreshToken
+                AccessToken = novoAccessTokenString,
+                RefreshToken = refreshToken
             });
         }
 

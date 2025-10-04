@@ -31,7 +31,7 @@ namespace Backend.Services
 
         public IEnumerable<UsuariosModel>? BuscarTodos() => _usuarios;
 
-        public void Atualizar(UsuariosModel model, int id)
+        public void Atualizar(int id, UsuariosModel model)
         {
             var usuario = _usuarios.Find(u => u.Id == id) ?? throw new ArgumentNullException(nameof(model));
 

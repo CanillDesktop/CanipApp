@@ -21,13 +21,13 @@ namespace Backend.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<ProdutosDTO>> Get()
         {
-            return Ok(_service.GetAll().Select(p => (ProdutosDTO)p));
+            return Ok(_service.BuscarTodos().Select(p => (ProdutosDTO)p));
         }
 
         [HttpGet("{id}")]
         public ActionResult<ProdutosDTO> GetById(string id)
         {
-            var model = _service.GetById(id);
+            var model = _service.BuscaPorId(id);
 
             if (model == null)
                 return NotFound();
@@ -41,9 +41,39 @@ namespace Backend.Controllers
         {
             ProdutosModel model = dto;
 
-            _service.Add(model);
+            _service.CriaProduto(model);
 
-            return CreatedAtAction(nameof(GetById), new { id = model.Codigo }, dto);
+            return CreatedAtAction(nameof(GetById), new { id = model.IdProduto }, dto);
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Put([FromRoute] string id, [FromBody] ProdutosDTO dto)
+        {
+            try
+            {
+                _service.Atualizar(id, dto);
+
+                return NoContent();
+            }
+            catch (ArgumentNullException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(string id)
+        {
+            try
+            {
+                _service.Deletar(id);
+
+                return NoContent();
+            }
+            catch (ArgumentNullException)
+            {
+                return NotFound();
+            }
         }
     }
 }

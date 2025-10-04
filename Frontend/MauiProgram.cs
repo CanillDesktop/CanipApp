@@ -1,7 +1,8 @@
-﻿using Frontend.Models;
+﻿using Frontend.Handlers;
 using Frontend.ViewModels;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
+
+
 namespace Frontend;
 
 public static class MauiProgram
@@ -26,6 +27,12 @@ public static class MauiProgram
         {
             BaseAddress = new Uri("https://localhost:7019/")
         });
+        builder.Services.AddTransient<AuthDelegatingHandler>();
+        builder.Services.AddHttpClient("ApiClient", client =>
+        {
+            client.BaseAddress = new Uri("https://localhost:7019");
+        })
+        .AddHttpMessageHandler<AuthDelegatingHandler>();
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

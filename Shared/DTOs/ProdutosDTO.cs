@@ -8,7 +8,7 @@ namespace Shared.DTOs
         public ProdutosDTO(string? descricaoSimples, DateTime dataEntrega, string? nFe, string? descricaoDetalhada, UnidadeEnum unidade, CategoriaEnum categoria,
             int quantidade = 0, string? validade = null, int estoqueDisponivel = 0)
         {
-            Codigo = GeraCodigo(categoria);
+            IdProduto = GeraIdentificador(categoria);
             DescricaoSimples = descricaoSimples;
             DataEntrega = dataEntrega;
             NFe = nFe;
@@ -20,7 +20,7 @@ namespace Shared.DTOs
             EstoqueDisponivel = estoqueDisponivel;
         }
 
-        public string Codigo { get; init; } = string.Empty;
+        public string IdProduto { get; init; } = string.Empty;
         public string? DescricaoSimples { get; set; }
         public DateTime DataEntrega { get; init; }
         public string? NFe { get; set; }
@@ -31,26 +31,26 @@ namespace Shared.DTOs
         public string? Validade { get; set; }
         public int EstoqueDisponivel { get; set; }
 
-        private static string GeraCodigo(CategoriaEnum categoria)
+        private static string GeraIdentificador(CategoriaEnum categoria)
         {
-            var codigo = string.Empty;
+            var id = string.Empty;
             var catString = categoria.ToString();
             var categoriaCompostaSN = catString.Contains('_', StringComparison.CurrentCulture);
 
             if (catString.Length < 3)
-                codigo += catString[..];
+                id += catString[..];
             else
-                codigo += catString[..3];
+                id += catString[..3];
 
             if (categoriaCompostaSN)
             {
                 var i = catString.IndexOf('_', StringComparison.CurrentCulture);
-                codigo += catString.Substring(i + 1, 1);
+                id += catString.Substring(i + 1, 1);
             }
 
-            codigo += Guid.NewGuid().ToString().Replace("-", "");
+            id += Guid.NewGuid().ToString().Replace("-", "");
 
-            return codigo;
+            return id;
         }
     }
 }
