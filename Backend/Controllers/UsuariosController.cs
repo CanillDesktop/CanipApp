@@ -18,7 +18,7 @@ namespace Backend.Controllers
         }
 
         [HttpPost]
-        public ActionResult<UsuarioRequestDTO> Create([FromBody] UsuarioRequestDTO? dto)
+        public ActionResult<UsuarioRequestDTO> Create([FromBody] UsuarioRequestDTO dto)
         {
             try
             {
@@ -34,7 +34,7 @@ namespace Backend.Controllers
             }
         }
 
-        [Authorize(Roles = "ADMIN")]
+        [Authorize]
         [HttpGet]
         public ActionResult<IEnumerable<UsuarioResponseDTO>>? Get()
         {
@@ -55,14 +55,12 @@ namespace Backend.Controllers
         }
 
         [Authorize]
-        [HttpPut]
-        public IActionResult Put(UsuarioRequestDTO dto, int id)
+        [HttpPut("{id:int}")]
+        public IActionResult Put([FromRoute] int id,[FromBody] UsuarioRequestDTO dto)
         {
             try
             {
-                var model = dto;
-
-                _service.Atualizar(model, id);
+                _service.Atualizar(id, dto);
 
                 return NoContent();
             }

@@ -1,6 +1,4 @@
 ﻿@page "/insumos"
-@using Frontend.ViewModels
-
 @inject NavigationManager Navigation
 @inject ProdutosViewModel VM
 
@@ -32,7 +30,7 @@
             <ul>
                 @foreach (var p in VM.Produtos)
                 {
-                    <li>@p.Codigo - @p.DescricaoDetalhada</li>
+                    <li>@p.IdProduto - @p.DescricaoDetalhada</li>
                 }
             </ul>
         }
@@ -43,7 +41,7 @@
 </div>
 
 <div class="botoes">
-    <button @onclick="VM.CarregarProdutosAsync">Carregar Banco de Dados</button>
+    <button @onclick="VM.CarregarProdutosCommand.ExecuteAsync">Carregar Banco de Dados</button>
     <button>Cadastrar</button>
     <button>Deletar Produto</button>
 </div>

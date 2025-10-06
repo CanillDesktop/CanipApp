@@ -85,7 +85,6 @@ namespace Backend
             }
 
             app.UseHttpsRedirection();
-
             app.UseExceptionHandler(errorApp =>
             {
                 errorApp.Run(async context =>
@@ -105,11 +104,10 @@ namespace Backend
                     await context.Response.WriteAsJsonAsync(response);
                 });
             });
-
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.MapControllers();
+
             app.Run();
         }
     }

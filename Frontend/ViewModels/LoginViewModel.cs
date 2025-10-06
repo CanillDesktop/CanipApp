@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Frontend.Models;
 using Microsoft.AspNetCore.Components; // Necessário para NavigationManager
-using Microsoft.Maui.Controls;
 using Shared.Models;
 using System.Net.Http.Json;
 
@@ -30,7 +28,7 @@ public partial class LoginViewModel : ObservableObject
 
     // Comandos expostos explicitamente
     public IAsyncRelayCommand LoginCommand { get; }
-    public IAsyncRelayCommand RegisterCommand { get; }
+    public IRelayCommand RegisterCommand { get; }
 
     public LoginViewModel(NavigationManager navigationManager, HttpClient httpClient)
     {
@@ -38,7 +36,7 @@ public partial class LoginViewModel : ObservableObject
         _httpClient = httpClient;
 
         LoginCommand = new AsyncRelayCommand(LoginAsync);
-        RegisterCommand = new AsyncRelayCommand(RegisterAsync);
+        RegisterCommand = new RelayCommand(Register);
     }
 
     private async Task LoginAsync()
@@ -55,8 +53,8 @@ public partial class LoginViewModel : ObservableObject
         {
             var result = await response.Content.ReadFromJsonAsync<LoginResponseModel>();
 
-            await SecureStorage.SetAsync("auth_token", result!.Token!);
-            await SecureStorage.SetAsync("refresh_token", result.RefreshToken!);
+            await SecureStorage.SetAsync("auth_token", result!.Token!.AccessToken!);
+            await SecureStorage.SetAsync("refresh_token", result!.Token!.RefreshToken!);
 
             Preferences.Set("user_email", result.Usuario!.Email);
             Preferences.Set("user_fullname", result.Usuario.NomeCompleto());
@@ -71,8 +69,8 @@ public partial class LoginViewModel : ObservableObject
         }
     }
 
-    private async Task RegisterAsync()
+    private void Register()
     {
-        await Application.Current!.MainPage!.DisplayAlert("Registrar", "A tela de registro de novos usuários seria aberta aqui.", "OK");
+        _navigationManager.NavigateTo("/cadastro");
     }
 }

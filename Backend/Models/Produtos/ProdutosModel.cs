@@ -10,8 +10,7 @@ namespace Backend.Models.Produtos
 
         public ProdutosModel() { }
 
-        [Key]
-        public string CodigoId { get; init; } = string.Empty;
+        public string IdProduto { get; init; } = string.Empty;
         public string? DescricaoSimples { get; set; }
         public DateTime DataEntrega { get; init; }
         public string? NFe { get; set; }
@@ -36,7 +35,7 @@ namespace Backend.Models.Produtos
         {
             return new ProdutosModel()
             {
-                CodigoId = dto.Codigo,
+                IdProduto = dto.IdProduto,
                 DescricaoSimples = dto.DescricaoSimples,
                 DataEntrega = dto.DataEntrega,
                 NFe = dto.NFe,
@@ -53,7 +52,7 @@ namespace Backend.Models.Produtos
         {
             return new ProdutosDTO()
             {
-                Codigo = model.CodigoId,
+                IdProduto = model.IdProduto,
                 DescricaoSimples = model.DescricaoSimples,
                 DataEntrega = model.DataEntrega,
                 NFe = model.NFe,
