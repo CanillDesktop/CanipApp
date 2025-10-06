@@ -68,6 +68,8 @@ namespace Backend
                 });
 
             builder.Services.AddScoped<IMedicamentosRepository, MedicamentoModelRepository>();
+            builder.Services.AddScoped<IInsumosRepository,IInsumosModelRepository>();
+            builder.Services.AddScoped<IInsumosService, InsumosService>();
             builder.Services.AddScoped<IMedicamentosService, MedicamentosService>();
             builder.Services.AddScoped<ProdutosService>();
             builder.Services.AddScoped<UsuariosService>();

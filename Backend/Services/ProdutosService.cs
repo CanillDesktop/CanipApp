@@ -11,7 +11,7 @@ namespace Backend.Services
 
         public IEnumerable<ProdutosModel> GetAll() => _produtos;
 
-        public ProdutosModel? GetById(string id) => _produtos.FirstOrDefault(p => p.Codigo == id);
+        public ProdutosModel? GetById(string id) => _produtos.FirstOrDefault(p => p.CodigoId == id);
 
         public void Add(ProdutosModel produto) => _produtos.Add(produto);
     }

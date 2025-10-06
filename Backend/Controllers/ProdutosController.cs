@@ -43,7 +43,7 @@ namespace Backend.Controllers
 
             _service.Add(model);
 
-            return CreatedAtAction(nameof(GetById), new { id = model.Codigo }, dto);
+            return CreatedAtAction(nameof(GetById), new { id = model.CodigoId }, dto);
         }
     }
 }

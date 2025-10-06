@@ -1,5 +1,6 @@
 ﻿using Shared.DTOs;
 using Shared.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Models.Produtos
 {
@@ -9,7 +10,8 @@ namespace Backend.Models.Produtos
 
         public ProdutosModel() { }
 
-        public string Codigo { get; init; } = string.Empty;
+        [Key]
+        public string CodigoId { get; init; } = string.Empty;
         public string? DescricaoSimples { get; set; }
         public DateTime DataEntrega { get; init; }
         public string? NFe { get; set; }
@@ -34,7 +36,7 @@ namespace Backend.Models.Produtos
         {
             return new ProdutosModel()
             {
-                Codigo = dto.Codigo,
+                CodigoId = dto.Codigo,
                 DescricaoSimples = dto.DescricaoSimples,
                 DataEntrega = dto.DataEntrega,
                 NFe = dto.NFe,
@@ -51,7 +53,7 @@ namespace Backend.Models.Produtos
         {
             return new ProdutosDTO()
             {
-                Codigo = model.Codigo,
+                Codigo = model.CodigoId,
                 DescricaoSimples = model.DescricaoSimples,
                 DataEntrega = model.DataEntrega,
                 NFe = model.NFe,
