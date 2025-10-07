@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
 
+
+
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
@@ -64,11 +66,14 @@ namespace Backend.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(string id)
         {
-            try
+            if (id is not null)
             {
-                _service.Deletar(id);
+                 _service.Deletar(id);
+            }
 
-            return CreatedAtAction(nameof(GetById), new { id = model.CodigoId }, dto);
+           return NoContent();
+           
+           
         }
     }
 }

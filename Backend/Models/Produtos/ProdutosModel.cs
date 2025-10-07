@@ -10,6 +10,8 @@ namespace Backend.Models.Produtos
 
         public ProdutosModel() { }
 
+        [Key]
+        public int CodigoId { get; set; }
         public string IdProduto { get; init; } = string.Empty;
         public string? DescricaoSimples { get; set; }
         public DateTime DataEntrega { get; init; }

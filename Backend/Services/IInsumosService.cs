@@ -9,7 +9,7 @@ namespace Backend.Services
             Task<IEnumerable<InsumosDTO>> RetornarInsumo();
             Task<InsumosDTO?> RetornarInsumoId(int id);
             Task<InsumosDTO> CriarInsumo(InsumosDTO insumoDto);
-            Task<InsumosDTO?> AtualizarMedicamento(InsumosDTO insumoDto);
+            Task<InsumosDTO?> AtualizarInsumo(InsumosDTO insumoDto);
             Task<bool> DeletarInsumo(int id);
         
     }

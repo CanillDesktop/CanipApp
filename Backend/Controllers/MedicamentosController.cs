@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
-using Backend.Models.Medicamentos;
 
 using Backend.Services;
 
