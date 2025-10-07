@@ -1,4 +1,6 @@
 ﻿using Backend.Models.Medicamentos;
+using Backend.Models.Produtos;
+using Backend.Models.Usuarios;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Context
@@ -9,6 +11,8 @@ namespace Backend.Context
         {}
 
         public DbSet<MedicamentosModel> Medicamentos {  get; set; }
+        public DbSet<ProdutosModel> Produtos { get; set; }
+        public DbSet<UsuariosModel> Usuarios { get; set; }
 
     }
 }

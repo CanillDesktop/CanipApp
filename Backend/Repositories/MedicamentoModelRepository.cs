@@ -1,7 +1,6 @@
 ﻿
 using Backend.Context;
 using Backend.Models.Medicamentos;
-using Backend.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Repositories
@@ -18,7 +17,7 @@ namespace Backend.Repositories
 
         public async Task<IEnumerable<MedicamentosModel>> Get()
         {
-            var  medicamentosRepository = await _context.Medicamentos.ToListAsync();
+            var medicamentosRepository = await _context.Medicamentos.ToListAsync();
 
             return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
         }
@@ -26,7 +25,7 @@ namespace Backend.Repositories
         public async Task<MedicamentosModel> GetMedicamento(int id)
         {
 
-            var medicamentosRepository = await _context.Medicamentos.FirstOrDefaultAsync(p =>p.CodigoId == id);
+            var medicamentosRepository = await _context.Medicamentos.FirstOrDefaultAsync(p => p.CodigoId == id);
             return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
         }
         public async Task<MedicamentosModel> CreateMedicamento(MedicamentosModel Medicamento)
@@ -37,7 +36,7 @@ namespace Backend.Repositories
             }
 
             await _context.Medicamentos.AddAsync(Medicamento);
-           await  _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return Medicamento;
 
         }
@@ -68,7 +67,7 @@ namespace Backend.Repositories
             return medicamentosRepository;
         }
 
-       
-     
+
+
     }
 }

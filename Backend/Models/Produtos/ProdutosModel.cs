@@ -1,5 +1,6 @@
 ﻿using Shared.DTOs;
 using Shared.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Models.Produtos
 {
@@ -9,6 +10,7 @@ namespace Backend.Models.Produtos
 
         public ProdutosModel() { }
 
+        [Key]
         public string IdProduto { get; init; } = string.Empty;
         public string? DescricaoSimples { get; set; }
         public DateTime DataEntrega { get; init; }
