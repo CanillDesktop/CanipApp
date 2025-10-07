@@ -1,5 +1,6 @@
 ﻿using Frontend.ViewModels;
 using Microsoft.Extensions.Logging;
+
 namespace Frontend;
 
 public static class MauiProgram
