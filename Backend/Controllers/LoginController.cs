@@ -1,5 +1,4 @@
 ﻿using Backend.Services;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Shared.DTOs;
@@ -7,6 +6,7 @@ using Shared.Enums;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Shared.Models;
 
 namespace Backend.Controllers
 {
@@ -26,13 +26,18 @@ namespace Backend.Controllers
         [HttpPost]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            var usuario = _usuariosService.ValidaUsuario(request.Email, request.Senha);
+            var usuario = _usuariosService.ValidaUsuario(request.Login, request.Senha);
             if (usuario == null)
-                return Unauthorized("Email ou senha inválidos.");
+                return Unauthorized(new ErrorResponse
+                {
+                    Title = "Acesso não autorizado",
+                    StatusCode = 401,
+                    Message = "Usuário ou senha inválidos."
+                });
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Email, request.Email),
+                new Claim(ClaimTypes.Email, usuario.Email),
                 new Claim(ClaimTypes.Role, usuario.Permissao.ToString() ?? PermissoesEnum.LEITURA.ToString())
             };
 
@@ -53,9 +58,14 @@ namespace Backend.Controllers
 
             UsuarioResponseDTO dto = usuario;
 
-            return Ok(new { 
-                token = tokenString,
-                usuario = dto
+            return Ok(new LoginResponseModel()
+            {
+                Token = new TokenResponse
+                {
+                    AccessToken = tokenString,
+                    RefreshToken = refreshToken
+                },
+                Usuario = dto
             });
         }
 
@@ -69,7 +79,7 @@ namespace Backend.Controllers
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Email, usuario.Email ?? ""),
+                new Claim(ClaimTypes.Email, usuario.Email),
                 new Claim(ClaimTypes.Role, usuario.Permissao.ToString() ?? PermissoesEnum.LEITURA.ToString())
             };
 
@@ -86,15 +96,15 @@ namespace Backend.Controllers
 
             var novoAccessTokenString = new JwtSecurityTokenHandler().WriteToken(novoAccessToken);
 
-            return Ok(new
+            return Ok(new TokenResponse()
             {
-                accessToken = novoAccessTokenString,
-                refreshToken
+                AccessToken = novoAccessTokenString,
+                RefreshToken = refreshToken
             });
         }
 
     }
 
 
-    public record LoginRequest(string Email, string Senha);
+    public record LoginRequest(string Login, string Senha);
 }

@@ -13,17 +13,30 @@ namespace Frontend.ViewModels
 
         public ObservableCollection<MedicamentoDTO> Medicamentos { get; } = new ObservableCollection<MedicamentoDTO>();
 
+        private bool _carregando;
 
-        [ObservableProperty]
-        private bool carregando;
-
-        public MedicamentosViewModel(HttpClient http)
+        public bool Carregando
         {
-            _http = http;
+            get => _carregando;
+            set
+            {
+                SetProperty(ref _carregando, value);
+            }
         }
 
-        [RelayCommand]
-        public async Task CarregarProdutosAsync()
+        public IAsyncRelayCommand CarregarProdutosCommand;
+        public IAsyncRelayCommand CriarProdutosCommand;
+        public IAsyncRelayCommand DeletarProdutosCommand;
+
+        public MedicamentosViewModel(IHttpClientFactory httpClientFactory)
+        {
+            _http = httpClientFactory.CreateClient("ApiClient");
+            CarregarProdutosCommand = new AsyncRelayCommand(CarregarProdutosAsync);
+            CriarProdutosCommand = new AsyncRelayCommand(CriarProdutosAsync);
+            DeletarProdutosCommand = new AsyncRelayCommand(DeletarProdutosAsync);
+        }
+
+        private async Task CarregarProdutosAsync()
         {
             Carregando = true;
 
@@ -37,9 +50,7 @@ namespace Frontend.ViewModels
             Carregando = false;
         }
 
-        [RelayCommand]
-
-        public async Task CriarProdutosAsync()
+        private async Task CriarProdutosAsync()
         {
             Carregando = true;
 
@@ -66,7 +77,7 @@ namespace Frontend.ViewModels
             var response = await _http.PostAsJsonAsync("api/medicamentos", medicamentoCriado);
         }
 
-        public async Task DeletarProduto()
+        private async Task DeletarProdutosAsync()
         {
             Carregando = true;
 

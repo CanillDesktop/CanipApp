@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Shared.Models;
 using System.Text;
 
 namespace Backend
@@ -48,15 +49,8 @@ namespace Backend
                 });
             });
 
-            /* string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
-             builder.Services.AddDbContext<CanilAppDbContext>(options =>
-                 options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));*/
-
             builder.Services.AddDbContext<CanilAppDbContext>(options =>
                 options.UseSqlite("Data Source=canilapp.db"));
-
-            builder.Services.AddScoped<ProdutosService>();
-            builder.Services.AddScoped<UsuariosService>();
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -74,7 +68,11 @@ namespace Backend
                 });
 
             builder.Services.AddScoped<IMedicamentosRepository, MedicamentoModelRepository>();
+            builder.Services.AddScoped<IInsumosRepository,IInsumosModelRepository>();
+            builder.Services.AddScoped<IInsumosService, InsumosService>();
             builder.Services.AddScoped<IMedicamentosService, MedicamentosService>();
+            builder.Services.AddScoped<ProdutosService>();
+            builder.Services.AddScoped<UsuariosService>();
 
             var app = builder.Build();
 
@@ -83,13 +81,31 @@ namespace Backend
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+                //app.UseDeveloperExceptionPage();
             }
 
             app.UseHttpsRedirection();
+            app.UseExceptionHandler(errorApp =>
+            {
+                errorApp.Run(async context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    context.Response.ContentType = "application/problem+json";
 
+                    var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+
+                    var response = new ErrorResponse
+                    {
+                        Title = "Erro interno no servidor",
+                        StatusCode = 500,
+                        Message = exceptionHandlerPathFeature?.Error.Message ?? "Erro interno no servidor"
+                    };
+
+                    await context.Response.WriteAsJsonAsync(response);
+                });
+            });
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.MapControllers();
 
             app.Run();
