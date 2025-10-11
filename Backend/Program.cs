@@ -1,10 +1,14 @@
 using Backend.Context;
+using Backend.Models.Usuarios;
 using Backend.Repositories;
+using Backend.Repositories.Interfaces;
 using Backend.Services;
+using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Shared.DTOs;
 using Shared.Models;
 using System.Text;
 
@@ -67,10 +71,12 @@ namespace Backend
                     };
                 });
 
-            builder.Services.AddScoped<IMedicamentosRepository, MedicamentoModelRepository>();
+            builder.Services.AddScoped<IMedicamentosRepository, MedicamentosRepository>();
             builder.Services.AddScoped<IMedicamentosService, MedicamentosService>();
-            builder.Services.AddScoped<ProdutosService>();
-            builder.Services.AddScoped<UsuariosService>();
+            builder.Services.AddScoped<IProdutosRepository, ProdutosRepository>();
+            builder.Services.AddScoped<IProdutosService, ProdutosService>();
+            builder.Services.AddScoped<IUsuariosRepository<UsuariosModel>, UsuariosRepository>();
+            builder.Services.AddScoped<IUsuariosService<UsuarioResponseDTO>, UsuariosService>();
 
             var app = builder.Build();
 

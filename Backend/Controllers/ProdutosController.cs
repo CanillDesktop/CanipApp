@@ -1,5 +1,5 @@
 ﻿using Backend.Models.Produtos;
-using Backend.Services;
+using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
@@ -11,47 +11,48 @@ namespace Backend.Controllers
     [Authorize]
     public class ProdutosController : ControllerBase
     {
-        private readonly ProdutosService _service;
+        private readonly IProdutosService _service;
 
-        public ProdutosController(ProdutosService service)
+        public ProdutosController(IProdutosService service)
         {
             _service = service;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<ProdutosDTO>> Get()
+        public async Task<ActionResult<IEnumerable<ProdutosDTO>>> Get()
         {
-            return Ok(_service.BuscarTodos().Select(p => (ProdutosDTO)p));
+            return Ok(await _service.BuscarTodosAsync());
         }
 
         [HttpGet("{id}")]
-        public ActionResult<ProdutosDTO> GetById(string id)
+        public async Task<ActionResult<ProdutosDTO>> GetById(string id)
         {
-            var model = _service.BuscaPorId(id);
+            var model = await _service.BuscarPorIdAsync(id);
 
             if (model == null)
                 return NotFound();
 
 
-            return Ok((ProdutosDTO)model);
+            return Ok(model);
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] ProdutosDTO dto)
+        public async Task<IActionResult> Create([FromBody] ProdutosDTO dto)
         {
             ProdutosModel model = dto;
 
-            _service.CriaProduto(model);
+            await _service.CriarAsync(model);
 
             return CreatedAtAction(nameof(GetById), new { id = model.IdProduto }, dto);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put([FromRoute] string id, [FromBody] ProdutosDTO dto)
+        public async Task<IActionResult> Put([FromRoute] string id, [FromBody] ProdutosDTO dto)
         {
             try
             {
-                _service.Atualizar(id, dto);
+                dto.IdProduto = id;
+                await _service.AtualizarAsync(dto);
 
                 return NoContent();
             }
@@ -62,11 +63,11 @@ namespace Backend.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
+        public async Task<IActionResult> Delete(string id)
         {
             try
             {
-                _service.Deletar(id);
+                await _service.DeletarAsync(id);
 
                 return NoContent();
             }

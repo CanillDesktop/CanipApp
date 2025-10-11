@@ -1,69 +1,57 @@
 ﻿using Backend.Models.Usuarios;
+using Backend.Repositories.Interfaces;
+using Backend.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Shared.DTOs;
 
 namespace Backend.Services
 {
-    public class UsuariosService
+    public class UsuariosService : IUsuariosService<UsuarioResponseDTO>
     {
-        private static readonly List<UsuariosModel> _usuarios = [];
+        private readonly IUsuariosRepository<UsuariosModel> _repository;
 
-        public UsuariosService() { }
-
-        public UsuariosModel? ValidaUsuario(string email, string senha)
+        public UsuariosService(IUsuariosRepository<UsuariosModel> repository)
         {
-            var usuario = _usuarios.FirstOrDefault(u =>  u.Email == email);
+            _repository = repository;
+        }
+        public async Task<UsuarioRequestDTO?> ValidarUsuarioAsync(string email, string senha)
+        {
+            var usuario = await _repository.GetByEmailAsync(email);
             if (usuario == null) return null;
 
             string? hash = senha.HashPassword256();
 
-            var entradaValida = usuario.Email == email && usuario.HashSenha == hash;
+            var entradaValida = (usuario.Email == email && usuario.HashSenha == hash);
             return entradaValida ? usuario : null;
         }
 
-        public void CriaUsuario(UsuariosModel? model)
+        public async Task<UsuarioResponseDTO?> CriarAsync(UsuarioRequestDTO dto)
         {
-            ArgumentNullException.ThrowIfNull(model);
-            model.HashSenha = model.HashSenha?.HashPassword256();
-
-            _usuarios.Add(model);
+            dto.Senha = dto.Senha!.HashPassword256();
+            return await _repository.CreateAsync(dto);
         }
 
-        public UsuariosModel? BuscaPorId(int id) => _usuarios.FirstOrDefault(u => u.Id == id);
+        public async Task<UsuarioResponseDTO?> BuscarPorIdAsync(int id) => await _repository.GetByIdAsync(id);
 
-        public IEnumerable<UsuariosModel>? BuscarTodos() => _usuarios;
+        public async Task<IEnumerable<UsuarioResponseDTO>> BuscarTodosAsync() => (IEnumerable<UsuarioResponseDTO>)await _repository.GetAsync();
 
-        public void Atualizar(int id, UsuariosModel model)
-        {
-            var usuario = _usuarios.Find(u => u.Id == id) ?? throw new ArgumentNullException(nameof(model));
+        public async Task<UsuarioResponseDTO?> AtualizarAsync(UsuarioRequestDTO dto) => await _repository.UpdateAsync(dto);
 
-            usuario = model;
-        }
+        public async Task<bool> DeletarAsync(int id) => await _repository.DeleteAsync(id);
 
-        public void Deletar(int id)
-        {
-            var usuario = _usuarios.Find(u => u.Id == id) ?? throw new ArgumentNullException();
+        public async Task SalvarRefreshTokenAsync(int id, string refreshToken, DateTime expira) => await _repository.SaveRefreshTokenAsync(id, refreshToken, expira);
 
-            _usuarios.Remove(usuario);
-        }
-
-        internal void SalvarRefreshToken(int id, string refreshToken, DateTime expira)
-        {
-            var usuario = _usuarios.FirstOrDefault(u => u.Id == id);
-            if (usuario != null)
-            {
-                usuario.RefreshToken = refreshToken;
-                usuario.DataHoraExpiracaoRefreshToken = expira;
-            }
-        }
-
-        internal UsuariosModel? BuscaPorRefreshToken(string? refreshToken)
+        public async Task<UsuarioResponseDTO?> BuscaPorRefreshTokenAsync(string? refreshToken)
         {
             if (refreshToken == null) return null;
 
-            var usuario = _usuarios.FirstOrDefault(u =>
-                u.RefreshToken == refreshToken &&
-                u.DataHoraExpiracaoRefreshToken > DateTime.Now);
-
-            return usuario ?? null;
+            return await _repository.GetRefreshTokenAsync(refreshToken);
         }
+
+
+        Task<IEnumerable<UsuarioRequestDTO>> IService<UsuarioRequestDTO, int>.BuscarTodosAsync() => throw new NotImplementedException();
+        Task<UsuarioRequestDTO?> IService<UsuarioRequestDTO, int>.BuscarPorIdAsync(int id) => throw new NotImplementedException();
+        Task<UsuarioRequestDTO?> IService<UsuarioRequestDTO, int>.CriarAsync(UsuarioRequestDTO obj) => throw new NotImplementedException();
+        Task<UsuarioRequestDTO?> IService<UsuarioRequestDTO, int>.AtualizarAsync(UsuarioRequestDTO obj) => throw new NotImplementedException();
     }
 }
