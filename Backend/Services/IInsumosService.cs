@@ -1,17 +1,10 @@
-﻿using Shared.DTOs;
+﻿using Backend.Services.Interfaces;
+using Shared.DTOs;
 
 namespace Backend.Services
 {
-    public interface IInsumosService
+    public interface IInsumosService : IService<InsumosDTO, int>
     {
-       
-      
-            Task<IEnumerable<InsumosDTO>> RetornarInsumo();
-            Task<InsumosDTO?> RetornarInsumoId(int id);
-            Task<InsumosDTO> CriarInsumo(InsumosDTO insumoDto);
-            Task<InsumosDTO?> AtualizarInsumo(InsumosDTO insumoDto);
-            Task<bool> DeletarInsumo(int id);
-        
     }
 }
 

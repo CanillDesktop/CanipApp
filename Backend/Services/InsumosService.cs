@@ -1,6 +1,5 @@
 ﻿using Backend.Models.Medicamentos;
 using Backend.Repositories;
-using NuGet.Protocol.Core.Types;
 using Shared.DTOs;
 
 namespace Backend.Services
@@ -15,16 +14,16 @@ namespace Backend.Services
             _repository = repository;
         }
 
-        public async Task<IEnumerable<InsumosDTO>> RetornarInsumo()
+        public async Task<IEnumerable<InsumosDTO>> BuscarTodosAsync()
         {
-            var insumos = await _repository.Get();
+            var insumos = await _repository.GetAsync();
 
             return insumos.Select(model => MapModelToDto(model));
         }
 
-        public async Task<InsumosDTO?> RetornarInsumoId(int id)
+        public async Task<InsumosDTO?> BuscarPorIdAsync(int id)
         {
-            var insumo = await _repository.GetInsumo(id);
+            var insumo = await _repository.GetByIdAsync(id);
             if (insumo == null)
             {
                 return null;
@@ -34,17 +33,17 @@ namespace Backend.Services
         }
 
 
-        public async Task<InsumosDTO> CriarInsumo(InsumosDTO insumosDto)
+        public async Task<InsumosDTO?> CriarAsync(InsumosDTO insumosDto)
         {
 
             var insumoModel = MapDtoToModel(insumosDto);
-            var novoInsumo = await _repository.CreateInsumo(insumoModel);
+            var novoInsumo = await _repository.CreateAsync(insumoModel);
 
             return MapModelToDto(novoInsumo);
         }
-        public async Task<InsumosDTO?> AtualizarInsumo(InsumosDTO insumosDto)
+        public async Task<InsumosDTO?> AtualizarAsync(InsumosDTO insumosDto)
         {
-            var insumoExistente = await _repository.GetInsumo(insumosDto.CodigoId);
+            var insumoExistente = await _repository.GetByIdAsync(insumosDto.CodigoId);
             if (insumoExistente == null)
             {
                 return null;
@@ -53,19 +52,18 @@ namespace Backend.Services
             PersistirModel(insumoExistente, insumosDto);
 
 
-            var insumoAtualizado = await _repository.UpdateInsumo(insumoExistente);
-            return MapModelToDto(insumoAtualizado);
+            var insumoAtualizado = await _repository.UpdateAsync(insumoExistente);
+            return MapModelToDto(insumoAtualizado!);
         }
 
-        public async Task<bool> DeletarInsumo(int id)
+        public async Task<bool> DeletarAsync(int id)
         {
-            var insumo = await _repository.GetInsumo(id);
+            var insumo = await _repository.GetByIdAsync(id);
             if (insumo == null)
             {
                 return false;
             }
-            await _repository.DeleteInsumo(id);
-            return true;
+            return await _repository.DeleteAsync(id);
         }
 
         private static InsumosDTO MapModelToDto(InsumosModel model)
@@ -110,7 +108,7 @@ namespace Backend.Services
         private void PersistirModel(InsumosModel model, InsumosDTO modelDto)
         {
             model.CodigoId = modelDto.CodigoId;
-          
+
             model.DescricaoDetalhada = modelDto.DescricaoDetalhada;
             model.DescricaoSimplificada = modelDto.DescricaoSimplificada;
             model.NotaFiscal = modelDto.NotaFiscal;
@@ -118,11 +116,10 @@ namespace Backend.Services
             model.DataDeEntradaDoMedicamento = modelDto.DataDeEntradaDoMedicamento;
             model.ConsumoMensal = modelDto.ConsumoMensal;
             model.ConsumoAnual = modelDto.ConsumoAnual;
-             model.ValidadeInsumo = modelDto.ValidadeInsumo;
+            model.ValidadeInsumo = modelDto.ValidadeInsumo;
             model.EstoqueDisponivel = modelDto.EstoqueDisponivel;
             model.EntradaEstoque = modelDto.EntradaEstoque;
             model.EntradaEstoque = modelDto.EntradaEstoque;
         }
     }
-
 }

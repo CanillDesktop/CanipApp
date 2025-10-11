@@ -1,7 +1,6 @@
 ﻿using Backend.Models.Usuarios;
 using Backend.Repositories.Interfaces;
 using Backend.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Shared.DTOs;
 
 namespace Backend.Services
@@ -33,7 +32,7 @@ namespace Backend.Services
 
         public async Task<UsuarioResponseDTO?> BuscarPorIdAsync(int id) => await _repository.GetByIdAsync(id);
 
-        public async Task<IEnumerable<UsuarioResponseDTO>> BuscarTodosAsync() => (IEnumerable<UsuarioResponseDTO>)await _repository.GetAsync();
+        public async Task<IEnumerable<UsuarioResponseDTO?>> BuscarTodosAsync() => (await _repository.GetAsync()).Select(u => (UsuarioResponseDTO?)u);
 
         public async Task<UsuarioResponseDTO?> AtualizarAsync(UsuarioRequestDTO dto) => await _repository.UpdateAsync(dto);
 

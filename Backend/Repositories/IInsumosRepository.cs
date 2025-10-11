@@ -1,23 +1,10 @@
 ﻿using Backend.Models.Medicamentos;
-using Shared.DTOs;
+using Backend.Repositories.Interfaces;
 
 namespace Backend.Repositories
 {
-    public interface IInsumosRepository
+    public interface IInsumosRepository : IRepository<InsumosModel, int>
     {
-
-
-        Task<IEnumerable<InsumosModel>> Get();
-        Task<InsumosModel> GetInsumo(int id);
-
-        Task<InsumosModel> CreateInsumo(InsumosModel Insumos);
-
-        Task<InsumosModel> UpdateInsumo(InsumosModel Insumos);
-
-        Task<InsumosModel> DeleteInsumo(int id);
-
-
     }
-
 }
 

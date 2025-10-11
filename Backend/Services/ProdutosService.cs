@@ -13,7 +13,7 @@ namespace Backend.Services
             _repository = repository;
         }
 
-        public async Task<IEnumerable<ProdutosDTO>> BuscarTodosAsync() => (IEnumerable<ProdutosDTO>)await _repository.GetAsync();
+        public async Task<IEnumerable<ProdutosDTO>> BuscarTodosAsync() => (await _repository.GetAsync()).Select(p => (ProdutosDTO)p);
 
         public async Task<ProdutosDTO?> BuscarPorIdAsync(string id) => (await _repository.GetByIdAsync(id))!;
 

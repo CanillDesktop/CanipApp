@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.AspNetCore.Components;
 using Shared.DTOs;
 using System.Collections.ObjectModel;
 using System.Net.Http.Json;
