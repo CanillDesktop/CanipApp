@@ -3,6 +3,7 @@ using System;
 using Backend.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations
 {
     [DbContext(typeof(CanilAppDbContext))]
-    partial class CanilAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251006182641_AddInsumosTable")]
+    partial class AddInsumosTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.1");
@@ -114,7 +117,7 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Produtos.ProdutosModel", b =>
                 {
-                    b.Property<string>("IdProduto")
+                    b.Property<string>("CodigoId")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Categoria")
@@ -147,45 +150,9 @@ namespace Backend.Migrations
                     b.Property<string>("Validade")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("IdProduto");
+                    b.HasKey("CodigoId");
 
                     b.ToTable("Produtos");
-                });
-
-            modelBuilder.Entity("Backend.Models.Usuarios.UsuariosModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("DataHoraCriacao")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("DataHoraExpiracaoRefreshToken")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("HashSenha")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("Permissao")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("PrimeiroNome")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Sobrenome")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Usuarios");
                 });
 #pragma warning restore 612, 618
         }

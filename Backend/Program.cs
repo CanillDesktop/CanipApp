@@ -77,6 +77,8 @@ namespace Backend
             builder.Services.AddScoped<IProdutosService, ProdutosService>();
             builder.Services.AddScoped<IUsuariosRepository<UsuariosModel>, UsuariosRepository>();
             builder.Services.AddScoped<IUsuariosService<UsuarioResponseDTO>, UsuariosService>();
+            builder.Services.AddScoped<IInsumosRepository, IInsumosModelRepository>();
+            builder.Services.AddScoped<IInsumosService, InsumosService>();
 
             var app = builder.Build();
 

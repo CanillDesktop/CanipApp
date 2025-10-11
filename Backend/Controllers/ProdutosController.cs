@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
 
+
+
 namespace Backend.Controllers
 {
     [Route("api/[controller]")]
@@ -65,16 +67,13 @@ namespace Backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            try
+            if (id is not null)
             {
                 await _service.DeletarAsync(id);
 
-                return NoContent();
-            }
-            catch (ArgumentNullException)
-            {
-                return NotFound();
-            }
+           return NoContent();
+           
+           
         }
     }
 }

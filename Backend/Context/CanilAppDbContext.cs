@@ -13,6 +13,7 @@ namespace Backend.Context
         public DbSet<MedicamentosModel> Medicamentos {  get; set; }
         public DbSet<ProdutosModel> Produtos { get; set; }
         public DbSet<UsuariosModel> Usuarios { get; set; }
+        public DbSet<InsumosModel> Insumos { get; set; }
 
     }
 }

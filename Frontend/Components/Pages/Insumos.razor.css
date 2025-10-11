@@ -4,7 +4,6 @@
     align-items: center;
     justify-content: center;
     height: 100vh;
-    
 }
 
 .centralizarObjetosVerticalmente {
@@ -18,7 +17,6 @@
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     width: 100%;
-    
     text-align: center;
     transition: all 0.3s ease;
 }
@@ -32,103 +30,13 @@
     animation: spin 1s linear infinite; /* Animação de rotação */
     margin: auto; /* Centraliza horizontalmente */
 }
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
-}
-
-.corpo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    background-color: #f5f7fa;
-    padding: 1rem;
-}
-
-.textoSimples{
-    font-size:small;
-    padding-left:10px;
-}
-
-.inputSimples{
-        display: block;
-        width: 100%;
-        margin: 10px 0;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        font-size: 16px;
-        box-sizing: border-box;
-    }
-
-
-.login-container button {
-        width: 100%;
-        margin: 10px 0;
-        padding: 12px;
-        border-radius: 8px;
-        border: none;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-.botaoAzul {
-    background-color: #007bff;
-    color: white;
-}
-
-.botaoAzulEscuro:hover {
-        background-color: #0069d9;
-    }
-
-.botaoCinza {
-    background-color: #6c757d;
-    color: white;
-}
-
-.botaoCinzaEscuro:hover {
-        background-color: #5a6268;
-    }
-
-
-
-/* Tablets */
-@media (max-width: 768px) {
-.login-container {
-    padding: 1.5rem;
-    max-width: 90%;
-}
-
-.login-container h1 {
-    font-size: 1.5rem;
-}
-}
-
-/* Celulares */
-@media (max-width: 480px) {
-.login-container {
-    padding: 1rem;
-    max-width: 100%; 
-    border-radius: 8px;
-}
-
-.login-container h1 {
-    font-size: 1.2rem;
-}
-
-.login-container p {
-    font-size: 0.9rem;
-}
-
-.login-container input,
-.login-container button {
-    font-size: 14px;
-    padding: 10px;
-}
 }
