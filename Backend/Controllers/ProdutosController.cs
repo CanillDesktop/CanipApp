@@ -67,13 +67,16 @@ namespace Backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            if (id is not null)
+            try
             {
                 await _service.DeletarAsync(id);
 
-           return NoContent();
-           
-           
+                return NoContent();
+            }
+            catch (ArgumentNullException)
+            {
+                return NotFound();
+            }
         }
     }
 }

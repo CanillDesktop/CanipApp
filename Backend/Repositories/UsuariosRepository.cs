@@ -24,9 +24,7 @@ namespace Backend.Repositories
         {
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
 
-            ArgumentNullException.ThrowIfNull(usuario);
-
-            return usuario;
+            return usuario ?? null;
         }
 
         public async Task<UsuariosModel?> GetByIdAsync(int id)
