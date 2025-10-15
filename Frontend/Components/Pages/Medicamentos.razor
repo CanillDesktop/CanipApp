@@ -3,12 +3,27 @@
 @inject NavigationManager Navigation
 @inject MedicamentosViewModel VM
 
-
 @code {
     private void VoltarParaHome()
     {
         Navigation.NavigateTo("/home");
         // rota raiz
+    }
+
+    // Cada item tem seu próprio estado expandido
+    Dictionary<int, bool> ItensAbertos = new();
+
+    void Toggle(int codigoId)
+    {
+        if (ItensAbertos.ContainsKey(codigoId))
+            ItensAbertos[codigoId] = !ItensAbertos[codigoId];
+        else
+            ItensAbertos[codigoId] = true;
+    }
+
+    void ToggleWrapper(int codigoId)
+    {
+        Toggle(codigoId);
     }
 }
 
@@ -21,45 +36,71 @@
     <PageTitle>Medicamentos</PageTitle>
     <h1>Medicamentos</h1>
 
-    <div class="caixaBranca"> 
+    <div class="caixaBranca">
+        <select>
+            <option>NomeComercial</option>
+            <option>DescricaoMedicamentos</option>
+            <option>CodigoId</option>
+            <option>NotaFiscal</option>
+            <option>ConsumoMensal</option>
+            <option>ConsumoAnual</option>
+            <option>EntradaEstoque</option>
+            <option>SaidaTotalEstoque</option>
+            <option>EstoqueDisponivel</option>
+            <option>ValidadeMedicamento</option>
+            <option>PublicoAlvo</option>
+            <option>Prioridade</option>
+            <option>DataDeEntradaDoMedicamento</option>
+        </select>
+        <input type="text" name="name" value="" />
+        <button class="botoes">Filtrar</button>
+    </div>
 
+    <div class="caixaBranca">
         @if (VM.Carregando)
         {
             <div class="spinner"></div>
-            }
-            else
+        }
+        else
+        {
+            @foreach (var p in VM.Medicamentos)
             {
-                <ul>
-                    <li>
-                    @foreach (var p in VM.Medicamentos)
-                    {
-                            <table>
-                          <tr>Nome Comercial: @p.NomeComercial</tr>
-                          <tr>Descricao do medicamento: @p.DescricaoMedicamentos</tr>
-                           <tr>Codigo do medicamento: @p.CodigoId</tr>
-                            <tr>Nota Fiscal: @p.NotaFiscal</tr>
-                            <tr>Consumo mensal: @p.ConsumoMensal</tr>
-                            <tr>Consumo Anual: @p.ConsumoAnual</tr>
-                            <tr>Entradas no Estoque: @p.EntradaEstoque</tr>
-                            <tr>Saidas no Estoque: @p.SaidaTotalEstoque</tr>
-                            <tr>Estoque Disponivel: @p.EstoqueDisponivel</tr>
-                            <tr> Validade: @p.ValidadeMedicamento</tr>
-                            <tr> Publico Alvo: @p.PublicoAlvo.GetDescription()</tr>
-                            <tr>Prioridade: @p.Prioridade</tr>
-                            <tr> Data da entrada: @p.DataDeEntradaDoMedicamento</tr>
-                   
-                      </table>
-                    }
-
-                    </li>
-                </ul>
+                <div class="Item">
+                    <ul>
+                        <div class="info">
+                            <li>Nome Comercial: @p.NomeComercial</li>
+                            <li>Descrição do medicamento: @p.DescricaoMedicamentos</li>
+                        </div>
+                        @if (ItensAbertos.ContainsKey(@p.CodigoId) && ItensAbertos[@p.CodigoId])
+                        {
+                            <div class="maisInfo">
+                                <li>Código do medicamento: @p.CodigoId</li>
+                                <li>Nota Fiscal: @p.NotaFiscal</li>
+                                <li>Consumo Mensal: @p.ConsumoMensal</li>
+                                <li>Consumo Anual: @p.ConsumoAnual</li>
+                                <li>Entradas no Estoque: @p.EntradaEstoque</li>
+                                <li>Saídas no Estoque: @p.SaidaTotalEstoque</li>
+                                <li>Estoque Disponível: @p.EstoqueDisponivel</li>
+                                <li>Validade: @p.ValidadeMedicamento</li>
+                                <li>Público Alvo: @p.PublicoAlvo.GetDescription()</li>
+                                <li>Prioridade: @p.Prioridade</li>
+                                <li>Data da Entrada: @p.DataDeEntradaDoMedicamento</li>
+                            </div>
+                        }
+                    </ul>
+                    <div class="botoesItem">
+                        <button @onclick="@(() => ToggleWrapper(p.CodigoId))">
+                            @(ItensAbertos.ContainsKey(@p.CodigoId) && ItensAbertos[@p.CodigoId] ? "Fechar" : "Ver mais")
+                        </button>
+                        <button @onclick="VM.DeletarProdutosCommand.ExecuteAsync">Deletar Produto</button>
+                    </div>
+                </div>
             }
-        </div>
-
+        }
+    </div>
 </div>
 
 <div class="botoes">
     <button @onclick="VM.CarregarProdutosCommand.ExecuteAsync">Carregar Banco de Dados</button>
     <button @onclick="VM.CriarProdutosCommand.ExecuteAsync">Cadastrar</button>
-    <button @onclick="VM.DeletarProdutosCommand.ExecuteAsync">Deletar Produto</button>
 </div>
