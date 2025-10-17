@@ -26,7 +26,7 @@ namespace Backend.Models.Usuarios
         public string? HashSenha { get; set; }
 
         [EnumDataType(typeof(PermissoesEnum))]
-        public PermissoesEnum? Permissao {  get; set; }
+        public PermissoesEnum? Permissao { get; set; }
 
         [JsonIgnore]
         public string? RefreshToken { get; set; } = string.Empty;
@@ -37,8 +37,12 @@ namespace Backend.Models.Usuarios
         [JsonIgnore]
         public DateTime DataHoraCriacao { get; init; }
 
-        public static implicit operator UsuariosModel(UsuarioRequestDTO dto)
+        public static implicit operator UsuariosModel?(UsuarioRequestDTO? dto)
         {
+            if (dto == null)
+            {
+                return null;
+            }
             return new UsuariosModel(
                 dto.PrimeiroNome,
                 dto.Sobrenome,
@@ -48,9 +52,29 @@ namespace Backend.Models.Usuarios
             );
         }
 
-        public static implicit operator UsuarioResponseDTO(UsuariosModel model)
+        public static implicit operator UsuarioResponseDTO?(UsuariosModel? model)
         {
+            if (model == null)
+            {
+                return null;
+            }
             return new UsuarioResponseDTO()
+            {
+                Id = model.Id,
+                PrimeiroNome = model.PrimeiroNome,
+                Sobrenome = model.Sobrenome,
+                Email = model.Email,
+                Permissao = model.Permissao
+            };
+        }
+
+        public static implicit operator UsuarioRequestDTO?(UsuariosModel? model)
+        {
+            if (model == null)
+            {
+                return null;
+            }
+            return new UsuarioRequestDTO()
             {
                 Id = model.Id,
                 PrimeiroNome = model.PrimeiroNome,

@@ -1,4 +1,5 @@
 ﻿using Shared.Enums;
+using System.Text.Json.Serialization;
 
 namespace Shared.DTOs
 {
@@ -20,7 +21,8 @@ namespace Shared.DTOs
             EstoqueDisponivel = estoqueDisponivel;
         }
 
-        public string IdProduto { get; init; } = string.Empty;
+        [JsonIgnore]
+        public string IdProduto { get; set; } = string.Empty;
         public string? DescricaoSimples { get; set; }
         public DateTime DataEntrega { get; init; }
         public string? NFe { get; set; }

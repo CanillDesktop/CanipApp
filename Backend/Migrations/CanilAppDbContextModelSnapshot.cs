@@ -114,7 +114,7 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Produtos.ProdutosModel", b =>
                 {
-                    b.Property<string>("CodigoId")
+                    b.Property<string>("IdProduto")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Categoria")
@@ -147,9 +147,45 @@ namespace Backend.Migrations
                     b.Property<string>("Validade")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("CodigoId");
+                    b.HasKey("IdProduto");
 
                     b.ToTable("Produtos");
+                });
+
+            modelBuilder.Entity("Backend.Models.Usuarios.UsuariosModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DataHoraCriacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DataHoraExpiracaoRefreshToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HashSenha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("Permissao")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PrimeiroNome")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Sobrenome")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Usuarios");
                 });
 #pragma warning restore 612, 618
         }

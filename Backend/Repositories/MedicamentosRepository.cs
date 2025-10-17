@@ -1,35 +1,35 @@
 ﻿
 using Backend.Context;
 using Backend.Models.Medicamentos;
-using Backend.Repositories;
+using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Repositories
 {
-    public class MedicamentoModelRepository : IMedicamentosRepository
+    public class MedicamentosRepository : IMedicamentosRepository
     {
 
         private readonly CanilAppDbContext _context;
 
-        public MedicamentoModelRepository(CanilAppDbContext context)
+        public MedicamentosRepository(CanilAppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IEnumerable<MedicamentosModel>> Get()
+        public async Task<IEnumerable<MedicamentosModel>> GetAsync()
         {
-            var  medicamentosRepository = await _context.Medicamentos.ToListAsync();
+            var medicamentosRepository = await _context.Medicamentos.ToListAsync();
 
             return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
         }
 
-        public async Task<MedicamentosModel> GetMedicamento(int id)
+        public async Task<MedicamentosModel?> GetByIdAsync(int id)
         {
 
-            var medicamentosRepository = await _context.Medicamentos.FirstOrDefaultAsync(p =>p.CodigoId == id);
+            var medicamentosRepository = await _context.Medicamentos.FirstOrDefaultAsync(p => p.CodigoId == id);
             return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
         }
-        public async Task<MedicamentosModel> CreateMedicamento(MedicamentosModel Medicamento)
+        public async Task<MedicamentosModel> CreateAsync(MedicamentosModel Medicamento)
         {
             if (Medicamento is null)
             {
@@ -37,13 +37,13 @@ namespace Backend.Repositories
             }
 
             await _context.Medicamentos.AddAsync(Medicamento);
-           await  _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return Medicamento;
 
         }
 
 
-        public async Task<MedicamentosModel> UpdateMedicamento(MedicamentosModel Medicamento)
+        public async Task<MedicamentosModel?> UpdateAsync(MedicamentosModel Medicamento)
         {
             if (Medicamento is null)
             {
@@ -54,7 +54,7 @@ namespace Backend.Repositories
             return Medicamento;
         }
 
-        public async Task<MedicamentosModel> DeleteMedicamento(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             var medicamentosRepository = await _context.Medicamentos.FindAsync(id);
 
@@ -65,10 +65,10 @@ namespace Backend.Repositories
 
             _context.Medicamentos.Remove(medicamentosRepository);
             await _context.SaveChangesAsync();
-            return medicamentosRepository;
+            return true;
         }
 
-       
-     
+
+
     }
 }
