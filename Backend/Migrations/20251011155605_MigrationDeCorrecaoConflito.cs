@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class AddInsumosTable : Migration
+    public partial class MigrationDeCorrecaoConflito : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,10 +35,34 @@ namespace Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Medicamentos",
+                columns: table => new
+                {
+                    CodigoId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Prioridade = table.Column<int>(type: "INTEGER", nullable: false),
+                    DescricaoMedicamentos = table.Column<string>(type: "TEXT", nullable: false),
+                    DataDeEntradaDoMedicamento = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    NotaFiscal = table.Column<string>(type: "TEXT", nullable: true),
+                    NomeComercial = table.Column<string>(type: "TEXT", nullable: false),
+                    PublicoAlvo = table.Column<int>(type: "INTEGER", nullable: false),
+                    ConsumoMensal = table.Column<int>(type: "INTEGER", nullable: false),
+                    ConsumoAnual = table.Column<int>(type: "INTEGER", nullable: false),
+                    ValidadeMedicamento = table.Column<DateOnly>(type: "TEXT", nullable: true),
+                    EstoqueDisponivel = table.Column<int>(type: "INTEGER", nullable: false),
+                    EntradaEstoque = table.Column<int>(type: "INTEGER", nullable: false),
+                    SaidaTotalEstoque = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Medicamentos", x => x.CodigoId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Produtos",
                 columns: table => new
                 {
-                    CodigoId = table.Column<string>(type: "TEXT", nullable: false),
+                    IdProduto = table.Column<string>(type: "TEXT", nullable: false),
                     DescricaoSimples = table.Column<string>(type: "TEXT", nullable: true),
                     DataEntrega = table.Column<DateTime>(type: "TEXT", nullable: false),
                     NFe = table.Column<string>(type: "TEXT", nullable: true),
@@ -52,7 +76,27 @@ namespace Backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Produtos", x => x.CodigoId);
+                    table.PrimaryKey("PK_Produtos", x => x.IdProduto);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Usuarios",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    PrimeiroNome = table.Column<string>(type: "TEXT", nullable: true),
+                    Sobrenome = table.Column<string>(type: "TEXT", nullable: true),
+                    Email = table.Column<string>(type: "TEXT", nullable: false),
+                    HashSenha = table.Column<string>(type: "TEXT", nullable: true),
+                    Permissao = table.Column<int>(type: "INTEGER", nullable: true),
+                    RefreshToken = table.Column<string>(type: "TEXT", nullable: true),
+                    DataHoraExpiracaoRefreshToken = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DataHoraCriacao = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuarios", x => x.Id);
                 });
         }
 
@@ -63,7 +107,13 @@ namespace Backend.Migrations
                 name: "Insumos");
 
             migrationBuilder.DropTable(
+                name: "Medicamentos");
+
+            migrationBuilder.DropTable(
                 name: "Produtos");
+
+            migrationBuilder.DropTable(
+                name: "Usuarios");
         }
     }
 }

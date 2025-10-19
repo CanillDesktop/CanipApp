@@ -1,17 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.AspNetCore.Components;
 using Shared.DTOs;
 using System.Collections.ObjectModel;
 using System.Net.Http.Json;
-using Shared.Models;
 
 namespace Frontend.ViewModels
 {
     public partial class ProdutosViewModel : ObservableObject
     {
         private readonly HttpClient _http;
-        private readonly NavigationManager _navigationManager;
 
         public ObservableCollection<ProdutosDTO> Produtos { get; } = [];
 
@@ -28,10 +25,9 @@ namespace Frontend.ViewModels
 
         public IAsyncRelayCommand CarregarProdutosCommand;
 
-        public ProdutosViewModel(IHttpClientFactory httpClientFactory, NavigationManager navigation)
+        public ProdutosViewModel(IHttpClientFactory httpClientFactory)
         {
             _http = httpClientFactory.CreateClient("ApiClient");
-            _navigationManager = navigation;
             CarregarProdutosCommand = new AsyncRelayCommand(CarregarProdutosAsync);
         }
 
