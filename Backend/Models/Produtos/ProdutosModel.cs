@@ -1,7 +1,6 @@
 ﻿using Shared.DTOs;
 using Shared.Enums;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace Backend.Models.Produtos
 {
@@ -11,9 +10,7 @@ namespace Backend.Models.Produtos
 
         public ProdutosModel() { }
 
-        [Key]
-        [JsonIgnore]
-        public string IdProduto { get; set; } = string.Empty;
+        public string IdProduto { get; init; } = string.Empty;
         public string? DescricaoSimples { get; set; }
         public DateTime DataEntrega { get; init; }
         public string? NFe { get; set; }

@@ -1,26 +1,36 @@
-﻿using Backend.Repositories.Interfaces;
-using Backend.Services.Interfaces;
-using Shared.DTOs;
+﻿using Backend.Models.Produtos;
 
 namespace Backend.Services
 {
-    public class ProdutosService : IProdutosService
+    public class ProdutosService
     {
-        private readonly IProdutosRepository _repository;
+        private static readonly List<ProdutosModel> _produtos = [];
 
-        public ProdutosService(IProdutosRepository repository) 
+        public ProdutosService() { }
+
+        public IEnumerable<ProdutosModel> BuscarTodos() => _produtos;
+
+        public ProdutosModel? BuscaPorId(string id) => _produtos.FirstOrDefault(p => p.IdProduto == id);
+
+        public void CriaProduto(ProdutosModel? model)
         {
-            _repository = repository;
+            ArgumentNullException.ThrowIfNull(model);
+
+            _produtos.Add(model);
         }
 
-        public async Task<IEnumerable<ProdutosDTO>> BuscarTodosAsync() => (await _repository.GetAsync()).Select(p => (ProdutosDTO)p);
+        public void Atualizar(string id, ProdutosModel model)
+        {
+            var produto = _produtos.Find(p => p.IdProduto == id) ?? throw new ArgumentNullException(nameof(model));
 
-        public async Task<ProdutosDTO?> BuscarPorIdAsync(string id) => (await _repository.GetByIdAsync(id))!;
+            produto = model;
+        }
 
-        public async Task<ProdutosDTO?> CriarAsync(ProdutosDTO dto) => await _repository.CreateAsync(dto);
+        public void Deletar(string id)
+        {
+            var produto = _produtos.Find(p => p.IdProduto == id) ?? throw new ArgumentNullException();
 
-        public async Task<ProdutosDTO?> AtualizarAsync(ProdutosDTO dto) => (await _repository.UpdateAsync(dto))!;
-
-        public async Task<bool> DeletarAsync(string id) => await _repository.DeleteAsync(id);
+            _produtos.Remove(produto);
+        }
     }
 }

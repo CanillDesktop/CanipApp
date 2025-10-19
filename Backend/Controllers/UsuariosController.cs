@@ -1,5 +1,5 @@
-﻿using Backend.Repositories.Interfaces;
-using Backend.Services.Interfaces;
+﻿using Backend.Models.Usuarios;
+using Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
@@ -10,21 +10,23 @@ namespace Backend.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
-        private readonly IUsuariosService<UsuarioResponseDTO> _service;
+        private readonly UsuariosService _service;
 
-        public UsuariosController(IUsuariosService<UsuarioResponseDTO> service)
+        public UsuariosController(UsuariosService service)
         {
             _service = service;
         }
 
         [HttpPost]
-        public async Task<ActionResult<UsuarioRequestDTO>> Create([FromBody] UsuarioRequestDTO dto)
+        public ActionResult<UsuarioRequestDTO> Create([FromBody] UsuarioRequestDTO dto)
         {
             try
             {
-                await _service.CriarAsync(dto);
+                UsuariosModel? model = dto;
 
-                return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
+                _service.CriaUsuario(model);
+
+                return CreatedAtAction(nameof(GetById), new { id = model.Id }, dto);
             }
             catch (ArgumentNullException)
             {
@@ -32,18 +34,19 @@ namespace Backend.Controllers
             }
         }
 
-        [Authorize(Roles = "ADMIN")]
+        [Authorize]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UsuarioResponseDTO>>>? Get()
+        public ActionResult<IEnumerable<UsuarioResponseDTO>>? Get()
         {
-            return Ok(await _service.BuscarTodosAsync());
+
+            return Ok(_service.BuscarTodos()?.Select(u => (UsuarioResponseDTO)u) ?? []);
         }
 
-        [Authorize]
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<UsuarioResponseDTO>> GetById(int id)
+        public ActionResult<UsuarioResponseDTO> GetById(int id)
         {
-            var usuario = await _service.BuscarPorIdAsync(id);
+            var usuario = (UsuarioResponseDTO)_service.BuscaPorId(id);
 
             if (usuario == null)
                 return NotFound();
@@ -53,12 +56,11 @@ namespace Backend.Controllers
 
         [Authorize]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put([FromRoute] int id,[FromBody] UsuarioRequestDTO dto)
+        public IActionResult Put([FromRoute] int id,[FromBody] UsuarioRequestDTO dto)
         {
             try
             {
-                dto.Id = id;
-                await _service.AtualizarAsync(dto);
+                _service.Atualizar(id, dto);
 
                 return NoContent();
             }
@@ -70,11 +72,11 @@ namespace Backend.Controllers
 
         [Authorize]
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        public IActionResult Delete(int id)
         {
             try
             {
-                await _service.DeletarAsync(id);
+                _service.Deletar(id);
 
                 return NoContent();
             }
