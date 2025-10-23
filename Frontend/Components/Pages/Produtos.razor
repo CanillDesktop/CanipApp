@@ -2,15 +2,7 @@
 @page "/produtos"
 @inject NavigationManager Navigation
 @inject ProdutosViewModel VM
-
-
-@code {
-    private void VoltarParaHome()
-    {
-        Navigation.NavigateTo("/home");
-        // rota raiz
-    }
-}
+@inherits BasePage<ProdutosViewModel>
 
 <div class="centralizarObjetosVerticalmente">
     <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
@@ -20,27 +12,36 @@
 
 <div>
     <PageTitle>Produtos</PageTitle>
-    <h1>Produtos</h1>
-
-    <div class="caixaBranca">
-    @if (VM.Carregando){
-        <div class="spinner"></div>
-    }
-    else{
-        <ul>
-            @foreach (var p in VM.Produtos){
-                <li>@p.IdProduto - @p.DescricaoDetalhada</li>
-            }
-        </ul>
-    }
+    
+    <div>
+        @if(VM.HasTabs)
+        {
+            <TabsController ViewModel="VM"/>
+        }
     </div>
 
-    
+    <div class="mt-3">
+        @if (VM.ActiveTab == "Cadastrar")
+        {
+            <h3>Cadastro de Produtos</h3>
+        }
+        else 
+        {
+            <h3>Produtos</h3>
+        }
+    </div>
 
 </div>
 
 <div class="botoes">
-    <button @onclick="VM.CarregarProdutosCommand.ExecuteAsync">Carregar Banco de Dados</button>
-    <button >Cadastrar</button>
+    <button @onclick="VM.CarregarProdutosCommand.ExecuteAsync">Atualizar Itens</button>
+    <button @onclick="VM.CadastrarProdutosCommand.Execute">Cadastrar</button>
     <button >Deletar Produto</button>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        VM.OnTabChanged = StateHasChanged;
+    }
+}
