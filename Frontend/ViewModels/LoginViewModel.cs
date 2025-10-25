@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.AspNetCore.Components; // Necessário para NavigationManager
 using Shared.Models;
 using System.Net.Http.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Frontend.ViewModels;
 
@@ -26,6 +27,13 @@ public partial class LoginViewModel : ObservableObject
         set => SetProperty(ref _password, value);
     }
 
+    private bool _carregando;
+    public bool Carregando
+    {
+        get => _carregando;
+        set => SetProperty(ref _carregando, value);
+    }
+
     // Comandos expostos explicitamente
     public IAsyncRelayCommand LoginCommand { get; }
     public IRelayCommand RegisterCommand { get; }
@@ -41,31 +49,47 @@ public partial class LoginViewModel : ObservableObject
 
     private async Task LoginAsync()
     {
-        var request = new
+        try
         {
-            Login,
-            Senha = Password
-        };
+            if (Carregando)
+                return;
 
-        var response = await _httpClient.PostAsJsonAsync("api/login", request);
+            Carregando = true;
 
-        if (response.IsSuccessStatusCode)
-        {
-            var result = await response.Content.ReadFromJsonAsync<LoginResponseModel>();
+            var request = new
+            {
+                Login,
+                Senha = Password
+            };
 
-            await SecureStorage.SetAsync("auth_token", result!.Token!.AccessToken!);
-            await SecureStorage.SetAsync("refresh_token", result!.Token!.RefreshToken!);
+            var response = await _httpClient.PostAsJsonAsync("api/login", request);
 
-            Preferences.Set("user_email", result.Usuario!.Email);
-            Preferences.Set("user_fullname", result.Usuario.NomeCompleto());
-            Preferences.Set("user_role", result.Usuario.Permissao.ToString());
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponseModel>();
 
-            _navigationManager.NavigateTo("/home");
+                await SecureStorage.SetAsync("auth_token", result!.Token!.AccessToken!);
+                await SecureStorage.SetAsync("refresh_token", result!.Token!.RefreshToken!);
+
+                Preferences.Set("user_email", result.Usuario!.Email);
+                Preferences.Set("user_fullname", result.Usuario.NomeCompleto());
+                Preferences.Set("user_role", result.Usuario.Permissao.ToString());
+
+                _navigationManager.NavigateTo("/home");
+            }
+            else
+            {
+                var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                await Application.Current!.MainPage!.DisplayAlert(error!.Title, error!.Message, "OK");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-            await Application.Current!.MainPage!.DisplayAlert(error!.Title, error!.Message, "OK");
+            await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
+        }
+        finally
+        {
+            Carregando = false;
         }
     }
 

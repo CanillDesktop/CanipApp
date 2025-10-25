@@ -33,6 +33,8 @@ namespace Backend.Repositories
         {
             ArgumentNullException.ThrowIfNull(model);
 
+            model.DataHoraInsercaoRegistro = DateTime.Now;
+
             await _context.Produtos.AddAsync(model);
             await _context.SaveChangesAsync();
 

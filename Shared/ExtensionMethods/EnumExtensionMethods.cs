@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Shared.ExtensionMethods
 {
-    public static class EnumHelper
+    public static class EnumExtensionMethods
     {
         private static readonly ConcurrentDictionary<Enum, string> _descricaoCache = new();
         public static string GetDescription<T>(this T value) where T : Enum

@@ -1,0 +1,74 @@
+﻿@using Shared.Enums
+@using Shared.ExtensionMethods
+@using Shared.Helpers
+
+<h3>Cadastro de Produtos</h3>
+<div class="caixaBranca">
+    <EditForm Model="@ViewModel.Produto" OnValidSubmit="() => ViewModel.CadastrarProdutoCommand.ExecuteAsync(ViewModel.Produto)">
+        <DataAnnotationsValidator />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.Produto.DescricaoSimples)</label>
+        <InputText @bind-Value="ViewModel.Produto.DescricaoSimples" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.Produto.DescricaoSimples)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.Produto.DataEntrega)</label>
+        <InputDate @bind-Value="ViewModel.Produto.DataEntrega" TValue="DateTime?" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.Produto.DataEntrega)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.Produto.NFe)</label>
+        <InputText @bind-Value="ViewModel.Produto.NFe" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.Produto.NFe)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.Produto.DescricaoDetalhada)</label>
+        <InputText @bind-Value="ViewModel.Produto.DescricaoDetalhada" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.Produto.DescricaoDetalhada)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.Produto.Unidade)</label>
+        <InputSelect @bind-Value="ViewModel.Produto.Unidade" TValue="UnidadeEnum" class="form-select">
+            <option value="">-- Escolha uma opção --</option>
+            @foreach (var unidade in Enum.GetValues<UnidadeEnum>())
+            {
+                <option value="@unidade">@unidade</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => ViewModel.Produto.Unidade)" class="text-danger"  />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.Produto.Categoria)</label>
+        <InputSelect @bind-Value="ViewModel.Produto.Categoria" TValue="CategoriaEnum" class="form-select">
+            <option value="">-- Escolha uma opção --</option>
+            @foreach (var categoria in Enum.GetValues<CategoriaEnum>())
+            {
+                <option value="@categoria">@categoria.GetDescription()</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => ViewModel.Produto.Categoria)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.Produto.Quantidade)</label>
+        <InputNumber @bind-Value="ViewModel.Produto.Quantidade" min="0" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.Produto.Quantidade)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.Produto.Validade)</label>
+        <InputDate @bind-Value:culture="pt-BR" @bind-Value:format="dd/MM/yyyy" @bind-Value="ViewModel.Produto.Validade" TValue="DateTime?" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.Produto.Validade)" class="text-danger"  />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.Produto.EstoqueDisponivel)</label>
+        <InputNumber @bind-Value="ViewModel.Produto.EstoqueDisponivel" min="0" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.Produto.EstoqueDisponivel)" class="text-danger" />
+
+        @if(ViewModel.Cadastrando)
+        {
+            <div class="spinner"></div>
+        }
+        else
+        {
+            <div>
+                <button type="submit" class="btn btn-primary mb-3">Cadastrar</button>
+            </div>
+        }
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public ProdutosViewModel ViewModel { get; set; } = default!;
+}

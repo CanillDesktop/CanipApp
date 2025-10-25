@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Frontend.Models;
-public class TabItemModel : ObservableObject
+public partial class TabItemModel : ObservableObject
 {
     private string _name = string.Empty;
     private bool _isVisible;

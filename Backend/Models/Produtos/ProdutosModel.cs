@@ -15,7 +15,7 @@ namespace Backend.Models.Produtos
         [JsonIgnore]
         public string IdProduto { get; set; } = string.Empty;
         public string? DescricaoSimples { get; set; }
-        public DateTime DataEntrega { get; init; }
+        public DateTime? DataEntrega { get; init; }
         public string? NFe { get; set; }
         public string? DescricaoDetalhada { get; set; }
         public UnidadeEnum Unidade { get; set; }
@@ -23,7 +23,7 @@ namespace Backend.Models.Produtos
         public int Quantidade { get; set; }
         public string? Validade
         {
-            get => _validade ?? "indeterminado";
+            get => _validade;
             set
             {
                 if (DateTime.TryParse(value, out var _))

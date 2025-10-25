@@ -1,6 +1,7 @@
 ﻿using Frontend.Handlers;
 using Frontend.ViewModels;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 
 namespace Frontend;
 
@@ -15,6 +16,13 @@ public static class MauiProgram
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
+
+        var culture = new CultureInfo("pt-BR");
+        CultureInfo.DefaultThreadCurrentCulture = culture;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
 
         builder.Services.AddMauiBlazorWebView();
 

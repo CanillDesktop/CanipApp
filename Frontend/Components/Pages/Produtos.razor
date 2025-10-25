@@ -23,20 +23,19 @@
     <div class="mt-3">
         @if (VM.ActiveTab == "Cadastrar")
         {
-            <h3>Cadastro de Produtos</h3>
+            <ProdutosCadastroTab ViewModel="VM"/>
         }
-        else 
+        else
         {
             <h3>Produtos</h3>
+            <div class="botoes">
+                <button @onclick="VM.CarregarProdutosCommand.ExecuteAsync">Atualizar Itens</button>
+                <button @onclick="(() => VM.AbreAbaCadastro())">Cadastrar Novo Produto</button>
+                <button>Deletar Produto</button>
+            </div>
         }
     </div>
 
-</div>
-
-<div class="botoes">
-    <button @onclick="VM.CarregarProdutosCommand.ExecuteAsync">Atualizar Itens</button>
-    <button @onclick="VM.CadastrarProdutosCommand.Execute">Cadastrar</button>
-    <button >Deletar Produto</button>
 </div>
 
 @code {

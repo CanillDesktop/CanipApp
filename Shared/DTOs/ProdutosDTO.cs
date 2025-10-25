@@ -6,7 +6,7 @@ namespace Shared.DTOs
     public class ProdutosDTO
     {
         public ProdutosDTO() { }
-        public ProdutosDTO(string? descricaoSimples, DateTime dataEntrega, string? nFe, string? descricaoDetalhada, UnidadeEnum unidade, CategoriaEnum categoria,
+        public ProdutosDTO(string? descricaoSimples, DateTime? dataEntrega, string? nFe, string? descricaoDetalhada, UnidadeEnum unidade, CategoriaEnum categoria,
             int quantidade = 0, string? validade = null, int estoqueDisponivel = 0)
         {
             IdProduto = GeraIdentificador(categoria);
@@ -21,10 +21,9 @@ namespace Shared.DTOs
             EstoqueDisponivel = estoqueDisponivel;
         }
 
-        [JsonIgnore]
         public string IdProduto { get; set; } = string.Empty;
         public string? DescricaoSimples { get; set; }
-        public DateTime DataEntrega { get; init; }
+        public DateTime? DataEntrega { get; init; }
         public string? NFe { get; set; }
         public string? DescricaoDetalhada { get; set; }
         public UnidadeEnum Unidade { get; set; }

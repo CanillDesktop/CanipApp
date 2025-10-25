@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Shared.DTOs;
-using System.ComponentModel.DataAnnotations;
 using Shared.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Frontend.Models
 {
@@ -14,7 +14,7 @@ namespace Frontend.Models
         private string? _senhaConfirmacao;
         private int _permissao;
 
-        [Required(ErrorMessage = $"O campo 'Nome' é obrigatório.")]
+        [Required(ErrorMessage = "O campo 'Nome' é obrigatório")]
         public string? PrimeiroNome 
         {
             get => _primeiroNome;
@@ -31,8 +31,8 @@ namespace Frontend.Models
                 SetProperty(ref _sobrenome, value);
             }
         }
-        [Required(ErrorMessage = $"O campo 'Email' é obrigatório.")]
-        [EmailAddress(ErrorMessage = "Email inválido.")]
+        [Required(ErrorMessage = "O campo 'Email' é obrigatório")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
         public string? Email 
         {
             get => _email;
@@ -41,7 +41,7 @@ namespace Frontend.Models
                 SetProperty(ref _email, value);
             }
         }
-        [Required(ErrorMessage = $"O campo 'Senha' é obrigatório.")]
+        [Required(ErrorMessage = "O campo 'Senha' é obrigatório")]
         public string? Senha 
         {
             get => _senha;
@@ -50,7 +50,7 @@ namespace Frontend.Models
                 SetProperty(ref _senha, value);
             }
         }
-        [Compare(nameof(Senha), ErrorMessage = "As senhas não coincidem.")]
+        [Compare(nameof(Senha), ErrorMessage = "As senhas não coincidem")]
         public string? SenhaConfirmacao 
         {
             get => _senhaConfirmacao;
@@ -59,7 +59,7 @@ namespace Frontend.Models
                 SetProperty(ref _senhaConfirmacao, value);
             }
         }
-        [Required(ErrorMessage = "Por favor, defina um tipo de permissão.")]
+        [Required(ErrorMessage = "Por favor, defina um tipo de permissão")]
         public int Permissao 
         {
             get => _permissao;

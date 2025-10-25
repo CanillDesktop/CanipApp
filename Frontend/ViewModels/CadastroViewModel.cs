@@ -37,27 +37,37 @@ public partial class CadastroViewModel : ObservableObject
 
     private async Task RegisterAsync()
     {
-        if (_carregando)
-            return;
-        else
-            _carregando = true;
-
-        Usuario.Permissao = (int)PermissoesEnum.LEITURA;
-        UsuarioRequestDTO dto = Usuario;
-
-        var response = await _httpClient.PostAsJsonAsync("api/usuarios", dto);
-
-        if (response.IsSuccessStatusCode)
+        try
         {
-            await Application.Current!.MainPage!.DisplayAlert("Sucesso", "Usuário cadastrado com sucesso!", "OK");
-            _carregando = false;
+            if (_carregando)
+                return;
+            else
+                _carregando = true;
 
-            _navigationManager.NavigateTo("/");
+            Usuario.Permissao = (int)PermissoesEnum.LEITURA;
+            UsuarioRequestDTO dto = Usuario;
+
+            var response = await _httpClient.PostAsJsonAsync("api/usuarios", dto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await Application.Current!.MainPage!.DisplayAlert("Sucesso", "Usuário cadastrado com sucesso!", "OK");
+
+                _navigationManager.NavigateTo("/");
+            }
+            else
+            {
+                var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                await Application.Current!.MainPage!.DisplayAlert(error!.Title, error!.Message, "OK");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-            await Application.Current!.MainPage!.DisplayAlert(error!.Title, error!.Message, "OK");
+            await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
+        }
+        finally
+        {
+            Usuario = new();
             _carregando = false;
         }
     }
