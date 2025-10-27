@@ -1,5 +1,6 @@
 ﻿using Backend.Context;
 using Backend.Models.Medicamentos;
+using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Repositories

@@ -2,6 +2,8 @@
 using Backend.Models.Produtos;
 using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Shared.DTOs;
+using Shared.Enums;
 
 namespace Backend.Repositories
 {
@@ -59,6 +61,31 @@ namespace Backend.Repositories
             _context.Produtos.Remove(produto);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<IEnumerable<ProdutosModel>> GetAsync(ProdutosFiltroDTO filtro)
+        {
+            ArgumentNullException.ThrowIfNull(filtro);
+
+            var query = _context.Produtos.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filtro.DescricaoSimples))
+                query = query.Where(p => p.DescricaoSimples!.Contains(filtro.DescricaoSimples));
+
+            if (!string.IsNullOrWhiteSpace(filtro.NFe))
+                query = query.Where(p => p.NFe!.Contains(filtro.NFe));
+
+            if (Enum.IsDefined(typeof(CategoriaEnum), filtro.Categoria))
+                query = query.Where(p => p.Categoria == (CategoriaEnum)filtro.Categoria);
+
+            if (filtro.DataEntrega != null)
+                query = query.Where(p => p.DataEntrega == filtro.DataEntrega);
+
+            if (filtro.DataValidade != null)
+                query = query.Where(p => p.Validade == filtro.DataValidade);
+
+            var produtos = await query.ToListAsync();
+            return produtos;
         }
 
     }

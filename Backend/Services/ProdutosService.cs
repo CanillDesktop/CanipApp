@@ -22,5 +22,7 @@ namespace Backend.Services
         public async Task<ProdutosDTO?> AtualizarAsync(ProdutosDTO dto) => (await _repository.UpdateAsync(dto))!;
 
         public async Task<bool> DeletarAsync(string id) => await _repository.DeleteAsync(id);
+
+        public async Task<IEnumerable<ProdutosDTO>> BuscarTodosAsync(ProdutosFiltroDTO filtro) => (await _repository.GetAsync(filtro)).Select(p => (ProdutosDTO)p);
     }
 }

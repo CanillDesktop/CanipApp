@@ -1,5 +1,6 @@
 ﻿using Backend.Models.Medicamentos;
-using Backend.Repositories;
+using Backend.Repositories.Interfaces;
+using Backend.Services.Interfaces;
 using Shared.DTOs;
 
 namespace Backend.Services

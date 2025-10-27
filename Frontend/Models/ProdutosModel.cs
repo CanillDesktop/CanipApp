@@ -126,7 +126,7 @@ namespace Frontend.Models
                 model.Unidade,
                 model.Categoria, 
                 model.Quantidade, 
-                string.IsNullOrWhiteSpace(model.Validade.ToString()) ? "indeterminado" : model.Validade.ToString(), 
+                model.Validade.ToString(), 
                 model.EstoqueDisponivel);
         }
     }

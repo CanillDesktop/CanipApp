@@ -1,0 +1,27 @@
+﻿@using Shared.Helpers
+@using System.Reflection
+@using Frontend.Records
+
+<h3>Produtos</h3>
+<div class="caixaBranca">
+    <InputSelect @bind-Value="ViewModel.ChavePesquisa">
+        <option value="">-- Escolha uma opção --</option>
+        @foreach (var filtro in ViewModel.Filtro.GetType().GetProperties())
+        {
+            <option value="@filtro.Name">@DisplayNameHelper.DisplayNameFor(filtro)</option>
+        }
+    </InputSelect>
+
+    <InputText @bind-Value="ViewModel.ValorPesquisa" />
+    <button @onclick='() => ViewModel.FiltrarProdutosCommand.ExecuteAsync(new PesquisaProduto(ViewModel.ChavePesquisa, ViewModel.ValorPesquisa))' class="botoes">Filtrar</button>
+</div>
+<div class="botoes">
+    <button @onclick="ViewModel.CarregarProdutosCommand.ExecuteAsync">Atualizar Itens</button>
+    <button @onclick="(() => ViewModel.AbreAbaCadastro())">Cadastrar Novo Produto</button>
+    <button>Deletar Produto</button>
+</div>
+
+@code {
+    [Parameter] 
+    public ProdutosViewModel ViewModel { get; set; } = default!;
+}

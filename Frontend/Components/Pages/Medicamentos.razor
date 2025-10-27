@@ -1,15 +1,9 @@
 ﻿@page "/medicamentos"
 @using Shared.ExtensionMethods;
-@inject NavigationManager Navigation
 @inject MedicamentosViewModel VM
+@inherits BasePage<MedicamentosViewModel>
 
 @code {
-    private void VoltarParaHome()
-    {
-        Navigation.NavigateTo("/home");
-        // rota raiz
-    }
-
     // Cada item tem seu próprio estado expandido
     Dictionary<int, bool> ItensAbertos = new();
 
@@ -27,12 +21,13 @@
     }
 }
 
-<button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
-    <i class="bi bi-arrow-left"></i> Voltar para Home
-</button>
+<div class="centralizarObjetosVerticalmente">
+    <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+        <i class="bi bi-arrow-left"></i> Voltar para Home
+    </button>
+</div>
 
 <div>
-
     <PageTitle>Medicamentos</PageTitle>
     <h1>Medicamentos</h1>
 

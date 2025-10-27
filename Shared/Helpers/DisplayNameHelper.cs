@@ -19,4 +19,13 @@ public static class DisplayNameHelper
 
         return displayAttr?.Name ?? propInfo.Name;
     }
+
+    public static string DisplayNameFor(PropertyInfo prop)
+    {
+        ArgumentNullException.ThrowIfNull(prop);
+
+        var displayAttr = prop.GetCustomAttribute<DisplayAttribute>();
+
+        return displayAttr?.Name ?? prop.Name;
+    }
 }

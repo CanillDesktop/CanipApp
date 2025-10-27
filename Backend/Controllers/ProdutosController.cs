@@ -21,9 +21,9 @@ namespace Backend.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProdutosDTO>>> Get()
+        public async Task<ActionResult<IEnumerable<ProdutosDTO>>> Get([FromQuery] ProdutosFiltroDTO filtro)
         {
-            return Ok(await _service.BuscarTodosAsync());
+                return Ok(await _service.BuscarTodosAsync(filtro));
         }
 
         [HttpGet("{id}")]

@@ -1,6 +1,5 @@
 
 @page "/produtos"
-@inject NavigationManager Navigation
 @inject ProdutosViewModel VM
 @inherits BasePage<ProdutosViewModel>
 
@@ -23,16 +22,11 @@
     <div class="mt-3">
         @if (VM.ActiveTab == "Cadastrar")
         {
-            <ProdutosCadastroTab ViewModel="VM"/>
+            <ProdutosCadastroTab ViewModel="VM" />
         }
         else
         {
-            <h3>Produtos</h3>
-            <div class="botoes">
-                <button @onclick="VM.CarregarProdutosCommand.ExecuteAsync">Atualizar Itens</button>
-                <button @onclick="(() => VM.AbreAbaCadastro())">Cadastrar Novo Produto</button>
-                <button>Deletar Produto</button>
-            </div>
+            <ProdutosListarTab ViewModel="VM" />
         }
     </div>
 
