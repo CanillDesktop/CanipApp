@@ -1,0 +1,121 @@
+﻿.caixaBranca {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    width: 100%;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.spinner {
+    border: 8px solid #f3f3f3; /* Cor da borda clara */
+    border-top: 8px solid #3498db; /* Cor da borda superior (a parte que gira) */
+    border-radius: 50%; /* Deixa a div redonda */
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite; /* Animação de rotação */
+    margin: auto; /* Centraliza horizontalmente */
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Cards */
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+/* Cabeçalho do card */
+.card-header {
+    border-radius: 12px 12px 0 0;
+}
+
+.tituloCard h5 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.tituloCard small {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+/* Informações principais horizontais */
+.info-principal label {
+    font-weight: 600;
+}
+
+.info-principal span {
+    margin-left: 0.25rem;
+}
+
+/* Informações extras */
+.maisInfo {
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 6px;
+    animation: fadeSlide 0.3s ease-in-out;
+}
+
+    .maisInfo label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .maisInfo div {
+        margin-top: 0.25rem;
+    }
+
+/* Badges */
+.badge {
+    font-size: 0.85rem;
+    padding: 0.35em 0.6em;
+}
+
+/* Valores críticos */
+.text-danger {
+    color: #dc3545 !important;
+}
+
+/* Animação ao abrir */
+@keyframes fadeSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Botão Ver Mais */
+.btn-light.btn-sm {
+    font-weight: 600;
+}

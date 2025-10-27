@@ -1,6 +1,8 @@
 ﻿@using Shared.Helpers
 @using System.Reflection
 @using Frontend.Records
+@using Frontend.Models.Interfaces
+@implements IItemListablePageModel<string>
 
 <h3>Produtos</h3>
 <div class="caixaBranca">
@@ -13,15 +15,95 @@
     </InputSelect>
 
     <InputText @bind-Value="ViewModel.ValorPesquisa" />
-    <button @onclick='() => ViewModel.FiltrarProdutosCommand.ExecuteAsync(new PesquisaProduto(ViewModel.ChavePesquisa, ViewModel.ValorPesquisa))' class="botoes">Filtrar</button>
+    <button @onclick='() => ViewModel.FiltrarProdutosCommand.ExecuteAsync(new PesquisaProduto(ViewModel.ChavePesquisa, ViewModel.ValorPesquisa))' class="btn btn-primary mb-3">Filtrar</button>
 </div>
-<div class="botoes">
-    <button @onclick="ViewModel.CarregarProdutosCommand.ExecuteAsync">Atualizar Itens</button>
-    <button @onclick="(() => ViewModel.AbreAbaCadastro())">Cadastrar Novo Produto</button>
-    <button>Deletar Produto</button>
+
+<div class="caixaBranca">
+    @if(ViewModel.Carregando)
+    {
+        <div> class="spinner"</div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var p in ViewModel.Produtos)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <div class="tituloCard">
+                                <h5 class="mb-1">@p.DescricaoSimples</h5>
+                                <small>@DisplayNameHelper.DisplayNameFor(() => p.IdProduto): @p.IdProduto</small>
+                            </div>
+                            <button class="btn btn-light btn-sm" @onclick="@(() => Toggle(p.IdProduto))">
+                                @(ItensAbertos.ContainsKey(p.IdProduto) && ItensAbertos[p.IdProduto] ? "Fechar" : "Ver mais")
+                            </button>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="info-principal">
+                                    <label class="fw-bold me-1"><i class="bi bi-calendar-event"></i> Data Entrega:</label>
+                                    <span>@p.DataEntrega?.ToShortDateString()</span>
+                                </div>
+                                <div class="info-principal">
+                                    <label class="fw-bold me-1"><i class="bi bi-stack"></i> Qtd Atual:</label>
+                                    <span>@p.EstoqueDisponivel</span>
+                                </div>
+                            </div>
+
+       
+                            @if (ItensAbertos.ContainsKey(p.IdProduto) && ItensAbertos[p.IdProduto])
+                            {
+                                <div class="maisInfo mt-2">
+                                    <div class="row">
+                                        <div class="col-12 mb-2">
+                                            <label class="fw-bold"><i class="bi bi-file-earmark-text"></i> @DisplayNameHelper.DisplayNameFor(() => p.NFe):</label>
+                                            <div>@p.NFe</div>
+                                        </div>
+                                        <div class="col-12 mb-2">
+                                            <label class="fw-bold"><i class="bi bi-card-text"></i> @DisplayNameHelper.DisplayNameFor(() => p.DescricaoDetalhada):</label>
+                                            <div>@p.DescricaoDetalhada</div>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <label class="fw-bold"><i class="bi bi-box-seam"></i> @DisplayNameHelper.DisplayNameFor(() => p.Unidade):</label>
+                                            <span class="badge bg-success">@p.Unidade</span>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <label class="fw-bold"><i class="bi bi-tags"></i> @DisplayNameHelper.DisplayNameFor(() => p.Categoria):</label>
+                                            <span class="badge bg-info text-dark">@p.Categoria.GetDescription()</span>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <label class="fw-bold"><i class="bi bi-clock"></i> @DisplayNameHelper.DisplayNameFor(() => p.Validade):</label>
+                                            <div class="@(((DateTime.TryParse(p.Validade, out DateTime result) ? result : DateTime.Today) < DateTime.Today) ? "text-danger fw-bold" : "")">@p.Validade</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div>
+    <button class="btn btn-primary mb-3" @onclick="ViewModel.CarregarProdutosCommand.ExecuteAsync">Atualizar Dados</button>
+    <button class="btn btn-primary mb-3" @onclick="(() => ViewModel.AbreAbaCadastro())">Cadastrar Novo Produto</button>
+    <button class="btn btn-primary mb-3">Deletar Produto</button>
 </div>
 
 @code {
     [Parameter] 
     public ProdutosViewModel ViewModel { get; set; } = default!;
+    public Dictionary<string, bool> ItensAbertos { get; set; } = new();
+    void Toggle(string codigo)
+    {
+        if (ItensAbertos.TryGetValue(codigo, out bool value))
+            ItensAbertos[codigo] = ItensAbertos[codigo] = !value;
+        else
+            ItensAbertos[codigo] = true;
+    }
 }

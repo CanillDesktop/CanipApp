@@ -36,5 +36,6 @@
     protected override void OnInitialized()
     {
         VM.OnTabChanged = StateHasChanged;
+        VM.OnInitialLoad = StateHasChanged;
     }
 }

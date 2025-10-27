@@ -73,8 +73,6 @@ namespace Frontend.ViewModels
             }
         }
 
-        public Action? OnTabChanged { get; set; }
-
         public ProdutosModel Produto
         {
             get => _produto;
@@ -111,6 +109,9 @@ namespace Frontend.ViewModels
             }
         }
 
+        public Action? OnTabChanged { get; set; }
+        public Action? OnInitialLoad { get; set; }
+
         public IAsyncRelayCommand CarregarProdutosCommand;
         public IAsyncRelayCommand<ProdutosModel?> CadastrarProdutoCommand;
         public IAsyncRelayCommand<PesquisaProduto?> FiltrarProdutosCommand;
@@ -123,6 +124,7 @@ namespace Frontend.ViewModels
             FiltrarProdutosCommand = new AsyncRelayCommand<PesquisaProduto?>(BuscarProdutosFiltradosAsync);
         }
 
+        #region metodos
         private async Task CarregarProdutosAsync()
         {
             try
@@ -151,12 +153,14 @@ namespace Frontend.ViewModels
         public async Task OnLoadedAsync()
         {
             await CarregarProdutosAsync();
+            OnInitialLoad?.Invoke();
         }
 
         public void AbreAbaCadastro()
         {
             HasTabs = true;
             TabsShowing.First(t => t.Name == "Cadastrar").IsVisible = true;
+            ActiveTab = TabsShowing.First(t => t.Name == "Cadastrar").Name;
         }
 
         private async Task CadastrarProdutoAsync(ProdutosModel? prod)
@@ -226,5 +230,6 @@ namespace Frontend.ViewModels
                 Carregando = false;
             }
         }
+        #endregion
     }
 }

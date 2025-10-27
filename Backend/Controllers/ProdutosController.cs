@@ -3,8 +3,7 @@ using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
-
-
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace Backend.Controllers
 {
@@ -23,7 +22,12 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProdutosDTO>>> Get([FromQuery] ProdutosFiltroDTO filtro)
         {
+            var filteredRequest = HttpContext.Request.GetDisplayUrl().Contains('?');
+
+            if (filteredRequest)
                 return Ok(await _service.BuscarTodosAsync(filtro));
+            else
+                return Ok(await _service.BuscarTodosAsync());
         }
 
         [HttpGet("{id}")]
