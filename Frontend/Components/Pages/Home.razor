@@ -1,5 +1,65 @@
 ﻿@page "/home"
+@inject DashboardViewModel VM
+@implements IAsyncDisposable
 
-Acesse as suas planilhas com o menu ao lado.
+<PageTitle>Dashboard</PageTitle>
+<h3>Painel de Controle</h3>
 
+@if (VM.Carregando)
+{
+    <div class="spinner-container">
+        <div class="spinner"></div>
+    </div>
+}
+else
+{
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <h3>⚠️ Alerta: Estoque Baixo</h3>
+            @if (VM.ItensComEstoqueBaixo.Any())
+            {
+                <ul class="alert-list">
+                    @foreach (var item in VM.ItensComEstoqueBaixo)
+                    {
+                        <li>🔴 @item.Nome - <strong>@item.QuantidadeAtual restantes</strong></li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="no-alert-message">✅ Nenhum item com estoque baixo.</p>
+            }
+        </div>
 
+        <div class="dashboard-card">
+            <h3>🗓️ Alerta: Vencimento Próximo</h3>
+            @if (VM.ItensComVencimentoProximo.Any())
+            {
+                <ul class="alert-list">
+                    @foreach (var item in VM.ItensComVencimentoProximo)
+                    {
+                        <li>🟡 @item.Nome - <strong>Vence em @item.DataDeValidade?.ToString("dd/MM/yyyy")</strong></li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="no-alert-message">✅ Nenhum item com vencimento próximo.</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        VM.PropertyChanged += OnViewModelPropertyChanged;
+        await VM.CarregarAlertasAsync();
+    }
+
+    private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        => StateHasChanged();
+
+    public async ValueTask DisposeAsync()
+        => VM.PropertyChanged -= OnViewModelPropertyChanged;
+}

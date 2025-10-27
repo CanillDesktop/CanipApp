@@ -1,19 +1,18 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar @(isSidebarOpen ? "" : "closed")">
+<div class="layout-container">
+    <aside class="sidebar @(isSidebarOpen ? "open" : "closed")">
         <NavMenu />
-    </div>
+    </aside>
 
-    <main class="@(isSidebarOpen ? "content-shifted" : "")">
-        <div class="top-row px-4">
+    <main class="main-content">
+        <div class="top-row">
             <button class="menu-toggle" @onclick="ToggleSidebar">☰</button>
-            
         </div>
 
-        <article class="content px-4">
+        <div class="page-body">
             @Body
-        </article>
+        </div>
     </main>
 </div>
 
@@ -23,5 +22,6 @@
     private void ToggleSidebar()
     {
         isSidebarOpen = !isSidebarOpen;
+        StateHasChanged();
     }
 }
