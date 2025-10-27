@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Frontend.Attributes;
 using Shared.DTOs;
 using Shared.Enums;
 using System;
@@ -28,7 +27,7 @@ namespace Frontend.Models
         }
 
         [Display(Name = "Data de Entrega")]
-        [DataNotInFuture(ErrorMessage = "A data de entrega não pode ser maior que a data atual")]
+        
         [Required(ErrorMessage = "O campo '{0}' é obrigatório")]
         public DateTime? DataEntrega
         {
@@ -52,7 +51,7 @@ namespace Frontend.Models
 
         [Display(Name = "Unidade")]
         [Required(ErrorMessage = "O campo '{0}' é obrigatório")]
-        [ValuesFromEnum(ErrorMessage = "Valor inválido para o campo '{0}'")]
+       
         public UnidadeEnum Unidade
         {
             get => _unidade;
@@ -61,7 +60,7 @@ namespace Frontend.Models
 
         [Display(Name = "Categoria")]
         [Required(ErrorMessage = "O campo '{0}' é obrigatório")]
-        [ValuesFromEnum(ErrorMessage = "Valor inválido para o campo '{0}'")]
+       
         public CategoriaEnum Categoria
         {
             get => _categoria;
