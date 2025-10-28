@@ -1,5 +1,6 @@
 ﻿using Shared.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace Shared.DTOs
 {
@@ -67,7 +68,10 @@ namespace Shared.DTOs
                 id += catString.Substring(i + 1, 1);
             }
 
-            id += Guid.NewGuid().ToString().Replace("-", "");
+            var guid = Guid.NewGuid().ToString().Replace("-", "");
+            guid = Regex.Replace(guid, @"\D", "");
+
+            id += guid;
 
             return id;
         }

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
 using Microsoft.AspNetCore.Http.Extensions;
+using Backend.Exceptions;
+using Shared.Models;
 
 namespace Backend.Controllers
 {
@@ -45,11 +47,24 @@ namespace Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ProdutosDTO dto)
         {
-            ProdutosModel model = dto;
+            try
+            {
+                ProdutosModel model = dto;
 
-            await _service.CriarAsync(model);
+                await _service.CriarAsync(model);
 
-            return CreatedAtAction(nameof(GetById), new { id = model.IdProduto }, dto);
+                return CreatedAtAction(nameof(GetById), new { id = model.IdProduto }, dto);
+            }
+            catch (ModelIncompletaException ex)
+            {
+                var erro = new ErrorResponse
+                {
+                    StatusCode = 400,
+                    Title = "Erro ao criar produto",
+                    Message = ex.Message
+                };
+                return StatusCode(erro.StatusCode, erro);
+            }
         }
 
         [HttpPut("{id}")]

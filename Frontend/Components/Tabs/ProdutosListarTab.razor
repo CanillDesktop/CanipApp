@@ -60,11 +60,11 @@
                                     <div class="row">
                                         <div class="col-12 mb-2">
                                             <label class="fw-bold"><i class="bi bi-file-earmark-text"></i> @DisplayNameHelper.DisplayNameFor(() => p.NFe):</label>
-                                            <div>@p.NFe</div>
+                                            <div>@ProdutosViewModel.DisplayNFe(p)</div>
                                         </div>
                                         <div class="col-12 mb-2">
                                             <label class="fw-bold"><i class="bi bi-card-text"></i> @DisplayNameHelper.DisplayNameFor(() => p.DescricaoDetalhada):</label>
-                                            <div>@p.DescricaoDetalhada</div>
+                                            <div>@ProdutosViewModel.DisplayDescricaoDetalhada(p)</div>
                                         </div>
                                         <div class="col-6 mb-2">
                                             <label class="fw-bold"><i class="bi bi-box-seam"></i> @DisplayNameHelper.DisplayNameFor(() => p.Unidade):</label>
@@ -76,7 +76,7 @@
                                         </div>
                                         <div class="col-6 mb-2">
                                             <label class="fw-bold"><i class="bi bi-clock"></i> @DisplayNameHelper.DisplayNameFor(() => p.Validade):</label>
-                                            <div class="@(((DateTime.TryParse(p.Validade, out DateTime result) ? result : DateTime.Today) < DateTime.Today) ? "text-danger fw-bold" : "")">@p.Validade</div>
+                                            <div class="@(((DateTime.TryParse(p.Validade, out DateTime result) ? result : DateTime.Today) < DateTime.Today) ? "text-danger fw-bold" : "")">@ProdutosViewModel.DisplayValidade(p)</div>
                                         </div>
                                     </div>
                                 </div>

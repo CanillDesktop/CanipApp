@@ -1,4 +1,5 @@
 ﻿using Backend.Context;
+using Backend.Exceptions;
 using Backend.Models.Produtos;
 using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,15 @@ namespace Backend.Repositories
         {
             ArgumentNullException.ThrowIfNull(model);
 
+            if (string.IsNullOrWhiteSpace(model.IdProduto)
+                || string.IsNullOrWhiteSpace(model.DescricaoSimples)
+                || model.DataEntrega == null
+                || !Enum.IsDefined(typeof(UnidadeEnum), (int)model.Unidade)
+                || !Enum.IsDefined(typeof(CategoriaEnum), (int)model.Categoria))
+            {
+                throw new ModelIncompletaException("Um ou mais campos obrigatórios não foram preenchidos");
+            }
+
             model.DataHoraInsercaoRegistro = DateTime.Now;
 
             await _context.Produtos.AddAsync(model);
@@ -68,6 +78,9 @@ namespace Backend.Repositories
             ArgumentNullException.ThrowIfNull(filtro);
 
             var query = _context.Produtos.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filtro.IdProduto))
+                query = query.Where(p => p.IdProduto!.Contains(filtro.IdProduto));
 
             if (!string.IsNullOrWhiteSpace(filtro.DescricaoSimples))
                 query = query.Where(p => p.DescricaoSimples!.Contains(filtro.DescricaoSimples));

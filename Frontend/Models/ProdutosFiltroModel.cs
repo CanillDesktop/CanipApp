@@ -7,6 +7,9 @@ namespace Frontend.Models;
 
 public class ProdutosFiltroModel
 {
+    [Display(Name = "Código")]
+    public string IdProduto { get; set; } = string.Empty;
+
     [Display(Name = "Descrição")]
     public string DescricaoSimples { get; set; } = string.Empty;
 
@@ -25,7 +28,8 @@ public class ProdutosFiltroModel
     public static implicit operator ProdutosFiltroDTO(ProdutosFiltroModel model)
     {
         return new ProdutosFiltroDTO()
-        {
+        { 
+            IdProduto = model.IdProduto,
             DescricaoSimples = model.DescricaoSimples,
             NFe = model.NFe,
             Categoria = (int)Enum.Parse(typeof(CategoriaEnum), model.Categoria),

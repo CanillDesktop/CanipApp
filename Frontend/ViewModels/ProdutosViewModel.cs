@@ -230,6 +230,13 @@ namespace Frontend.ViewModels
                 Carregando = false;
             }
         }
+
+        public static string DisplayNFe(ProdutosDTO p) => string.IsNullOrEmpty(p.NFe) ? "-" : p.NFe;
+        public static string DisplayDescricaoDetalhada(ProdutosDTO p) => string.IsNullOrEmpty(p.DescricaoDetalhada) ? "-" : p.DescricaoDetalhada;
+        public static string DisplayValidade(ProdutosDTO p) =>
+            DateTime.TryParse(p.Validade, out var result)
+            ? result.ToShortDateString()
+            : "-";
         #endregion
     }
 }
