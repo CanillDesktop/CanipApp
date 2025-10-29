@@ -13,13 +13,15 @@
 }
 
 .caixaBranca {
-    background: white;
+    display: flex;
+    background-color: lightgray;
     padding: 2rem;
+    border: solid 1px black;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     width: 100%;
-    text-align: center;
-    transition: all 0.3s ease;
+    margin-bottom: 10px;
+    justify-content: space-evenly;
 }
 
 .spinner {
@@ -81,21 +83,20 @@ button {
     border-radius: 8px;
 }
 
-
-.caixaBranca {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
+li {
+    list-style-type: none;
+    all: unset;
 }
 
 /* Cada item de medicamento */
 .Item {
-    background-color: #0078D7; /* azul bonito */
-    color: white;
-    border-radius: 8px;
-    padding: 10px 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    background-color: floralwhite; /* azul bonito */
+    margin: 10px;
+    padding: 20px;
+    border-radius: 10px;
+    flex: 2;
+    border: solid 1px blue;
+    border-radius: 1px;
 }
 
     /* Parte de informações principais */

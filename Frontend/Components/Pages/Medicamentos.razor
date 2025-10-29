@@ -28,71 +28,26 @@
 </div>
 
 <div>
-    <PageTitle>Medicamentos</PageTitle>
-    <h1>Medicamentos</h1>
+    <PageTitle>Produtos</PageTitle>
 
-    <div class="caixaBranca">
-        <select>
-            <option>NomeComercial</option>
-            <option>DescricaoMedicamentos</option>
-            <option>CodigoId</option>
-            <option>NotaFiscal</option>
-            <option>ConsumoMensal</option>
-            <option>ConsumoAnual</option>
-            <option>EntradaEstoque</option>
-            <option>SaidaTotalEstoque</option>
-            <option>EstoqueDisponivel</option>
-            <option>ValidadeMedicamento</option>
-            <option>PublicoAlvo</option>
-            <option>Prioridade</option>
-            <option>DataDeEntradaDoMedicamento</option>
-        </select>
-        <input type="text" name="name" value="" />
-        <button class="botoes">Filtrar</button>
+    <div>
+        @if (VM.HasTabs)
+        {
+            <TabsController ViewModel="VM" />
+        }
     </div>
 
-    <div class="caixaBranca">
-        @if (VM.Carregando)
+    <div class="mt-3">
+        @if (VM.ActiveTab == "Cadastrar")
         {
-            <div class="spinner"></div>
+            <ProdutosCadastroTab ViewModel="VM" />
         }
         else
         {
-            @foreach (var p in VM.Medicamentos)
-            {
-                <div class="Item">
-                    <ul>
-                        <div class="info">
-                            <li>Nome Comercial: @p.NomeComercial</li>
-                            <li>Descrição do medicamento: @p.DescricaoMedicamentos</li>
-                        </div>
-                        @if (ItensAbertos.ContainsKey(@p.CodigoId) && ItensAbertos[@p.CodigoId])
-                        {
-                            <div class="maisInfo">
-                                <li>Código do medicamento: @p.CodigoId</li>
-                                <li>Nota Fiscal: @p.NotaFiscal</li>
-                                <li>Consumo Mensal: @p.ConsumoMensal</li>
-                                <li>Consumo Anual: @p.ConsumoAnual</li>
-                                <li>Entradas no Estoque: @p.EntradaEstoque</li>
-                                <li>Saídas no Estoque: @p.SaidaTotalEstoque</li>
-                                <li>Estoque Disponível: @p.EstoqueDisponivel</li>
-                                <li>Validade: @p.ValidadeMedicamento</li>
-                                <li>Público Alvo: @p.PublicoAlvo.GetDescription()</li>
-                                <li>Prioridade: @p.Prioridade</li>
-                                <li>Data da Entrada: @p.DataDeEntradaDoMedicamento</li>
-                            </div>
-                        }
-                    </ul>
-                    <div class="botoesItem">
-                        <button @onclick="@(() => ToggleWrapper(p.CodigoId))">
-                            @(ItensAbertos.ContainsKey(@p.CodigoId) && ItensAbertos[@p.CodigoId] ? "Fechar" : "Ver mais")
-                        </button>
-                        <button @onclick="VM.DeletarProdutosCommand.ExecuteAsync">Deletar Produto</button>
-                    </div>
-                </div>
-            }
+            <MedicamentosListarTab ViewModel="VM" />
         }
     </div>
+
 </div>
 
 <div class="botoes">

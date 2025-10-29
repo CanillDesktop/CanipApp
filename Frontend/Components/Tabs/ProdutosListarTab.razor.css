@@ -17,7 +17,6 @@
     animation: spin 1s linear infinite; /* Animação de rotação */
     margin: auto; /* Centraliza horizontalmente */
 }
-
 @keyframes spin {
     0% {
         transform: rotate(0deg);
@@ -28,17 +27,8 @@
     }
 }
 
+
 /* Cards */
-.card {
-    border-radius: 12px;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-    .card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    }
-
 .card {
     border-radius: 12px;
     transition: transform 0.2s, box-shadow 0.2s;
