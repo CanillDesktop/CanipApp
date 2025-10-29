@@ -36,15 +36,6 @@ namespace Backend.Repositories
         {
             ArgumentNullException.ThrowIfNull(model);
 
-            if (string.IsNullOrWhiteSpace(model.IdProduto)
-                || string.IsNullOrWhiteSpace(model.DescricaoSimples)
-                || model.DataEntrega == null
-                || !Enum.IsDefined(typeof(UnidadeEnum), (int)model.Unidade)
-                || !Enum.IsDefined(typeof(CategoriaEnum), (int)model.Categoria))
-            {
-                throw new ModelIncompletaException("Um ou mais campos obrigatórios não foram preenchidos");
-            }
-
             model.DataHoraInsercaoRegistro = DateTime.Now;
 
             await _context.Produtos.AddAsync(model);
