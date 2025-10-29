@@ -1,12 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Frontend.Records;
 
-namespace Frontend.Records
-{
-    internal class PesquisaMedicamento
-    {
-    }
-}
+public record PesquisaMedicamento(string Campo, string Valor);

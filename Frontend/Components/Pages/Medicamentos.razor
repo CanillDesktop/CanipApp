@@ -1,25 +1,6 @@
 ﻿@page "/medicamentos"
-@using Shared.ExtensionMethods;
 @inject MedicamentosViewModel VM
 @inherits BasePage<MedicamentosViewModel>
-
-@code {
-    // Cada item tem seu próprio estado expandido
-    Dictionary<int, bool> ItensAbertos = new();
-
-    void Toggle(int codigoId)
-    {
-        if (ItensAbertos.ContainsKey(codigoId))
-            ItensAbertos[codigoId] = !ItensAbertos[codigoId];
-        else
-            ItensAbertos[codigoId] = true;
-    }
-
-    void ToggleWrapper(int codigoId)
-    {
-        Toggle(codigoId);
-    }
-}
 
 <div class="centralizarObjetosVerticalmente">
     <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
@@ -28,7 +9,7 @@
 </div>
 
 <div>
-    <PageTitle>Produtos</PageTitle>
+    <PageTitle>Medicamentos</PageTitle>
 
     <div>
         @if (VM.HasTabs)
@@ -40,17 +21,19 @@
     <div class="mt-3">
         @if (VM.ActiveTab == "Cadastrar")
         {
-            <ProdutosCadastroTab ViewModel="VM" />
+            <MedicamentosCadastroTab ViewModel="VM" />
         }
         else
         {
             <MedicamentosListarTab ViewModel="VM" />
         }
     </div>
-
 </div>
 
-<div class="botoes">
-    <button @onclick="VM.CarregarProdutosCommand.ExecuteAsync">Carregar Banco de Dados</button>
-    <button @onclick="VM.CriarProdutosCommand.ExecuteAsync">Cadastrar</button>
-</div>
+@code {
+    protected override void OnInitialized()
+    {
+        VM.OnTabChanged = StateHasChanged;
+        VM.OnInitialLoad = StateHasChanged;
+    }
+}

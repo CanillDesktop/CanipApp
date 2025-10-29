@@ -40,7 +40,7 @@ namespace Frontend.Models
                 NumeroLote = model.NumeroLote,
                 Fabricante = model.Fabricante,
                 Categoria = (int)Enum.Parse(typeof(CategoriaEnum), model.Categoria),
-                DataFabricacao = DateTime.TryParseExact(model.DataFabricacao, "dd/MM/yyyy", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime fabricacao) ? fabricacao.ToString("yyyy-MM-dd") : string.Empty,
+                DataFabricacao = DateTime.TryParseExact(model.DataFabricacao,"dd/MM/yyyy",CultureInfo.CurrentCulture,DateTimeStyles.None,out DateTime fabricacao) ? fabricacao : null,
                 DataValidade = DateTime.TryParseExact(model.DataValidade, "dd/MM/yyyy", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime validade) ? validade.ToString("yyyy-MM-dd") : string.Empty
             };
         }

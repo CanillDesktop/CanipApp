@@ -15,7 +15,7 @@ namespace Shared.DTOs
 
         public MedicamentoDTO() { }
         public MedicamentoDTO(
-            int? codigoId,
+            int codigoId,
             PrioridadeEnum? prioridade,
             string? descricaoMedicamentos,
             DateTime? dataDeEntradaDoMedicamento,
@@ -31,7 +31,7 @@ namespace Shared.DTOs
             string? descricaoDetalhada,
             int? saidaTotalEstoque)
         {
-            this.CodigoId = codigoId ?? 0;
+            this.CodigoId = codigoId;
             this.Prioridade = prioridade;
             this.DescricaoMedicamentos = descricaoMedicamentos;
             this.DataDeEntradaDoMedicamento = dataDeEntradaDoMedicamento;
@@ -44,13 +44,13 @@ namespace Shared.DTOs
             this.EstoqueDisponivel = estoqueDisponivel;
             this.EntradaEstoque = entradaEstoque;
             this.NFe = nFe;
-            this.descricaoDetalhada = descricaoDetalhada;
+            this.DescricaoDetalhada = descricaoDetalhada;
             this.SaidaTotalEstoque = saidaTotalEstoque;
         }
 
-        public string? descricaoDetalhada { get; set; }
+        public string? DescricaoDetalhada { get; set; }
         public string? NFe { get; set; }
-        public int? CodigoId { get; set; }
+        public required int CodigoId { get; set; }
         public PrioridadeEnum? Prioridade { get; set; }
         public required String? DescricaoMedicamentos { get; set; }
         public DateTime? DataDeEntradaDoMedicamento { get; set; }
