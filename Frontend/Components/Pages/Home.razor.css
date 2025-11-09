@@ -1,0 +1,40 @@
+.dark-mode, .light-mode {
+    min-height: 100vh; /* ocupa a tela toda */
+    width: 100%; /* largura total */
+    display: flex;
+    flex-direction: column; /* botão em cima, texto embaixo */
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Temas */
+.dark-mode {
+    background-color: #121212;
+    color: white;
+}
+
+.light-mode {
+    background-color: white;
+    color: black;
+}
+
+/* Botão */
+.btn-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 10px 16px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+    .btn-toggle:hover {
+        background-color: #555;
+    }

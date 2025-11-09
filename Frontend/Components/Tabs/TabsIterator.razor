@@ -1,0 +1,13 @@
+﻿<ul class="nav nav-tabs">
+    @foreach (var item in ViewModel.TabsShowing.Where(tab => tab.IsVisible))
+    {
+        <li role="button" class="nav-item">
+            <a class="nav-link @(ViewModel.ActiveTab == item.Name ? "active" : "")" @onclick='() => ViewModel.ActiveTab = item.Name'>@item.Name</a>
+         </li>
+    }
+</ul>
+
+@code {
+    [Parameter]
+    public ITabableViewModel ViewModel { get; set; } = default!;
+}

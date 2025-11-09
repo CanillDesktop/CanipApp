@@ -1,0 +1,37 @@
+
+.form-container {
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+
+.titulo-cadastro {
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 600;
+}
+
+
+.form-label {
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 0.95rem;
+    }
+
+.form-control, .form-select, textarea {
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: 1px solid #ced4da;
+    }
+
+
+.btn-primary {
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    font-weight: 600;
+}

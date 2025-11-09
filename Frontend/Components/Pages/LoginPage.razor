@@ -1,0 +1,36 @@
+﻿@page "/"
+@layout Layout.LoginLayout
+@inject LoginViewModel ViewModel
+@implements IDisposable
+
+<div class="login-wrapper">
+    <div class="login-container">
+        <h1>Seja Bem-Vindo!</h1>
+        <p>Faça login para continuar</p>
+
+        <input type="text" placeholder="Nome de usuário" @bind="ViewModel.Login" @bind:event="oninput" />
+        <input type="password" placeholder="Senha" @bind="ViewModel.Password" @bind:event="oninput" />
+
+        @if(ViewModel.Carregando)
+        {
+            <div class="spinner"></div>
+        }
+        else
+        {
+            <button class="btn-primary" @onclick="async () => await ViewModel.LoginCommand.ExecuteAsync(null)">Entrar</button>
+            <button class="btn-secondary" @onclick="ViewModel.RegisterCommand.Execute">Registrar</button>
+        }
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        ViewModel.PropertyChanged += (sender, e) => StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ViewModel.PropertyChanged -= (sender, e) => StateHasChanged();
+    }
+}

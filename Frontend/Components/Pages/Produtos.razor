@@ -1,0 +1,41 @@
+
+@page "/produtos"
+@inject ProdutosViewModel VM
+@inherits BasePage<ProdutosViewModel>
+
+<div class="centralizarObjetosVerticalmente">
+    <button class="btn btn-primary mb-3" @onclick="VoltarParaHome">
+        <i class="bi bi-arrow-left"></i> Voltar para Home
+    </button>
+</div>
+
+<div>
+    <PageTitle>Produtos</PageTitle>
+    
+    <div>
+        @if(VM.HasTabs)
+        {
+            <TabsIterator ViewModel="VM"/>
+        }
+    </div>
+
+    <div class="mt-3">
+        @if (VM.ActiveTab == "Cadastrar")
+        {
+            <ProdutosCadastroTab ViewModel="VM" />
+        }
+        else
+        {
+            <ProdutosListarTab ViewModel="VM" />
+        }
+    </div>
+
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        VM.OnTabChanged = StateHasChanged;
+        VM.OnInitialLoad = StateHasChanged;
+    }
+}

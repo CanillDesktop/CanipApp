@@ -1,0 +1,19 @@
+﻿@page "/home"
+
+<div class="@BackgroundClass">
+    <button class="btn-toggle" @onclick="ToggleDarkMode">
+        Alternar modo escuro
+    </button>
+
+    <h3>Acesse as suas planilhas com o menu ao lado.</h3>
+</div>
+
+@code {
+    private bool darkMode = true; // começa no escuro
+    private string BackgroundClass => darkMode ? "dark-mode" : "light-mode";
+
+    private void ToggleDarkMode()
+    {
+        darkMode = !darkMode;
+    }
+}

@@ -1,0 +1,52 @@
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+}
+
+main {
+    flex: 1;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+    main.content-shifted {
+        margin-left: 250px;
+    }
+
+.sidebar {
+    
+    background: linear-gradient(to bottom, #0d47a1, #1976d2, #42a5f5);
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+    .sidebar.closed {
+        transform: translateX(-100%);
+    }
+
+
+.menu-toggle {
+    display: block;
+    background-color: white;
+    color: blue;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border-radius: 0.25rem;
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 1001;
+}
+
+article {
+    padding-top: 4.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}

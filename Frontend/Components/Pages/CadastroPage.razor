@@ -1,0 +1,40 @@
+﻿@page "/cadastro"
+@layout Layout.LoginLayout
+@inject CadastroViewModel ViewModel
+@implements IDisposable
+
+<h1>Registre-se</h1>
+
+<EditForm Model="@ViewModel.Usuario" OnValidSubmit="@ViewModel.RegisterCommand.ExecuteAsync">
+    <DataAnnotationsValidator />
+
+    <InputText @bind-Value="ViewModel.Usuario.PrimeiroNome" placeholder="Nome" />
+    <ValidationMessage For="@(() => ViewModel.Usuario.PrimeiroNome)" />
+
+    <InputText @bind-Value="ViewModel.Usuario.Sobrenome" placeholder="Sobrenome" />
+    <ValidationMessage For="@(() => ViewModel.Usuario.Sobrenome)" />
+
+    <InputText @bind-Value="ViewModel.Usuario.Email" type="email" placeholder="Email" />
+    <ValidationMessage For="@(() => ViewModel.Usuario.Email)" />
+
+    <InputText @bind-Value="ViewModel.Usuario.Senha" type="password" placeholder="Senha" />
+    <ValidationMessage For="@(() => ViewModel.Usuario.Senha)" />
+
+    <InputText @bind-Value="ViewModel.Usuario.SenhaConfirmacao" type="password" placeholder="Confirme a senha" />
+    <ValidationMessage For="@(() => ViewModel.Usuario.SenhaConfirmacao)" />
+
+    <button type="submit">Registrar</button>
+</EditForm>
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        ViewModel.PropertyChanged += (sender, e) => StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ViewModel.PropertyChanged -= (sender, e) => StateHasChanged();
+    }
+}

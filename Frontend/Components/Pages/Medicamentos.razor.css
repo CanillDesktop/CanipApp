@@ -1,0 +1,133 @@
+/* Centralização de container */
+.centro {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+
+.centralizarObjetosVerticalmente {
+    display: flex;
+    align-items: center;
+}
+
+.caixaBranca {
+    display: flex;
+    background-color: lightgray;
+    padding: 2rem;
+    border: solid 1px black;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: space-evenly;
+}
+
+.spinner {
+    border: 8px solid #f3f3f3; 
+    border-top: 8px solid #3498db; 
+    border-radius: 50%; 
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite; 
+    margin: auto; 
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 cards por linha */
+    gap: 16px;
+    padding: 16px;
+}
+
+.card {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    padding: 12px;
+    transition: all 0.3s;
+}
+
+    .card:hover {
+        transform: translateY(-2px);
+    }
+
+button {
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 6px 10px;
+    cursor: pointer;
+    margin-top: 6px;
+}
+
+    button:hover {
+        background-color: #005a9e;
+    }
+
+.detalhes {
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+}
+
+li {
+    list-style-type: none;
+    all: unset;
+}
+
+
+.Item {
+    background-color: floralwhite; /* azul bonito */
+    margin: 10px;
+    padding: 20px;
+    border-radius: 10px;
+    flex: 2;
+    border: solid 1px blue;
+    border-radius: 1px;
+}
+
+   
+    .Item .info p {
+        margin: 3px 0;
+    }
+
+
+.maisInfo p {
+    margin: 2px 0;
+    font-size: 14px;
+}
+
+
+.botoesItem {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-around;
+}
+
+  
+    .botoesItem button {
+        background-color: white;
+        color: #0078D7;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+        .botoesItem button:hover {
+            background-color: #e0e0e0;
+        }

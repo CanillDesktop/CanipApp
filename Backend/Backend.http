@@ -1,0 +1,6 @@
+@Backend_HostAddress = http://localhost:7019
+
+GET {{Backend_HostAddress}}/api/produtos
+Accept: application/json
+
+###

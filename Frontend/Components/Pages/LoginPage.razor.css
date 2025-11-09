@@ -1,0 +1,83 @@
+/* Centralização do container */
+.login-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: blue;
+    padding: 1rem;
+}
+
+/* Card de login */
+.login-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+    /* Inputs */
+    .login-container input {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    /* Botões */
+    .login-container button {
+        width: 100%;
+        margin: 10px 0;
+        padding: 12px;
+        border-radius: 8px;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+.btn-primary {
+    background-color: blue;
+    color: white;
+}
+
+    .btn-primary:hover {
+        background-color: #0069d9;
+    }
+
+.btn-secondary {
+    background-color: blue;
+    color: white;
+}
+
+    .btn-secondary:hover {
+        background-color: #0069d9;
+    }
+
+.spinner {
+    border: 8px solid #f3f3f3; /* Cor da borda clara */
+    border-top: 8px solid #3498db; /* Cor da borda superior (a parte que gira) */
+    border-radius: 50%; /* Deixa a div redonda */
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite; /* Animação de rotação */
+    margin: auto; /* Centraliza horizontalmente */
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
