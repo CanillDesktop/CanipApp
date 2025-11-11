@@ -7,13 +7,15 @@ using Backend.Repositories.Interfaces;
 using Backend.Services;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Shared.DTOs;
 using Shared.Models;
-using System.Text;
 using System.Reflection;
+using System.Text;
+using System.Threading.RateLimiting;
 
 namespace Backend
 {
@@ -78,8 +80,20 @@ namespace Backend
                     };
                 });
 
+            builder.Services.AddRateLimiter(options =>
+            {
+                // Adiciona uma política "sync-policy"
+                // Limita a 1 requisição a cada 30 segundos para o mesmo usuário/IP
+                options.AddFixedWindowLimiter(policyName: "sync-policy", opt =>
+                {
+                    opt.PermitLimit = 1;
+                    opt.Window = TimeSpan.FromSeconds(30);
+                    opt.QueueLimit = 0; // Se chegar uma 2ª req, rejeita imediatamente
+                });
+            });
+
             // --- Bloco de Registro de Serviço Corrigido ---
-           
+
             // Registros dos serviços que usam o banco local (SQLite / CanilAppDbContext)
             builder.Services.AddScoped<IMedicamentosRepository, MedicamentosRepository>();
             builder.Services.AddScoped<IMedicamentosService, MedicamentosService>();
@@ -130,6 +144,7 @@ namespace Backend
                     await context.Response.WriteAsJsonAsync(response);
                 });
             });
+            app.UseRateLimiter();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();

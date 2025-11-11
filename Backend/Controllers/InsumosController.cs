@@ -80,7 +80,7 @@ namespace Backend.Controllers
                 return NotFound();
             }
 
-            return NoContent(); // Sucesso, sem conteúdo para retornar
+            return NoContent(); 
         }
     }
 }

@@ -4,6 +4,7 @@ using Backend.Models.Produtos;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -20,6 +21,7 @@ public class SyncController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting("sync-policy")]
     public async Task<IActionResult> Sincronizar()
     {
         try

@@ -55,7 +55,7 @@ namespace Backend.Controllers
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var syncService = scope.ServiceProvider.GetRequiredService<IProdutosService>();
-                    await syncService.CriarAsync(novoProduto);
+                   
                 }
             }
             catch (Exception ex)
@@ -107,7 +107,7 @@ namespace Backend.Controllers
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var produtosService = scope.ServiceProvider.GetRequiredService<IProdutosService>();
-                    await produtosService.DeletarAsync(id);
+                
                 }
             }
             catch (Exception ex)

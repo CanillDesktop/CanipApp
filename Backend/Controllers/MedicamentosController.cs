@@ -57,7 +57,7 @@ namespace Backend.Controllers
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var syncService = scope.ServiceProvider.GetRequiredService<IMedicamentosService>();
-                    await syncService.CriarAsync(novoMedicamento);
+                 
                 }
             }
             catch (Exception ex)
@@ -85,7 +85,7 @@ namespace Backend.Controllers
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var syncService = scope.ServiceProvider.GetRequiredService<IMedicamentosService>();
-                    await syncService.AtualizarAsync(medicamentoAtualizado);
+                    
                 }
             }
             catch (Exception ex)
@@ -111,7 +111,7 @@ namespace Backend.Controllers
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var medicamentosService = scope.ServiceProvider.GetRequiredService<IMedicamentosService>();
-                    await medicamentosService.DeletarAsync(id);
+                  
                 }
             }
             catch (Exception ex)
