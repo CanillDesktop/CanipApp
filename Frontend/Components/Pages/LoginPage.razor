@@ -11,7 +11,7 @@
         <input type="text" placeholder="Nome de usuário" @bind="ViewModel.Login" @bind:event="oninput" />
         <input type="password" placeholder="Senha" @bind="ViewModel.Password" @bind:event="oninput" />
 
-        @if(ViewModel.Carregando)
+        @if (ViewModel.Carregando)
         {
             <div class="spinner"></div>
         }

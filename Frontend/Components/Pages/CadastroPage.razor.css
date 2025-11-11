@@ -1,55 +1,55 @@
-﻿.login-wrapper {
+﻿.cadastro-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background: var(--bg-body);
+    background: #ffffff;
     padding: 1rem;
 }
 
-.login-container {
-    background: var(--bg-card);
-    border: 1px solid var(--cor-borda);
+.cadastro-container {
+    background: #ffffff;
+    border: 1px solid #c9d8ff;
     padding: 2.5rem 2.25rem;
     border-radius: 18px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     width: 100%;
     max-width: 420px;
     text-align: center;
-    color: var(--text);
+    color: #222;
 }
 
-    .login-container h1 {
-        font-size: 2.2rem;
-        margin-bottom: .65rem;
+    .cadastro-container h1 {
+        margin-bottom: .6rem;
     }
 
-    .login-container p {
-        margin-bottom: 1.4rem;
+    .cadastro-container p {
+        margin-bottom: 1.2rem;
         color: #555;
     }
 
-    /* inputs */
-    .login-container input {
+    /* Nota: A classe "cad-input" que você usa no HTML não está sendo estilizada aqui.
+      O CSS está usando '::deep input'. Isso vai funcionar, mas se quisesse
+      usar a classe .cad-input, você trocaria '::deep input' por '.cad-input'.
+    */
+    .cadastro-container ::deep input {
         display: block;
         width: 100%;
         margin: 10px 0;
         padding: 12px 14px;
         border-radius: 10px;
-        border: 1px solid var(--cor-borda);
-        background: var(--bg-body);
-        font-size: 16px;
-        color: var(--text);
+        border: 1px solid #ccc;
+        background: #fff;
+        color: #333;
     }
 
-        .login-container input:focus {
+        .cadastro-container ::deep input:focus {
             border-color: #1a73e8;
             box-shadow: 0 0 0 3px rgba(26,115,232,.15);
             outline: none;
         }
 
-    /* bot�es */
-    .login-container button {
+    .cadastro-container button {
         width: 100%;
         margin: 10px 0;
         padding: 12px;
@@ -60,8 +60,8 @@
     }
 
 .btn-primary {
-    background-color: var(--cor-primaria);
-    color: var(--texto-primario);
+    background-color: #1a73e8;
+    color: #fff;
 }
 
     .btn-primary:hover {

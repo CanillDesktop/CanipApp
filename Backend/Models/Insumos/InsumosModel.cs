@@ -10,19 +10,20 @@ namespace Backend.Models.Insumos
     [DynamoDBTable("Insumos")]
     public class InsumosModel
     {
-
-
         [Key]
         [DynamoDBHashKey("Id")]
-
         public int CodigoId { get; set; }
+
         public required string DescricaoSimplificada { get; set; }
         public required string DescricaoDetalhada { get; set; }
-        public DateTime DataDeEntradaDoMedicamento { get; set; }
+
+        // CORREÇÃO: Renomeado de "DataDeEntradaDoMedicamento" e agora permite nulo
+        public DateTime? DataDeEntradaDoInsumo { get; set; }
+
         public string? NotaFiscal { get; set; }
         //public CategoriaInsumosEnum Categoria {  get; set; }
-    
-        public  UnidadeInsumosEnum Unidade { get; set; }
+
+        public UnidadeInsumosEnum Unidade { get; set; }
         public int ConsumoMensal { get; set; }
         public int ConsumoAnual { get; set; }
         public required DateOnly? ValidadeInsumo { get; set; }
@@ -34,11 +35,5 @@ namespace Backend.Models.Insumos
 
         [DynamoDBProperty]
         public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
-
-
-
     }
 }
-
-
-

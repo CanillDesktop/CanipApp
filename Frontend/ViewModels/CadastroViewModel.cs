@@ -16,6 +16,7 @@ public partial class CadastroViewModel : ObservableObject
     private readonly NavigationManager _navigationManager;
     private readonly HttpClient _httpClient;
 
+    [ObservableProperty]
     private bool _carregando;
     private UsuariosModel _usuario = new();
 

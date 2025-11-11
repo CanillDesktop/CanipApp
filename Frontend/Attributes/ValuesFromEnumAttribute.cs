@@ -1,31 +1,47 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace Frontend.Attributes;
-
-[AttributeUsage(AttributeTargets.Property)]
-public class ValuesFromEnumAttribute : ValidationAttribute
+// Provavelmente o seu namespace é 'Frontend.Attributes'
+namespace Frontend.Attributes
 {
-    public ValuesFromEnumAttribute() : base("Valor vazio ou não permitido") { }
-
-    protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+    public class ValuesFromEnumAttribute : ValidationAttribute
     {
-        ArgumentNullException.ThrowIfNull(value);
+        public ValuesFromEnumAttribute() : base("Valor vazio ou não permitido") { }
 
-        var property = validationContext.ObjectType.GetProperty(validationContext.MemberName!);
-
-        if (!property!.PropertyType.IsEnum)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            throw new ArgumentException("A propriedade a qual esse atributo é aplicado deve ser um enum");
-        }
+            // 1. Se o valor for 'null', deixamos passar.
+            // O atributo [Required] é quem deve (ou não) barrar valores nulos.
+            if (value is null)
+            {
+                return ValidationResult.Success;
+            }
 
-        if (!Enum.IsDefined(property.PropertyType, value))
-        {
-            return new ValidationResult(
-                FormatErrorMessage(validationContext.DisplayName),
-                [validationContext.MemberName!]
-            );
-        }
+            var property = validationContext.ObjectType.GetProperty(validationContext.MemberName!);
+            var propertyType = property!.PropertyType;
 
-        return ValidationResult.Success;
+            // --- ESTA É A CORREÇÃO ---
+            // Se o tipo for 'Nullable<T>', pegamos o tipo 'T' (o tipo 'de baixo').
+            // Se não for 'Nullable', apenas usamos o tipo da propriedade.
+            var enumType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+
+            // Agora sim verificamos se o 'enumType' é um enum
+            if (!enumType.IsEnum)
+            {
+                throw new ArgumentException("A propriedade a qual esse atributo é aplicado deve ser um enum");
+            }
+            // --- FIM DA CORREÇÃO ---
+
+            // E usamos o 'enumType' para verificar se o valor é válido
+            if (!Enum.IsDefined(enumType, value))
+            {
+                return new ValidationResult(
+                    FormatErrorMessage(validationContext.DisplayName),
+                    [validationContext.MemberName!]
+                );
+            }
+
+            return ValidationResult.Success;
+        }
     }
 }

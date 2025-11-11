@@ -1,43 +1,93 @@
-﻿.navbar-brand {
-    font-size: 1.1rem;
+﻿/* NavMenu.razor.css */
+
+/* ESTILOS GERAIS DO MENU (Layout) */
+.nav-shell {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    /* Cor de fundo removida - será controlada por theme.css */
 }
 
-.nav-item {
-    font-size: 0.9rem;
+    .nav-shell a {
+        text-decoration: none;
+        min-height: 40px;
+        /* Cor removida - será controlada por theme.css */
+    }
+
+/* cabeçalho do menu */
+.top-row.navbar {
+    background: transparent;
+    padding-top: 1.5rem;
     padding-bottom: 0.5rem;
 }
 
-    .nav-item:first-of-type {
-        padding-top: 1rem;
-    }
-
-    .nav-item:last-of-type {
-        padding-bottom: 1rem;
-    }
-
-    .nav-item ::deep a {
-        color: #d7d7d7;
-        border-radius: 4px;
-        height: 3rem;
-        display: flex;
-        align-items: center;
-        line-height: 3rem;
-    }
-
-        .nav-item ::deep a.active {
-            background-color: rgba(255,255,255,0.37);
-            color: white;
-        }
-
-        .nav-item ::deep a:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: white;
-        }
-
+/* lista rolável */
 .nav-scrollable {
-    display: block;
-    height: 100%; /* Garante que o container ocupe toda a altura do menu */
     overflow-y: auto;
-    /* ESTA LINHA CRIA O ESPAÇO NO TOPO, ABAIXO DO BOTÃO ☰ */
-    padding-top: 4.5rem;
+    padding-top: .5rem;
+}
+
+/* CONTAINER DO ITEM */
+.nav-item {
+    padding: 0.25rem 0;
+    display: flex;
+    flex-direction: row;
+}
+
+    /* LINK DO ITEM */
+    .nav-item .nav-link {
+        align-items: center;
+        gap: 10px;
+        border-radius: 8px;
+        padding: 10px 15px;
+        transition: all 0.2s ease;
+        border-left: 5px solid transparent;
+        color: var(--text-sidebar, #fff); /* Usa variável, com fallback branco */
+    }
+
+        /* ÍCONES */
+        .nav-item .nav-link .bi {
+            color: currentColor; /* O ícone terá a mesma cor do link */
+        }
+
+        /* HOVER */
+        .nav-item .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ATIVO */
+        .nav-item .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: white;
+            font-weight: 600;
+            color: #fff; /* O link ativo fica sempre branco */
+        }
+
+/* rodapé para o botão ficar embaixo */
+.nav-footer {
+    margin-top: auto;
+    padding: .75rem .75rem 1rem .75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* =========================================================
+   DARK MODE (agora controlado por theme.css, mas podemos ajustar)
+   ========================================================= */
+
+:root.dark .nav-item .nav-link {
+    color: var(--text-dark);
+}
+
+    :root.dark .nav-item .nav-link:hover {
+        background: rgba(255, 255, 255, 0.05); /* Hover mais suave no dark */
+    }
+
+    :root.dark .nav-item .nav-link.active {
+        background: rgba(13, 110, 253, 0.15); /* Fundo azulado no ativo */
+        border-left-color: var(--primary);
+        color: #38bdf8; /* Cor de destaque azul clara */
+    }
+
+:root.dark .nav-footer {
+    border-top-color: var(--surface-border-dark);
 }

@@ -1,134 +1,271 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Frontend.Attributes; // Para [DataNotInFuture] e [ValuesFromEnum]
-using Shared.DTOs;        // Para o InsumosDTO
-using Shared.Enums;      // Para UnidadeInsumosEnum
-using System.ComponentModel.DataAnnotations;
+using CommunityToolkit.Mvvm.Input;
+using Frontend.Models;
+using Frontend.ViewModels.Interfaces;
+using Shared.DTOs;
+using Shared.Models;
+using Frontend.Records;
+using System.Collections.ObjectModel;
+using System.Net.Http.Json;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Diagnostics; // CORREÇÃO: Adicionado para Debug.WriteLine
 
-namespace Frontend.Models
+// CORREÇÃO: Adicionado o record que estava faltando, igual ao de Medicamentos
+public record PesquisaInsumos(string Chave, string Valor);
+
+namespace Frontend.ViewModels
 {
-    public partial class InsumosModel : ObservableObject
+    public partial class InsumosViewModel : ObservableObject, ILoadableViewModel, ITabableViewModel
     {
-        // Backing Fields baseados no InsumosModel do Backend
-        public int CodigoId {  get; set; }
-        public string? _descricaoSimplificada;
-        public string? _descricaoDetalhada;
-        public DateTime? _dataDeEntradaDoMedicamento = DateTime.Now;
-        public string? _notaFiscal;
-        public UnidadeInsumosEnum _unidade;
-        public int _consumoMensal;
-        public int _consumoAnual;
-        public DateTime? _validadeInsumo; // Frontend usa DateTime? para o DatePicker
-        public int _estoqueDisponivel;
-        public int _entradaEstoque; // Equivalente ao "Quantidade" do ProdutoModel
-        public int SaidaTotalEstoque {  get; set; }
+        private readonly HttpClient _http;
+        private bool _hasTabs;
+        private readonly ObservableCollection<TabItemModel> _tabsShowing =
+        [
+            new TabItemModel("Insumos", true),
+            // CORREÇÃO: Aba de cadastro agora é visível por padrão
+            new TabItemModel("Cadastrar", true)
+        ];
+        private string _activeTab = "Insumos";
+        private bool _carregando;
+        private bool _cadastrando;
+        private InsumosModel _insumo = new();
+        private InsumosFiltroModel _filtro = new();
+        private string _chavePesquisa = string.Empty;
+        private string _valorPesquisa = string.Empty;
 
-        [Display(Name = "Descrição Simplificada")]
-        [Required(ErrorMessage = "O campo '{0}' é obrigatório")]
-        public string? DescricaoSimplificada
+        public ObservableCollection<InsumosDTO> Insumos { get; } = [];
+
+        public bool Carregando
         {
-            get => _descricaoSimplificada;
-            set => SetProperty(ref _descricaoSimplificada, value);
+            get => _carregando;
+            set => SetProperty(ref _carregando, value);
         }
 
-        [Display(Name = "Descrição Detalhada")]
-        [Required(ErrorMessage = "O campo '{0}' é obrigatório")]
-        public string? DescricaoDetalhada
+        public bool Cadastrando
         {
-            get => _descricaoDetalhada;
-            set => SetProperty(ref _descricaoDetalhada, value);
+            get => _cadastrando;
+            set => SetProperty(ref _cadastrando, value);
         }
 
-        [Display(Name = "Data de Entrada")]
-        [Required(ErrorMessage = "O campo '{0}' é obrigatório")]
-        [DataNotInFuture(ErrorMessage = "A data de entrada não pode ser maior que a data atual")]
-        public DateTime? DataDeEntradaDoMedicamento
+        public bool HasTabs
         {
-            get => _dataDeEntradaDoMedicamento;
-            set => SetProperty(ref _dataDeEntradaDoMedicamento, value);
+            get => _hasTabs;
+            set => SetProperty(ref _hasTabs, value);
         }
 
-        [Display(Name = "Nota Fiscal")]
-        public string? NotaFiscal
+        public ObservableCollection<TabItemModel> TabsShowing
         {
-            get => _notaFiscal;
-            set => SetProperty(ref _notaFiscal, value);
+            get => _tabsShowing;
         }
 
-        [Display(Name = "Unidade")]
-        [Required(ErrorMessage = "O campo '{0}' é obrigatório")]
-        [ValuesFromEnum(ErrorMessage = "Valor inválido para o campo '{0}'")]
-        public UnidadeInsumosEnum Unidade
+        public string ActiveTab
         {
-            get => _unidade;
-            set => SetProperty(ref _unidade, value);
+            get => _activeTab;
+            set
+            {
+                if (SetProperty(ref _activeTab, value))
+                {
+                    OnTabChanged?.Invoke();
+                }
+            }
         }
 
-        [Display(Name = "Consumo Mensal")]
-        [Range(0, int.MaxValue, ErrorMessage = "O valor deve ser positivo")]
-        public int ConsumoMensal
+        public InsumosModel Insumo
         {
-            get => _consumoMensal;
-            set => SetProperty(ref _consumoMensal, value);
+            get => _insumo;
+            set => SetProperty(ref _insumo, value);
         }
 
-        [Display(Name = "Consumo Anual")]
-        [Range(0, int.MaxValue, ErrorMessage = "O valor deve ser positivo")]
-        public int ConsumoAnual
+        public InsumosFiltroModel Filtro
         {
-            get => _consumoAnual;
-            set => SetProperty(ref _consumoAnual, value);
+            get => _filtro;
+            set => SetProperty(ref _filtro, value);
         }
 
-        [Display(Name = "Data de Validade")]
-        [Required(ErrorMessage = "O campo '{0}' é obrigatório")]
-        public DateTime? ValidadeInsumo
+        public string ValorPesquisa
         {
-            get => _validadeInsumo;
-            set => SetProperty(ref _validadeInsumo, value);
+            get => _valorPesquisa;
+            set => SetProperty(ref _valorPesquisa, value);
         }
 
-        [Display(Name = "Estoque Disponível")]
-        [Range(0, int.MaxValue, ErrorMessage = "O valor deve ser positivo")]
-        public int EstoqueDisponivel
+        public string ChavePesquisa
         {
-            get => _estoqueDisponivel;
-            set => SetProperty(ref _estoqueDisponivel, value);
+            get => _chavePesquisa;
+            set => SetProperty(ref _chavePesquisa, value);
         }
 
-        [Display(Name = "Entrada no Estoque")]
-        [Required(ErrorMessage = "O campo '{0}' é obrigatório")]
-        [Range(0, int.MaxValue, ErrorMessage = "O valor deve ser positivo")]
-        public int EntradaEstoque
+        public Action? OnTabChanged { get; set; }
+        public Action? OnInitialLoad { get; set; }
+
+        public IAsyncRelayCommand CarregarInsumosCommand;
+        public IAsyncRelayCommand<InsumosModel?> CadastrarInsumoCommand;
+        public IAsyncRelayCommand<PesquisaInsumos?> FiltrarInsumosCommand;
+        public IAsyncRelayCommand SincronizarInsumosCommand { get; }
+
+        public InsumosViewModel(IHttpClientFactory httpClientFactory)
         {
-            get => _entradaEstoque;
-            set => SetProperty(ref _entradaEstoque, value);
+            _http = httpClientFactory.CreateClient("ApiClient");
+            CarregarInsumosCommand = new AsyncRelayCommand(CarregarInsumosAsync);
+            CadastrarInsumoCommand = new AsyncRelayCommand<InsumosModel?>(CadastrarInsumoAsync);
+            SincronizarInsumosCommand = new AsyncRelayCommand(SincronizarInsumosAsyncFront);
+            FiltrarInsumosCommand = new AsyncRelayCommand<PesquisaInsumos?>(BuscarInsumosFiltradosAsync);
         }
 
-        /// <summary>
-        /// Converte o modelo do Frontend para o DTO de transferência.
-        /// (Assumindo que InsumosDTO existe em Shared.DTOs)
-        /// </summary>
-        public static explicit operator InsumosDTO(InsumosModel model)
+        #region Metodos Principais
+
+        private async Task CarregarInsumosAsync()
         {
-            // NOTA: O DTO (ou o construtor dele) deve ser capaz de aceitar
-            // um DateOnly? para a validade, para corresponder ao backend.
-            return new InsumosDTO(
-                model.CodigoId,
-                model.DescricaoSimplificada,
-                model.DescricaoDetalhada,
-                model.DataDeEntradaDoMedicamento,
-                model.NotaFiscal,
-                model.Unidade,
-                model.ConsumoMensal,
-                model.ConsumoAnual,
-                // Converte o DateTime? do frontend para DateOnly? para o backend/DTO
-                model.ValidadeInsumo.HasValue
-                    ? DateOnly.FromDateTime(model.ValidadeInsumo.Value)
-                    : null,
-                model.EstoqueDisponivel,
-                model.EntradaEstoque,
-                model.SaidaTotalEstoque
-            );
+            try
+            {
+                if (Carregando)
+                    return;
+
+                Carregando = true;
+                var insumos = await _http.GetFromJsonAsync<InsumosDTO[]>("api/insumos");
+
+                Insumos.Clear();
+                foreach (var i in insumos ?? [])
+                    Insumos.Add(i);
+            }
+            catch (Exception ex)
+            {
+                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine para evitar crash no reload
+                Debug.WriteLine($"Erro ao carregar insumos: {ex.Message}");
+            }
+            finally
+            {
+                Carregando = false;
+            }
         }
+
+        public async Task OnLoadedAsync()
+        {
+            await CarregarInsumosAsync();
+            OnInitialLoad?.Invoke();
+        }
+
+        public void AbreAbaCadastro()
+        {
+            HasTabs = true;
+            TabsShowing.First(t => t.Name == "Cadastrar").IsVisible = true;
+            ActiveTab = TabsShowing.First(t => t.Name == "Cadastrar").Name;
+        }
+
+        private async Task CadastrarInsumoAsync(InsumosModel? insumo)
+        {
+            try
+            {
+                if (Cadastrando || insumo == null)
+                    return;
+
+                var dto = (InsumosDTO)insumo;
+
+                Cadastrando = true;
+                var response = await _http.PostAsJsonAsync("api/insumos", dto);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // CORREÇÃO: Lógica alinhada com MedicamentosViewModel
+                    Debug.WriteLine("Insumo cadastrado com sucesso!");
+                    var itemSalvo = await response.Content.ReadFromJsonAsync<InsumosDTO>();
+                    if (itemSalvo != null) Insumos.Add(itemSalvo);
+
+                    // Volta para a aba de listagem
+                    ActiveTab = "Insumos";
+                    OnTabChanged?.Invoke();
+                }
+                else
+                {
+                    // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
+                    var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                    Debug.WriteLine($"Erro: {error?.Title} - {error?.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
+                Debug.WriteLine($"Erro ao cadastrar insumo: {ex.Message}");
+            }
+            finally
+            {
+                Insumo = new(); // Limpa o formulário
+                Cadastrando = false;
+            }
+        }
+
+        private async Task BuscarInsumosFiltradosAsync(PesquisaInsumos? pesquisa)
+        {
+            try
+            {
+                if (Carregando)
+                    return;
+
+                Carregando = true;
+
+                if (pesquisa == null)
+                    return;
+
+                if (string.IsNullOrWhiteSpace(ChavePesquisa) || string.IsNullOrWhiteSpace(ValorPesquisa))
+                {
+                    // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
+                    Debug.WriteLine("Aviso: Escolha um campo e preencha o valor.");
+                    await CarregarInsumosAsync(); // Carrega todos se o filtro for inválido
+                    return;
+                }
+
+                // A sua lógica de filtro com EscapeDataString já estava correta!
+                var url = $"api/insumos?{ChavePesquisa}={Uri.EscapeDataString(ValorPesquisa)}";
+                var insumos = await _http.GetFromJsonAsync<InsumosDTO[]>(url);
+
+                Insumos.Clear();
+                foreach (var i in insumos ?? [])
+                    Insumos.Add(i);
+            }
+            catch (Exception ex)
+            {
+                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
+                Debug.WriteLine($"Erro ao filtrar insumos: {ex.Message}");
+            }
+            finally
+            {
+                Carregando = false;
+            }
+        }
+
+        private async Task SincronizarInsumosAsyncFront()
+        {
+            try
+            {
+                await _http.PostAsync("api/Sync", null);
+                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
+                Debug.WriteLine("Sincronização iniciada.");
+            }
+            catch (Exception ex)
+            {
+                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
+                Debug.WriteLine($"Erro ao sincronizar: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Metodos Auxiliares de Display
+
+        public static string DisplayNotaFiscal(InsumosDTO i) => string.IsNullOrEmpty(i.NotaFiscal) ? "-" : i.NotaFiscal;
+
+        public static string DisplayDescricaoDetalhada(InsumosDTO i) => string.IsNullOrEmpty(i.DescricaoDetalhada) ? "-" : i.DescricaoDetalhada;
+
+        public static string DisplayValidade(InsumosDTO i) =>
+            i.ValidadeInsumo.HasValue
+            ? i.ValidadeInsumo.Value.ToShortDateString()
+            : "-";
+
+        // Esta função já estava correta
+        public static string DisplayDataEntrada(InsumosDTO i) =>
+            i.DataDeEntradaDoInsumo?.ToString("d") ?? "-";
+
+        #endregion
     }
 }

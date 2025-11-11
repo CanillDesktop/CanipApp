@@ -1,0 +1,165 @@
+
+:root {
+    
+    --primary: #0d6efd;
+    --primary-hover: #0b5ed7;
+    --danger: #dc3545;
+    
+    --surface-dark: #1F2123; /* Fundo principal (body, sidebar) */
+    --surface-dark-2: #292C2F; /* Superfície dos cards/caixas (caixaBranca) */
+    --surface-border-dark: #3C4043; /* Bordas suaves */
+    --text-dark: #E7E9EA; /* Texto principal claro */
+    --text-muted-dark: #AAB4BE; /* Texto secundário/cinza */
+    --sidebar-dark: #1F2123; /* Fundo da sidebar */
+}
+
+   
+    :root.dark {
+        color-scheme: dark; /* Força o navegador a usar estilos escuros */
+    }
+
+        :root.dark body {
+            background-color: var(--surface-dark); /* Fundo principal */
+            color: var(--text-dark);
+        }
+
+        /* sidebar / nav */
+        :root.dark .sidebar,
+        :root.dark .nav-shell {
+            background: var(--sidebar-dark);
+            color: #fff;
+            border-right: 1px solid var(--surface-border-dark);
+        }
+
+        /* botão do menu */
+        :root.dark .menu-toggle {
+            background: var(--surface-dark-2);
+            color: #fff;
+        }
+
+        /* caixas padrão do seu projeto (Filtro, Lista, Formulários) */
+        :root.dark .caixaBranca,
+        :root.dark .card,
+        :root.dark .content-card,
+        :root.dark .tab-content,
+        :root.dark .cadastro-form {
+            background-image: none !important;
+            background: var(--surface-dark-2);
+            border: 1px solid var(--surface-border-dark);
+            color: var(--text-dark);
+            /* Sombra mais suave para não poluir */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        }
+
+        /* cabeçalho azul dos cards de produto/medicamento/insumo */
+        :root.dark .card-header,
+        :root.dark .card-topo {
+            background: var(--primary); /* Mantém o azul vibrante */
+            color: #fff;
+        }
+
+        /* bloco de informação extra (Ver Mais) */
+        :root.dark .maisInfo {
+            /* Fundo mais escuro que o card, para destacar. */
+            background: var(--surface-dark);
+            color: var(--text-dark);
+            /* Borda do bloco de info extra */
+            border: 1px solid var(--surface-border-dark);
+        }
+
+
+        /* INPUTS / SELECTS / TEXTAREAS */
+        :root.dark input,
+        :root.dark select,
+        :root.dark textarea,
+        :root.dark .form-control,
+        :root.dark .form-select {
+            background: #3A3D40; /* Um cinza um pouco mais claro para inputs */
+            border: 1px solid var(--surface-border-dark);
+            color: var(--text-dark);
+        }
+
+        /* Select: setinha clara no modo escuro */
+        :root.dark .form-select {
+            /* substitui a seta padrão por uma clara */
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='%23E7E9EA' d='M3.2 5.2a1 1 0 0 1 1.4 0L8 8.6l3.4-3.4a1 1 0 1 1 1.4 1.4L8.7 10.7a1 1 0 0 1-1.4 0L3.2 6.6a1 1 0 0 1 0-1.4z'/></svg>") !important;
+            background-repeat: no-repeat;
+            background-position: right .75rem center;
+            background-size: 16px 12px;
+        }
+
+        /* BOTÕES PRIMÁRIOS (Filtrar, Cadastrar Novo) */
+        :root.dark .btn-primary,
+        :root.dark button.btn.btn-primary,
+        :root.dark button[type="submit"].btn.btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+            :root.dark .btn-primary:hover {
+                background: var(--primary-hover);
+                border-color: var(--primary-hover);
+            }
+
+        /* BOTÕES SECUNDÁRIOS/LEVES (Atualizar Dados, Fechar/Ver Mais) */
+        :root.dark .btn-secondary,
+        :root.dark .btn-light {
+            background: var(--surface-border-dark); /* Fundo cinza suave */
+            color: var(--text-dark);
+            border: 1px solid var(--surface-border-dark);
+        }
+
+            :root.dark .btn-secondary:hover,
+            :root.dark .btn-light:hover {
+                background: #4A4D50;
+                border-color: #4A4D50;
+            }
+
+        /* FOCO em Inputs e Botões */
+        /* Remove os antigos box-shadows conflitantes */
+        :root.dark .btn:focus,
+        :root.dark .btn:active:focus,
+        :root.dark .form-control:focus,
+        :root.dark .form-check-input:focus,
+        :root.dark .form-select:focus {
+            /* Foco azul suave como o padrão Bootstrap/Google */
+            box-shadow: 0 0 0 0.1rem var(--surface-dark-2), 0 0 0 0.25rem rgba(13, 110, 253, 0.5);
+        }
+
+        /* LINKS */
+        :root.dark a,
+        :root.dark .btn-link {
+            color: #38bdf8; /* Azul claro de destaque */
+        }
+
+        /* ============================
+   TELAS DE LOGIN / CADASTRO
+   ============================ */
+
+        :root.dark .login-wrapper,
+        :root.dark .cadastro-wrapper {
+            background: var(--surface-dark);
+        }
+
+        :root.dark .login-container,
+        :root.dark .cadastro-container {
+            background: var(--surface-dark-2);
+            border: 1px solid var(--surface-border-dark);
+            color: var(--text-dark);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+        }
+
+/* rodapé do menu onde colocamos o botão de tema */
+.theme-toggle-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    border-radius: 9999px;
+    padding: .35rem .8rem;
+    font-size: .8rem;
+    cursor: pointer;
+    display: flex;
+    gap: .35rem;
+    align-items: center;
+}

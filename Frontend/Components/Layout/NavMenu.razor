@@ -1,35 +1,43 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        
+﻿<div class="nav-shell">
+    <div class="top-row ps-3 navbar navbar-dark">
+        <div class="container-fluid">
+        </div>
     </div>
-</div>
 
-<div class="nav-scrollable">
-    <nav class="flex-column">
+    <div class="nav-scrollable">
+        <nav class="flex-column">
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Sair
-            </NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="bi bi-box-arrow-right"
+                          aria-hidden="true"></span> <span class="corDoTexto">Sair</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="produtos">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Produtos
-            </NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="produtos">
+                    <span class="bi bi-plus-square-fill" aria-hidden="true"></span> <span class="corDoTexto">Produtos</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="medicamentos">
-                <span class="bi bi-capsule-fill-nav-menu" aria-hidden="true"></span> Medicamentos
-            </NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="medicamentos">
+                    <span class="bi bi-prescription2" aria-hidden="true"></span><span class="corDoTexto"> Medicamentos</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="insumos">
-                <span class="bi bi-box-seam-fill-nav-menu" aria-hidden="true"></span> Insumos
-            </NavLink>
-        </div>
 
-    </nav>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="insumos">
+                    <span class="bi bi-box-seam-fill" aria-hidden="true"></span> <span class="corDoTexto">Insumos</span>
+                </NavLink>
+            </div>
+
+        </nav>
+    </div>
+
+    <div class="nav-footer">
+
+        <ThemeToggle />
+    </div>
 </div>

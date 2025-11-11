@@ -1,11 +1,13 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Backend.Context;
-using Backend.Models;
 using Backend.Models.Medicamentos;
 using Backend.Models.Produtos;
+using Backend.Models.Insumos; 
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-
+using System; // Adicionado para Console.WriteLine
+using System.Linq; // Adicionado para ToDictionary, etc.
+using Backend.Services.Interfaces; // Adicionado para ISyncService
 namespace Backend.Services
 {
     public class SyncService : ISyncService
@@ -21,17 +23,17 @@ namespace Backend.Services
 
         public async Task SincronizarTabelasAsync()
         {
-            //await SincronizarMedicamentosAsync();
+            await SincronizarMedicamentosAsync();
             await SincronizarProdutosAsync();
-            //await SincronizarInsumosAsync();
+            await SincronizarInsumosAsync();
         }
 
         public async Task LimparRegistrosExcluidosAsync()
         {
             await SincronizarTabelasAsync();
             await LimparMedicamentosExcluidosAsync();
-            //await LimparProdutosExcluidosAsync();
-            //await LimparInsumosExcluidosAsync();
+            await LimparProdutosExcluidosAsync();
+            await LimparInsumosExcluidosAsync();
         }
 
         private async Task SincronizarMedicamentosAsync()
@@ -245,8 +247,13 @@ namespace Backend.Services
             var dynamoItens = await _dynamoDBContext.ScanAsync<InsumosModel>(new List<ScanCondition>()).GetRemainingAsync();
             var localItens = await localDbSet.AsNoTracking().ToListAsync();
 
-            var dynamoMap = dynamoItens.ToDictionary(i => i.CodigoId);
-            var localMap = localItens.ToDictionary(i => i.CodigoId);
+            var dynamoMap = dynamoItens
+                      .GroupBy(i => i.CodigoId)
+                      .ToDictionary(g => g.Key, g => g.First());
+
+            var localMap = localItens
+                    .GroupBy(i => i.CodigoId)
+                    .ToDictionary(g => g.Key, g => g.First());
 
             var dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<InsumosModel>();
             bool changesToLocalDb = false;
@@ -278,7 +285,12 @@ namespace Backend.Services
                 changesToLocalDb = true;
             }
 
-            await dynamoBatchWriter.ExecuteAsync();
+            // Precisamos lidar com lotes se a lista for grande
+           
+           
+                await dynamoBatchWriter.ExecuteAsync();
+            
+
             if (changesToLocalDb)
             {
                 await _localDbContext.SaveChangesAsync();

@@ -1,80 +1,135 @@
-﻿using Backend.Models.Medicamentos;
+﻿using Backend.Models.Insumos;
 using Backend.Repositories.Interfaces;
 using Backend.Services.Interfaces;
+using Humanizer;
 using Shared.DTOs;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Backend.Services
 {
     public class InsumosService : IInsumosService
     {
-        public readonly IInsumosRepository _repository;
+        private readonly IInsumosRepository _insumosRepository;
 
-
-        public InsumosService(IInsumosRepository repository)
+        public InsumosService(IInsumosRepository insumosRepository)
         {
-            _repository = repository;
+            _insumosRepository = insumosRepository;
         }
 
         public async Task<IEnumerable<InsumosDTO>> BuscarTodosAsync()
         {
-            var insumos = await _repository.GetAsync();
+            // 1. Busca MODELOS (filtrando soft delete)
+            var models = await _insumosRepository.BuscarTodosAsync(m => m.IsDeleted == false);
 
-            return insumos.Select(model => MapModelToDto(model));
+            // 2. Converte Modelos para DTOs
+            return models.Select(model => ToDTO(model));
         }
 
         public async Task<InsumosDTO?> BuscarPorIdAsync(int id)
         {
-            var insumo = await _repository.GetByIdAsync(id);
-            if (insumo == null)
+            var model = await _insumosRepository.BuscarPorIdAsync(id);
+
+            // Ignora se estiver deletado
+            if (model == null || model.IsDeleted)
             {
                 return null;
             }
 
-            return MapModelToDto(insumo);
+            return ToDTO(model);
         }
 
-
-        public async Task<InsumosDTO?> CriarAsync(InsumosDTO insumosDto)
+        public async Task<InsumosDTO> CriarAsync(InsumosDTO dto)
         {
+            // 1. Converte DTO para Modelo
+            var model = ToModel(dto);
 
-            var insumoModel = MapDtoToModel(insumosDto);
-            var novoInsumo = await _repository.CreateAsync(insumoModel);
+            // 2. Define o timestamp e garante IsDeleted = false
+            model.DataAtualizacao = DateTime.UtcNow;
+            model.IsDeleted = false;
 
-            return MapModelToDto(novoInsumo);
+            // 3. Salva Modelo no repositório local
+            var novoModel = await _insumosRepository.CriarAsync(model);
+
+            // 4. Converte Modelo de volta para DTO
+            return ToDTO(novoModel);
         }
-        public async Task<InsumosDTO?> AtualizarAsync(InsumosDTO insumosDto)
+
+        public async Task<InsumosDTO?> AtualizarAsync(InsumosDTO dto)
         {
-            var insumoExistente = await _repository.GetByIdAsync(insumosDto.CodigoId);
-            if (insumoExistente == null)
+            var modelExistente = await _insumosRepository.BuscarPorIdAsync(dto.CodigoId);
+            if (modelExistente == null || modelExistente.IsDeleted)
             {
-                return null;
+                return null; // Não pode atualizar item inexistente ou deletado
             }
 
-            PersistirModel(insumoExistente, insumosDto);
+            // 1. Converte DTO para Modelo
+            var modelParaAtualizar = ToModel(dto);
+
+            // 2. Define o timestamp e mantém status de delete
+            modelParaAtualizar.DataAtualizacao = DateTime.UtcNow;
+            modelParaAtualizar.IsDeleted = modelExistente.IsDeleted; // Mantém o status
+
+            // Garante que a Chave Primária não seja modificada (o EF Core não gosta disso)
+            // O ToModel já deve ter feito isso, mas é uma garantia.
+            modelParaAtualizar.CodigoId = modelExistente.CodigoId;
 
 
-            var insumoAtualizado = await _repository.UpdateAsync(insumoExistente);
-            return MapModelToDto(insumoAtualizado!);
+            // 3. Atualiza Modelo no repositório local
+            await _insumosRepository.AtualizarAsync(modelParaAtualizar);
+
+            return ToDTO(modelParaAtualizar);
         }
 
         public async Task<bool> DeletarAsync(int id)
         {
-            var insumo = await _repository.GetByIdAsync(id);
-            if (insumo == null)
+            // Implementando SOFT DELETE (igual ProdutosService)
+            var model = await _insumosRepository.BuscarPorIdAsync(id);
+            if (model == null || model.IsDeleted) // Se não existe ou já foi deletado
             {
                 return false;
             }
-            return await _repository.DeleteAsync(id);
+
+            // 1. Marca como deletado
+            model.IsDeleted = true;
+            model.DataAtualizacao = DateTime.UtcNow; // ESSENCIAL para sincronizar
+
+            // 2. Chama ATUALIZAR (não deletar)
+            await _insumosRepository.AtualizarAsync(model);
+            return true;
         }
 
-        private static InsumosDTO MapModelToDto(InsumosModel model)
+        // --- MÉTODOS PRIVADOS DE MAPEAMENTO ---
+
+        private InsumosModel ToModel(InsumosDTO dto)
+        {
+            return new InsumosModel
+            {
+                CodigoId = dto.CodigoId, // Inclui o ID para atualizações
+                DescricaoSimplificada = dto.DescricaoSimplificada,
+                DescricaoDetalhada = dto.DescricaoDetalhada,
+                DataDeEntradaDoInsumo = dto.DataDeEntradaDoInsumo,
+                NotaFiscal = dto.NotaFiscal,
+                Unidade = dto.Unidade,
+                ConsumoMensal = dto.ConsumoMensal,
+                ConsumoAnual = dto.ConsumoAnual,
+                ValidadeInsumo = dto.ValidadeInsumo,
+                EstoqueDisponivel = dto.EstoqueDisponivel,
+                EntradaEstoque = dto.EntradaEstoque,
+                SaidaTotalEstoque = dto.SaidaTotalEstoque
+                // DataAtualizacao e IsDeleted são definidos nos métodos de CRUD
+            };
+        }
+
+        private InsumosDTO ToDTO(InsumosModel model)
         {
             return new InsumosDTO
             {
                 CodigoId = model.CodigoId,
                 DescricaoSimplificada = model.DescricaoSimplificada,
                 DescricaoDetalhada = model.DescricaoDetalhada,
-                DataDeEntradaDoMedicamento = model.DataDeEntradaDoMedicamento,
+                DataDeEntradaDoInsumo = model.DataDeEntradaDoInsumo,
                 NotaFiscal = model.NotaFiscal,
                 Unidade = model.Unidade,
                 ConsumoMensal = model.ConsumoMensal,
@@ -84,43 +139,6 @@ namespace Backend.Services
                 EntradaEstoque = model.EntradaEstoque,
                 SaidaTotalEstoque = model.SaidaTotalEstoque
             };
-        }
-
-
-        private static InsumosModel MapDtoToModel(InsumosDTO dto)
-        {
-            return new InsumosModel
-            {
-                CodigoId = dto.CodigoId,
-                DescricaoSimplificada = dto.DescricaoSimplificada,
-                DataDeEntradaDoMedicamento = dto.DataDeEntradaDoMedicamento,
-                DescricaoDetalhada = dto.DescricaoDetalhada,
-                NotaFiscal = dto.NotaFiscal,
-                Unidade = dto.Unidade,
-                ConsumoMensal = dto.ConsumoMensal,
-                ConsumoAnual = dto.ConsumoAnual,
-                ValidadeInsumo = dto.ValidadeInsumo,
-                EstoqueDisponivel = dto.EstoqueDisponivel,
-                EntradaEstoque = dto.EntradaEstoque,
-                SaidaTotalEstoque = dto.SaidaTotalEstoque
-            };
-        }
-
-        private void PersistirModel(InsumosModel model, InsumosDTO modelDto)
-        {
-            model.CodigoId = modelDto.CodigoId;
-
-            model.DescricaoDetalhada = modelDto.DescricaoDetalhada;
-            model.DescricaoSimplificada = modelDto.DescricaoSimplificada;
-            model.NotaFiscal = modelDto.NotaFiscal;
-            model.Unidade = modelDto.Unidade;
-            model.DataDeEntradaDoMedicamento = modelDto.DataDeEntradaDoMedicamento;
-            model.ConsumoMensal = modelDto.ConsumoMensal;
-            model.ConsumoAnual = modelDto.ConsumoAnual;
-            model.ValidadeInsumo = modelDto.ValidadeInsumo;
-            model.EstoqueDisponivel = modelDto.EstoqueDisponivel;
-            model.EntradaEstoque = modelDto.EntradaEstoque;
-            model.EntradaEstoque = modelDto.EntradaEstoque;
         }
     }
 }

@@ -1,0 +1,23 @@
+﻿@inject IJSRuntime JS
+
+<button class="theme-toggle-btn" @onclick="Toggle">
+    @_label
+</button>
+
+@code {
+    private string _label = "🌙 Dark";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var mode = await JS.InvokeAsync<string>("theme.get");
+        _label = mode == "dark" ? "☀️ Light" : "🌙 Dark";
+    }
+
+    private async Task Toggle()
+    {
+        await JS.InvokeVoidAsync("theme.toggle");
+        var mode = await JS.InvokeAsync<string>("theme.get");
+        _label = mode == "dark" ? "☀️ Light" : "🌙 Dark";
+        StateHasChanged();
+    }
+}

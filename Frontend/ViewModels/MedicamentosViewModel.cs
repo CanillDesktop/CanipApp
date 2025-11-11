@@ -229,8 +229,8 @@ namespace Frontend.ViewModels
                     return;
                 }
 
-               
-                var url = $"api/medicamentos?{ChavePesquisa}={Uri.UnescapeDataString(ValorPesquisa)}";
+
+                var url = $"api/medicamentos?{ChavePesquisa}={Uri.EscapeDataString(ValorPesquisa)}";
                 var medicamentos = await _http.GetFromJsonAsync<MedicamentoDTO[]>(url);
 
                 Medicamentos.Clear();

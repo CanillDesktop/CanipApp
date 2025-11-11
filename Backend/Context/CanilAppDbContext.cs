@@ -1,4 +1,5 @@
-﻿using Backend.Models.Medicamentos;
+﻿using Backend.Models.Insumos;
+using Backend.Models.Medicamentos;
 using Backend.Models.Produtos;
 using Backend.Models.Usuarios;
 using Microsoft.EntityFrameworkCore;

@@ -1,40 +1,97 @@
 ﻿@page "/cadastro"
 @layout Layout.LoginLayout
 @inject CadastroViewModel ViewModel
+@inject NavigationManager NavManager
 @implements IDisposable
 
-<h1>Registre-se</h1>
+<div class="cadastro-wrapper">
+    <div class="cadastro-container">
+        <h1>Registre-se</h1>
+        <p>Preencha os dados para criar sua conta</p>
 
-<EditForm Model="@ViewModel.Usuario" OnValidSubmit="@ViewModel.RegisterCommand.ExecuteAsync">
-    <DataAnnotationsValidator />
+        <EditForm Model="@ViewModel.Usuario" OnValidSubmit="@HandleValidSubmit">
+            <DataAnnotationsValidator />
 
-    <InputText @bind-Value="ViewModel.Usuario.PrimeiroNome" placeholder="Nome" />
-    <ValidationMessage For="@(() => ViewModel.Usuario.PrimeiroNome)" />
+            <!-- Nome -->
+            <InputText class="cad-input"
+                       @bind-Value="ViewModel.Usuario.PrimeiroNome"
+                       placeholder="Nome" />
+            <ValidationMessage For="@(() => ViewModel.Usuario.PrimeiroNome)" />
 
-    <InputText @bind-Value="ViewModel.Usuario.Sobrenome" placeholder="Sobrenome" />
-    <ValidationMessage For="@(() => ViewModel.Usuario.Sobrenome)" />
+            <!-- Sobrenome -->
+            <InputText class="cad-input"
+                       @bind-Value="ViewModel.Usuario.Sobrenome"
+                       placeholder="Sobrenome" />
+            <ValidationMessage For="@(() => ViewModel.Usuario.Sobrenome)" />
 
-    <InputText @bind-Value="ViewModel.Usuario.Email" type="email" placeholder="Email" />
-    <ValidationMessage For="@(() => ViewModel.Usuario.Email)" />
+            <!-- Email -->
+            <InputText class="cad-input"
+                       @bind-Value="ViewModel.Usuario.Email"
+                       type="email"
+                       placeholder="Email" />
+            <ValidationMessage For="@(() => ViewModel.Usuario.Email)" />
 
-    <InputText @bind-Value="ViewModel.Usuario.Senha" type="password" placeholder="Senha" />
-    <ValidationMessage For="@(() => ViewModel.Usuario.Senha)" />
+            <!-- Senha -->
+            <InputText class="cad-input"
+                       @bind-Value="ViewModel.Usuario.Senha"
+                       type="password"
+                       placeholder="Senha" />
+            <ValidationMessage For="@(() => ViewModel.Usuario.Senha)" />
 
-    <InputText @bind-Value="ViewModel.Usuario.SenhaConfirmacao" type="password" placeholder="Confirme a senha" />
-    <ValidationMessage For="@(() => ViewModel.Usuario.SenhaConfirmacao)" />
+            <!-- Confirmar senha -->
+            <InputText class="cad-input"
+                       @bind-Value="ViewModel.Usuario.SenhaConfirmacao"
+                       type="password"
+                       placeholder="Confirme a senha" />
+            <ValidationMessage For="@(() => ViewModel.Usuario.SenhaConfirmacao)" />
 
-    <button type="submit">Registrar</button>
-</EditForm>
-
+            @if (ViewModel.Carregando)
+            {
+                <div class="spinner"></div>
+            }
+            else
+            {
+                <button type="submit" class="btn-primary">Registrar</button>
+                <button type="button" class="btn-secondary" @onclick="VoltarParaLogin">
+                    Já tenho conta
+                </button>
+            }
+        </EditForm>
+    </div>
+</div>
 
 @code {
+    private async Task HandleValidSubmit()
+    {
+        await ViewModel.RegisterCommand.ExecuteAsync(null);
+    }
+
+    private void VoltarParaLogin()
+    {
+        NavManager.NavigateTo("/");
+    }
+
+  
+
     protected override void OnInitialized()
     {
-        ViewModel.PropertyChanged += (sender, e) => StateHasChanged();
+       
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+   
+    private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        
+        StateHasChanged();
     }
 
     public void Dispose()
     {
-        ViewModel.PropertyChanged -= (sender, e) => StateHasChanged();
+       
+        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+    }
+
+  
     }
 }
