@@ -65,7 +65,7 @@ namespace Backend.Controllers
             }
 
 
-            return CreatedAtAction(nameof(GetProdutosById), new { id = novoProduto.IdProduto }, novoProduto);
+            return NoContent();
         }
 
         [HttpPut]

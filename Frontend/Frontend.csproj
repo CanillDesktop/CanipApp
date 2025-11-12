@@ -69,6 +69,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="AWSSDK.CognitoIdentity" Version="4.0.2.4" />
+        <PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="4.0.4.2" />
+        <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.9.5" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
           <PrivateAssets>all</PrivateAssets>

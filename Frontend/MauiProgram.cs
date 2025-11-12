@@ -32,6 +32,7 @@ public static class MauiProgram
         builder.Services.AddScoped<LoginViewModel>();
         builder.Services.AddScoped<CadastroViewModel>();
         builder.Services.AddScoped<InsumosViewModel>();
+        
 
 
         string baseAddress = "https://localhost:7019";
