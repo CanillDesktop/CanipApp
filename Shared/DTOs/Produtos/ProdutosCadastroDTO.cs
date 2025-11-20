@@ -2,37 +2,34 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
-namespace Shared.DTOs
+namespace Shared.DTOs.Produtos
 {
-    public class ProdutosDTO
+    public class ProdutosCadastroDTO
     {
-        public ProdutosDTO() { }
-        public ProdutosDTO(string? descricaoSimples, DateTime? dataEntrega, string? nFe, string? descricaoDetalhada, UnidadeEnum unidade, CategoriaEnum categoria,
-            int quantidade = 0, string? validade = null, int estoqueDisponivel = 0)
+        public ProdutosCadastroDTO() { }
+        public ProdutosCadastroDTO(string? descricaoSimples, string? descricaoDetalhada, UnidadeEnum unidade, CategoriaEnum categoria, string? lote, DateTime dataEntrega,
+            string? nFe, DateTime? dataValidade, int quantidade = 0, int nivelMinimoEstoque = 0)
         {
-            IdProduto = GeraIdentificador(categoria);
+            CodProduto = GeraIdentificador(categoria);
             DescricaoSimples = descricaoSimples;
-            DataEntrega = dataEntrega;
-            NFe = nFe;
             DescricaoDetalhada = descricaoDetalhada;
             Unidade = unidade;
             Categoria = categoria;
+            Lote = lote;
+            DataEntrega = dataEntrega;
             Quantidade = quantidade;
-            Validade = validade;
-            EstoqueDisponivel = estoqueDisponivel;
+            NFe = nFe;
+            DataValidade = dataValidade;
+            NivelMinimoEstoque = nivelMinimoEstoque;
         }
 
+        public int IdProduto { get; set; }
+
         [Display(Name = "Código")]
-        public string IdProduto { get; set; } = string.Empty;
+        public string CodProduto { get; set; } = string.Empty;
 
         [Display(Name = "Descrição")]
         public string? DescricaoSimples { get; set; }
-
-        [Display(Name = "Data de Entrega")]
-        public DateTime? DataEntrega { get; init; }
-
-        [Display(Name = "NFe/DOC")]
-        public string? NFe { get; set; }
 
         [Display(Name = "Descrição Detalhada")]
         public string? DescricaoDetalhada { get; set; }
@@ -43,13 +40,23 @@ namespace Shared.DTOs
         [Display(Name = "Categoria")]
         public CategoriaEnum Categoria { get; set; }
 
+        [Display(Name = "Lote")]
+        public string? Lote { get; set; } = string.Empty;
+
+        [Display(Name = "Quantidade")]
         public int Quantidade { get; set; }
 
-        [Display(Name = "Data de Validade")]
-        public string? Validade { get; set; }
+        [Display(Name = "Data de Entrega")]
+        public DateTime DataEntrega { get; set; }
 
-        [Display(Name = "Quantidade em Estoque")]
-        public int EstoqueDisponivel { get; set; }
+        [Display(Name = "NFe/DOC")]
+        public string? NFe { get; set; } = string.Empty;
+
+        [Display(Name = "Data de Validade")]
+        public DateTime? DataValidade { get; set; }
+
+        [Display(Name = "Nível mínimo estoque")]
+        public int NivelMinimoEstoque { get; set; }
 
         private static string GeraIdentificador(CategoriaEnum categoria)
         {

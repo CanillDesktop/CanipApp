@@ -1,8 +1,9 @@
-﻿using Shared.DTOs;
+﻿using Shared.DTOs.Medicamentos;
 
 namespace Backend.Services.Interfaces
 {
-    public interface IMedicamentosService : IService<MedicamentoDTO, int>
+    public interface IMedicamentosService : IService<MedicamentoCadastroDTO, MedicamentoLeituraDTO>
     {
+        Task<IEnumerable<MedicamentoLeituraDTO>> BuscarTodosAsync(MedicamentosFiltroDTO filtro);
     }
 }

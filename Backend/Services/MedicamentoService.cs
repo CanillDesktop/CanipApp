@@ -1,7 +1,8 @@
-﻿using Backend.Models.Medicamentos;
+﻿using Backend.Exceptions;
 using Backend.Repositories.Interfaces;
 using Backend.Services.Interfaces;
-using Shared.DTOs;
+using Shared.DTOs.Medicamentos;
+using Shared.Enums;
 
 namespace Backend.Services
 {
@@ -14,115 +15,30 @@ namespace Backend.Services
             _repository = repository;
         }
 
-        public async Task<IEnumerable<MedicamentoDTO>> BuscarTodosAsync()
-        {
-            var medicamentos = await _repository.GetAsync();
+        public async Task<IEnumerable<MedicamentoLeituraDTO>> BuscarTodosAsync() => (await _repository.GetAsync()).Select(p => (MedicamentoLeituraDTO)p);
 
-            return medicamentos.Select(model => MapModelToDto(model));
-        }
+        public async Task<MedicamentoLeituraDTO?> BuscarPorIdAsync(int id) => (await _repository.GetByIdAsync(id))!;
 
-        public async Task<MedicamentoDTO?> BuscarPorIdAsync(int id)
+        public async Task<MedicamentoLeituraDTO?> CriarAsync(MedicamentoCadastroDTO dto)
         {
-            var medicamento = await _repository.GetByIdAsync(id);
-            if (medicamento == null)
+            if (string.IsNullOrWhiteSpace(dto.CodMedicamento)
+                || string.IsNullOrWhiteSpace(dto.NomeComercial)
+                || string.IsNullOrWhiteSpace(dto.Formula)
+                || string.IsNullOrWhiteSpace(dto.DescricaoMedicamento)
+                || !Enum.IsDefined(typeof(PrioridadeEnum), (int)dto.Prioridade)
+                || !Enum.IsDefined(typeof(PublicoAlvoMedicamentoEnum), (int)dto.PublicoAlvo)
+                || string.IsNullOrWhiteSpace(dto.Lote))
             {
-                return null;
+                throw new ModelIncompletaException("Um ou mais campos obrigatórios não foram preenchidos");
             }
 
-            return MapModelToDto(medicamento);
+            return await _repository.CreateAsync(dto);
         }
 
-        public async Task<MedicamentoDTO> CriarAsync(MedicamentoDTO? medicamentoDto)
-        {
-            var medicamentoModel = MapDtoToModel(medicamentoDto);
-            var novoMedicamento = await _repository.CreateAsync(medicamentoModel);
+        public async Task<MedicamentoLeituraDTO?> AtualizarAsync(MedicamentoCadastroDTO dto) => (await _repository.UpdateAsync(dto))!;
 
-            return MapModelToDto(novoMedicamento);
-        }
+        public async Task<bool> DeletarAsync(int id) => await _repository.DeleteAsync(id);
 
-        public async Task<MedicamentoDTO?> AtualizarAsync(MedicamentoDTO? medicamentoDto)
-        {
-            var medicamentoExistente = await _repository.GetByIdAsync(medicamentoDto.CodigoId);
-            if (medicamentoExistente == null)
-            {
-                return null;
-            }
-
-            PersistirModel(medicamentoExistente, medicamentoDto);
-
-
-            var medicamentoAtualizado = await _repository.UpdateAsync(medicamentoExistente);
-            return medicamentoAtualizado != null ? MapModelToDto(medicamentoAtualizado) : null;
-        }
-
-        public async Task<bool> DeletarAsync(int id)
-        {
-            var medicamento = await _repository.GetByIdAsync(id);
-            if (medicamento == null)
-            {
-                return false;
-            }
-            await _repository.DeleteAsync(id);
-            return true;
-        }
-
-        private static MedicamentoDTO MapModelToDto(MedicamentosModel model)
-        {
-            return new MedicamentoDTO
-            {
-                CodigoId = model.CodigoId,
-                Prioridade = model.Prioridade,
-                DescricaoMedicamentos = model.DescricaoMedicamentos,
-                DataDeEntradaDoMedicamento = model.DataDeEntradaDoMedicamento,
-                NotaFiscal = model.NotaFiscal,
-                NomeComercial = model.NomeComercial,
-                PublicoAlvo = model.PublicoAlvo,
-                ConsumoMensal = model.ConsumoMensal,
-                ConsumoAnual = model.ConsumoAnual,
-                ValidadeMedicamento = model.ValidadeMedicamento,
-                EstoqueDisponivel = model.EstoqueDisponivel,
-                EntradaEstoque = model.EntradaEstoque,
-                SaidaTotalEstoque = model.SaidaTotalEstoque
-            };
-        }
-
-        private static MedicamentosModel MapDtoToModel(MedicamentoDTO dto)
-        {
-            return new MedicamentosModel
-            {
-                CodigoId = dto.CodigoId,
-                Prioridade = dto.Prioridade,
-                DescricaoMedicamentos = dto.DescricaoMedicamentos,
-                DataDeEntradaDoMedicamento = dto.DataDeEntradaDoMedicamento,
-                NotaFiscal = dto.NotaFiscal,
-                NomeComercial = dto.NomeComercial,
-                PublicoAlvo = dto.PublicoAlvo,
-                ConsumoMensal = dto.ConsumoMensal,
-                ConsumoAnual = dto.ConsumoAnual,
-                ValidadeMedicamento = dto.ValidadeMedicamento,
-                EstoqueDisponivel = dto.EstoqueDisponivel,
-                EntradaEstoque = dto.EntradaEstoque,
-                SaidaTotalEstoque = dto.SaidaTotalEstoque
-            };
-        }
-
-        private void PersistirModel(MedicamentosModel model, MedicamentoDTO modelDto)
-        {
-            model.CodigoId = modelDto.CodigoId;
-            model.Prioridade = modelDto.Prioridade;
-            model.DescricaoMedicamentos = modelDto.DescricaoMedicamentos;
-            model.NotaFiscal = modelDto.NotaFiscal;
-            model.NomeComercial = modelDto.NomeComercial;
-            model.PublicoAlvo = modelDto.PublicoAlvo;
-            model.DataDeEntradaDoMedicamento = modelDto.DataDeEntradaDoMedicamento;
-            model.ConsumoMensal = modelDto.ConsumoMensal;
-            model.ConsumoAnual = modelDto.ConsumoAnual;
-            model.ValidadeMedicamento = modelDto.ValidadeMedicamento;
-            model.EstoqueDisponivel = modelDto.EstoqueDisponivel;
-            model.EntradaEstoque = modelDto.EntradaEstoque;
-            model.EntradaEstoque = modelDto.EntradaEstoque;
-        }
-
-
+        public async Task<IEnumerable<MedicamentoLeituraDTO>> BuscarTodosAsync(MedicamentosFiltroDTO filtro) => (await _repository.GetAsync(filtro)).Select(p => (MedicamentoLeituraDTO)p);
     }
 }

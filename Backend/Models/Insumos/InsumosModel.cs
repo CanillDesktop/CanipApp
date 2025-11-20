@@ -1,35 +1,73 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
+﻿using Shared.DTOs.Estoque;
+using Shared.DTOs.Insumos;
 using Shared.Enums;
-using System.Text.Json.Serialization;
 
-namespace Backend.Models.Medicamentos
+namespace Backend.Models.Insumos
 {
 
-    public class InsumosModel
+    public class InsumosModel : ItemComEstoqueBaseModel
     {
-
-
-        [Key]
-
-        public int CodigoId { get; set; }
+        public string CodInsumo { get; set; } = string.Empty;
         public required string DescricaoSimplificada { get; set; }
         public required string DescricaoDetalhada { get; set; }
-        public DateTime DataDeEntradaDoMedicamento { get; set; }
-        public string? NotaFiscal { get; set; }
-        //public CategoriaInsumosEnum Categoria {  get; set; }
-    
         public  UnidadeInsumosEnum Unidade { get; set; }
-        public int ConsumoMensal { get; set; }
-        public int ConsumoAnual { get; set; }
-        public required DateOnly? ValidadeInsumo { get; set; }
-        public int EstoqueDisponivel { get; set; }
-        public int EntradaEstoque { get; set; }
-        public int SaidaTotalEstoque { get; set; }
 
+        public static implicit operator InsumosModel(InsumosCadastroDTO dto)
+        {
+            return new InsumosModel()
+            {
+                CodInsumo = dto.CodInsumo,
+                DescricaoSimplificada = dto.DescricaoSimplificada,
+                DescricaoDetalhada = dto.DescricaoDetalhada,
+                Unidade = dto.Unidade,
+                ItemNivelEstoque = new()
+                {
+                    NivelMinimoEstoque = dto.NivelMinimoEstoque
+                },
+                ItensEstoque =
+                [
+                    new ItemEstoqueModel()
+                    {
+                        CodItem = dto.CodInsumo,
+                        DataEntrega = dto.DataEntrega,
+                        DataValidade = dto.DataValidade,
+                        Lote = dto.Lote,
+                        NFe = dto.NFe,
+                        Quantidade = dto.Quantidade
+                    }
+                ]
+            };
+        }
 
+        public static implicit operator InsumosCadastroDTO(InsumosModel model)
+        {
+            var itemEstoque = model.ItensEstoque.FirstOrDefault();
+            return new InsumosCadastroDTO()
+            {
+                CodInsumo = model.CodInsumo,
+                DescricaoSimplificada = model.DescricaoSimplificada,
+                DescricaoDetalhada = model.DescricaoDetalhada,
+                Lote = itemEstoque?.Lote,
+                Quantidade = itemEstoque == null ? 0 : itemEstoque!.Quantidade,
+                DataEntrega = itemEstoque == null ? DateTime.Now : itemEstoque.DataEntrega,
+                NFe = itemEstoque?.NFe,
+                NivelMinimoEstoque = model.ItemNivelEstoque.NivelMinimoEstoque,
+                DataValidade = itemEstoque?.DataValidade,
+            };
+        }
 
+        public static implicit operator InsumosLeituraDTO(InsumosModel model)
+        {
+            return new InsumosLeituraDTO()
+            {
+                IdItem = model.IdItem,
+                CodItem = model.CodInsumo,
+                NomeItem = model.DescricaoSimplificada,
+                DescricaoDetalhada = model.DescricaoDetalhada,
+                ItemNivelEstoque = model.ItemNivelEstoque,
+                ItensEstoque = [.. model.ItensEstoque.Select(e => (ItemEstoqueDTO)e)]
+            };
+        }
     }
 }
 

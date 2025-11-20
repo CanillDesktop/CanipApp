@@ -1,10 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Frontend.Models;
-using Frontend.ViewModels.Interfaces;
-using Shared.DTOs;
-using Shared.Models;
+using Frontend.Models.Produtos;
 using Frontend.Records;
+using Frontend.ViewModels.Interfaces;
+using Shared.DTOs.Produtos;
+using Shared.Models;
 using System.Collections.ObjectModel;
 using System.Net.Http.Json;
 
@@ -13,6 +14,7 @@ namespace Frontend.ViewModels
     public partial class ProdutosViewModel : ObservableObject, ILoadableViewModel, ITabableViewModel
     {
         private readonly HttpClient _http;
+
         private bool _hasTabs;
         private readonly ObservableCollection<TabItemModel> _tabsShowing =
         [
@@ -20,14 +22,18 @@ namespace Frontend.ViewModels
             new TabItemModel("Cadastrar")
         ];
         private string _activeTab = "Produtos";
+
         private bool _carregando;
         private bool _cadastrando;
-        private ProdutosModel _produto = new();
+        private bool _deletando;
+
+        private ProdutosModel _produtoCadastro = new();
+
         private ProdutosFiltroModel _filtro = new();
         private string _chavePesquisa = string.Empty;
         private string _valorPesquisa = string.Empty;
 
-        public ObservableCollection<ProdutosDTO> Produtos { get; } = [];
+        public ObservableCollection<ProdutosLeituraDTO> Produtos { get; } = [];
 
         public bool Carregando
         {
@@ -44,6 +50,15 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _cadastrando, value);
+            }
+        }
+
+        public bool Deletando
+        {
+            get => _deletando;
+            set
+            {
+                SetProperty(ref _deletando, value);
             }
         }
 
@@ -73,12 +88,12 @@ namespace Frontend.ViewModels
             }
         }
 
-        public ProdutosModel Produto
+        public ProdutosModel ProdutoCadastro
         {
-            get => _produto;
+            get => _produtoCadastro;
             set
             {
-                SetProperty(ref _produto, value);
+                SetProperty(ref _produtoCadastro, value);
             }
         }
 
@@ -115,6 +130,7 @@ namespace Frontend.ViewModels
         public IAsyncRelayCommand CarregarProdutosCommand;
         public IAsyncRelayCommand<ProdutosModel?> CadastrarProdutoCommand;
         public IAsyncRelayCommand<PesquisaProduto?> FiltrarProdutosCommand;
+        public IAsyncRelayCommand<ProdutosLeituraDTO?> DeletarProdutoCommand;
 
         public ProdutosViewModel(IHttpClientFactory httpClientFactory)
         {
@@ -122,6 +138,7 @@ namespace Frontend.ViewModels
             CarregarProdutosCommand = new AsyncRelayCommand(CarregarProdutosAsync);
             CadastrarProdutoCommand = new AsyncRelayCommand<ProdutosModel?>(CadastrarProdutoAsync);
             FiltrarProdutosCommand = new AsyncRelayCommand<PesquisaProduto?>(BuscarProdutosFiltradosAsync);
+            DeletarProdutoCommand = new AsyncRelayCommand<ProdutosLeituraDTO?>(DeletarProdutoAsync);
         }
 
         #region metodos
@@ -134,7 +151,7 @@ namespace Frontend.ViewModels
 
                 Carregando = true;
 
-                var produtos = await _http.GetFromJsonAsync<ProdutosDTO[]>("api/produtos");
+                var produtos = await _http.GetFromJsonAsync<ProdutosLeituraDTO[]>("api/produtos");
 
                 Produtos.Clear();
                 foreach (var p in produtos ?? [])
@@ -170,7 +187,7 @@ namespace Frontend.ViewModels
                 if (Cadastrando)
                     return;
 
-                var dto = (ProdutosDTO)prod;
+                var dto = (ProdutosCadastroDTO)prod;
 
                 Cadastrando = true;
                 var response = await _http.PostAsJsonAsync("api/produtos", dto);
@@ -191,7 +208,7 @@ namespace Frontend.ViewModels
             }
             finally
             {
-                Produto = new();
+                ProdutoCadastro = new();
                 Cadastrando = false;
             }
         }
@@ -215,7 +232,7 @@ namespace Frontend.ViewModels
                 }
 
                 var url = $"api/produtos?{ChavePesquisa}={Uri.UnescapeDataString(ValorPesquisa)}";
-                var produtos = await _http.GetFromJsonAsync<ProdutosDTO[]>(url);
+                var produtos = await _http.GetFromJsonAsync<ProdutosLeituraDTO[]>(url);
 
                 Produtos.Clear();
                 foreach (var p in produtos ?? [])
@@ -231,12 +248,48 @@ namespace Frontend.ViewModels
             }
         }
 
-        public static string DisplayNFe(ProdutosDTO p) => string.IsNullOrEmpty(p.NFe) ? "-" : p.NFe;
-        public static string DisplayDescricaoDetalhada(ProdutosDTO p) => string.IsNullOrEmpty(p.DescricaoDetalhada) ? "-" : p.DescricaoDetalhada;
-        public static string DisplayValidade(ProdutosDTO p) =>
-            DateTime.TryParse(p.Validade, out var result)
-            ? result.ToShortDateString()
-            : "-";
+        private async Task DeletarProdutoAsync(ProdutosLeituraDTO? p)
+        {
+            try
+            {
+                if (Deletando)
+                    return;
+
+                Deletando = true;
+
+                var isExcluir = await Application.Current!.MainPage!.DisplayAlert("Confirmação de exclusão", $"Deseja realmente excluir o produto \"{p.NomeItem}\"?", "Sim", "Não");
+
+                if (isExcluir)
+                {
+                    var result = await _http.DeleteAsync($"api/produtos/{p.IdItem}");
+                    await CarregarProdutosAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
+            }
+            finally
+            {
+                Deletando = false;
+            }
+        }
+
+        public static string DisplayDataEntregaRecente(ProdutosLeituraDTO p) => 
+            p.ItensEstoque?
+            .Select(i => i.DataEntrega)?
+            .OrderDescending()?
+            .FirstOrDefault()
+            .ToShortDateString() ?? "-";
+
+        public static string DisplayDescricaoDetalhada(ProdutosLeituraDTO p) => string.IsNullOrEmpty(p.DescricaoDetalhada) ? "-" : p.DescricaoDetalhada;
+
+        public static string DisplayDataValidadeRecente(ProdutosLeituraDTO p) =>
+            p.ItensEstoque?
+            .Select(i => i.DataValidade)?
+            .OrderDescending()?
+            .FirstOrDefault()?
+            .ToShortDateString() ?? "-";
         #endregion
     }
 }

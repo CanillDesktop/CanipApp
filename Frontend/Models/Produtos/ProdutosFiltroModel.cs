@@ -1,14 +1,14 @@
-﻿using Shared.DTOs;
+﻿using Shared.DTOs.Produtos;
 using Shared.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
-namespace Frontend.Models;
+namespace Frontend.Models.Produtos;
 
 public class ProdutosFiltroModel
 {
     [Display(Name = "Código")]
-    public string IdProduto { get; set; } = string.Empty;
+    public string CodProduto { get; set; } = string.Empty;
 
     [Display(Name = "Descrição")]
     public string DescricaoSimples { get; set; } = string.Empty;
@@ -29,12 +29,12 @@ public class ProdutosFiltroModel
     {
         return new ProdutosFiltroDTO()
         { 
-            IdProduto = model.IdProduto,
+           CodProduto = model.CodProduto,
             DescricaoSimples = model.DescricaoSimples,
             NFe = model.NFe,
             Categoria = (int)Enum.Parse(typeof(CategoriaEnum), model.Categoria),
             DataEntrega = DateTime.ParseExact(model.DataEntrega, "dd/MM/yyyy", CultureInfo.CurrentCulture),
-            DataValidade = DateTime.TryParseExact(model.DataValidade, "dd/MM/yyyy", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime result) ? result.ToString() : string.Empty
+            DataValidade = DateTime.ParseExact(model.DataValidade, "dd/MM/yyyy", CultureInfo.CurrentCulture)
         };
     }
 }

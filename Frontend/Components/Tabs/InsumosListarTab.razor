@@ -1,0 +1,136 @@
+﻿@using Shared.Helpers
+@using System.Reflection
+@using Frontend.Records
+@using Frontend.Models.Interfaces
+@using Shared.Models.Interfaces
+@implements IItemListablePageModel<string>
+@inject NavigationManager Navigation
+
+<h3>Insumos</h3>
+<div class="filtro-container">
+    <div class="filtro-campos">
+        <InputSelect class="form-select filtro-select" @bind-Value="ViewModel.ChavePesquisa">
+            <option value="">Filtrar por...</option>
+            @foreach (var filtro in ViewModel.Filtro.GetType().GetProperties())
+            {
+                <option value="@filtro.Name">@DisplayNameHelper.DisplayNameFor(filtro)</option>
+            }
+        </InputSelect>
+
+        <InputText 
+            class="form-control filtro-input" 
+            placeholder="Digite o valor..." 
+            @bind-Value="ViewModel.ValorPesquisa" />
+    </div>
+
+    <button 
+        class="btn btn-primary filtro-botao"
+        @onclick='() => ViewModel.FiltrarInsumosCommand.ExecuteAsync(new PesquisaProduto(ViewModel.ChavePesquisa, ViewModel.ValorPesquisa))'>
+        <i class="bi bi-search"></i> Filtrar
+    </button>
+</div>
+
+
+
+<div class="caixaBranca">
+    @if (ViewModel.Carregando)
+    {
+            <SpinnerComponent />
+    }
+    else
+    {
+            <div class="row g-3">
+                @foreach (var i in ViewModel.Insumos)
+                {
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="card h-100 shadow-sm">
+
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                    <div class="tituloCard">
+                                        <h5 class="mb-1">@i.NomeItem</h5>
+                                        <small>@DisplayNameHelper.DisplayNameFor(() => i.CodItem): @i.CodItem</small>
+                                    </div>
+                                    <button class="btn btn-light btn-sm" @onclick="@(() => Toggle(i.CodItem))">
+                                        @(ItensAbertos.ContainsKey(i.CodItem) && ItensAbertos[i.CodItem] ? "Fechar" : "Ver mais")
+                                    </button>
+                                </div>
+
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div class="info-principal">
+                                            <label class="fw-bold me-1"><i class="bi bi-calendar-event"></i>Data Última Entrega:</label>
+                                            <span>@InsumosViewModel.DisplayDataEntregaRecente(i)</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div class="info-principal">
+                                            <label class="fw-bold me-1"><i class="bi bi-calendar-event"></i>Quantidade em Estoque:</label>
+                                            <span>@i.ItensEstoque.Sum(x => x.Quantidade)</span>
+                                        </div>
+                                    </div>
+
+
+                                    @if (ItensAbertos.ContainsKey(i.CodItem) && ItensAbertos[i.CodItem])
+                                    {
+                                            <div class="maisInfo mt-2">
+                                                <div class="row">
+                                                    <div class="col-12 mb-2">
+                                                        <label class="fw-bold"><i class="bi bi-card-text"></i>@DisplayNameHelper.DisplayNameFor(() => i.DescricaoDetalhada):</label>
+                                                        <div>@InsumosViewModel.DisplayDescricaoDetalhada(i)</div>
+                                                    </div>
+                                                    <div class="col-6 mb-2">
+                                                        <label class="fw-bold"><i class="bi bi-box-seam"></i>@DisplayNameHelper.DisplayNameFor(() => i.Unidade):</label>
+                                                        <span class="badge bg-success">@i.Unidade</span>
+                                                    </div>
+                                                    <div class="col-6 mb-2">
+                                                        <label class="fw-bold"><i class="bi bi-clock"></i>Data Última Validade:</label>
+                                                        <div class="@(((DateTime.TryParse(InsumosViewModel.DisplayDataValidadeRecente(i), out DateTime result) ? result : DateTime.Today) < DateTime.Today) ? "text-danger fw-bold" : "")">@InsumosViewModel.DisplayDataValidadeRecente(i)</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                    }
+                                </div>
+
+                                <div class="mt-4 d-flex justify-content-end gap-2">
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            @onclick="() => ViewModel.DeletarInsumoCommand.ExecuteAsync(i)">
+                                        <i class="bi bi-trash"></i> Deletar
+                                    </button>
+        
+                                    <button class="btn btn-outline-primary btn-sm"
+                                            @onclick="() => VerDetalhes(i.IdItem)">
+                                        <i class="bi bi-info-circle"></i> Detalhes
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+                }
+
+            </div>
+    }
+</div>
+
+<div>
+    <button class="btn btn-primary mb-3" @onclick="ViewModel.CarregarInsumosCommand.ExecuteAsync">Atualizar Dados</button>
+    <button class="btn btn-primary mb-3" @onclick="(() => ViewModel.AbreAbaCadastro())">Cadastrar Novo Insumo</button>
+</div>
+
+@code {
+    [Parameter]
+    public InsumosViewModel ViewModel { get; set; } = default!;
+    public Dictionary<string, bool> ItensAbertos { get; set; } = new();
+    void Toggle(string codigo)
+    {
+        if (ItensAbertos.TryGetValue(codigo, out bool value))
+            ItensAbertos[codigo] = ItensAbertos[codigo] = !value;
+        else
+            ItensAbertos[codigo] = true;
+    }
+
+    void VerDetalhes(int idInsumo, string tipo = "insumos")
+    {
+        Navigation.NavigateTo($"/estoque/detalhes/{tipo}/{idInsumo}");
+    }
+}

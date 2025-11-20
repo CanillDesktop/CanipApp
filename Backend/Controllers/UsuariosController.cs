@@ -10,9 +10,9 @@ namespace Backend.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
-        private readonly IUsuariosService<UsuarioResponseDTO> _service;
+        private readonly IUsuariosService _service;
 
-        public UsuariosController(IUsuariosService<UsuarioResponseDTO> service)
+        public UsuariosController(IUsuariosService service)
         {
             _service = service;
         }

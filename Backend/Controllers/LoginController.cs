@@ -16,9 +16,9 @@ public class LoginController : ControllerBase
 {
     private readonly string _jwtKey = "chave_simetrica_de_teste_validacao";
 
-    private readonly IUsuariosService<UsuarioResponseDTO> _usuariosService;
+    private readonly IUsuariosService _usuariosService;
 
-    public LoginController(IUsuariosService<UsuarioResponseDTO> usuariosService)
+    public LoginController(IUsuariosService usuariosService)
     {
         _usuariosService = usuariosService;
     }

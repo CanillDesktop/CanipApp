@@ -1,7 +1,9 @@
 ﻿using Backend.Context;
-using Backend.Models.Medicamentos;
+using Backend.Models.Insumos;
 using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Shared.DTOs.Insumos;
+using Shared.Enums;
 
 namespace Backend.Repositories
 {
@@ -17,27 +19,35 @@ namespace Backend.Repositories
 
         public async Task<IEnumerable<InsumosModel>> GetAsync()
         {
-            var InsumosRepository = await _context.Insumos.ToListAsync();
+            var insumosRepository = await _context.Insumos
+                .Include(i => i.ItensEstoque)
+                .Include(i => i.ItemNivelEstoque)
+                .ToListAsync();
 
-            return InsumosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : InsumosRepository;
+            return insumosRepository is null ? throw new InvalidOperationException("Insumos é null") : insumosRepository;
         }
 
         public async Task<InsumosModel?> GetByIdAsync(int id)
         {
 
-            var InsumosRepository = await _context.Insumos.FirstOrDefaultAsync(p => p.CodigoId == id);
-            return InsumosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : InsumosRepository;
+            var insumosRepository = await _context.Insumos
+                .Include(i => i.ItensEstoque)
+                .Include(i => i.ItemNivelEstoque)
+                .FirstOrDefaultAsync(i => i.IdItem == id);
+
+            return insumosRepository is null ? throw new InvalidOperationException("Insumos é null") : insumosRepository;
         }
-        public async Task<InsumosModel> CreateAsync(InsumosModel Insumo)
+
+        public async Task<InsumosModel> CreateAsync(InsumosModel insumo)
         {
-            if (Insumo is null)
+            if (insumo is null)
             {
-                throw new ArgumentNullException(nameof(Insumo));
+                throw new ArgumentNullException(nameof(insumo));
             }
 
-            await _context.Insumos.AddAsync(Insumo);
+            await _context.Insumos.AddAsync(insumo);
             await _context.SaveChangesAsync();
-            return Insumo;
+            return insumo;
 
         }
 
@@ -65,6 +75,38 @@ namespace Backend.Repositories
             _context.Insumos.Remove(Insumosrepository);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<IEnumerable<InsumosModel>> GetAsync(InsumosFiltroDTO filtro)
+        {
+            ArgumentNullException.ThrowIfNull(filtro);
+
+            var query = _context.Insumos
+                .Include(i => i.ItensEstoque)
+                .Include(i => i.ItemNivelEstoque)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filtro.CodInsumo))
+                query = query.Where(p => p.CodInsumo!.Contains(filtro.CodInsumo));
+
+            if (!string.IsNullOrWhiteSpace(filtro.DescricaoSimplificada))
+                query = query.Where(p => p.DescricaoSimplificada!.Contains(filtro.DescricaoSimplificada));
+
+            if (!string.IsNullOrWhiteSpace(filtro.NFe))
+                query = query.Where(p => p.ItensEstoque!.Any(p => p.NFe.Contains(filtro.NFe)));
+
+            if (Enum.IsDefined(typeof(UnidadeInsumosEnum), filtro.Unidade))
+                query = query.Where(p => p.Unidade == (UnidadeInsumosEnum)filtro.Unidade);
+
+            if (filtro.DataEntrega != null)
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataEntrega == filtro.DataEntrega));
+
+
+            if (filtro.DataValidade != null)
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataValidade == filtro.DataValidade));
+
+            var insumos = await query.ToListAsync();
+            return insumos;
         }
     }
 }

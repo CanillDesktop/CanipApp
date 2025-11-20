@@ -1,9 +1,8 @@
 ﻿using Backend.Context;
-using Backend.Exceptions;
 using Backend.Models.Produtos;
 using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Shared.DTOs;
+using Shared.DTOs.Produtos;
 using Shared.Enums;
 
 namespace Backend.Repositories
@@ -19,13 +18,21 @@ namespace Backend.Repositories
 
         public async Task<IEnumerable<ProdutosModel>> GetAsync()
         {
-            var produtos = await _context.Produtos.ToListAsync();
+            var produtos = await _context.Produtos
+                .Include(p => p.ItemNivelEstoque)
+                .Include(p => p.ItensEstoque)
+                .ToListAsync();
+
             return produtos;
+
         }
 
-        public async Task<ProdutosModel?> GetByIdAsync(string id)
+        public async Task<ProdutosModel?> GetByIdAsync(int id)
         {
-            var produto = await _context.Produtos.FirstOrDefaultAsync(p => p.IdProduto == id);
+            var produto = await _context.Produtos
+                .Include(p => p.ItensEstoque)
+                .Include(p => p.ItemNivelEstoque)
+                .FirstOrDefaultAsync(p => p.IdItem == id);
 
             ArgumentNullException.ThrowIfNull(produto);
 
@@ -34,15 +41,14 @@ namespace Backend.Repositories
 
         public async Task<ProdutosModel> CreateAsync(ProdutosModel model)
         {
-            ArgumentNullException.ThrowIfNull(model);
+                ArgumentNullException.ThrowIfNull(model);
 
-            model.DataHoraInsercaoRegistro = DateTime.Now;
+                _context.Produtos.Add(model);
+                await _context.SaveChangesAsync();
 
-            await _context.Produtos.AddAsync(model);
-            await _context.SaveChangesAsync();
-
-            return model;
+                return model;
         }
+
 
         public async Task<ProdutosModel?> UpdateAsync(ProdutosModel model)
         {
@@ -53,7 +59,7 @@ namespace Backend.Repositories
             return model;
         }
 
-        public async Task<bool> DeleteAsync(string id)
+        public async Task<bool> DeleteAsync(int id)
         {
             var produto = await _context.Produtos.FindAsync(id);
 
@@ -68,25 +74,29 @@ namespace Backend.Repositories
         {
             ArgumentNullException.ThrowIfNull(filtro);
 
-            var query = _context.Produtos.AsQueryable();
+            var query = _context.Produtos
+                .Include(p => p.ItensEstoque)
+                .Include(p => p.ItemNivelEstoque)
+                .AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(filtro.IdProduto))
-                query = query.Where(p => p.IdProduto!.Contains(filtro.IdProduto));
+            if (!string.IsNullOrWhiteSpace(filtro.CodProduto))
+                query = query.Where(p => p.CodProduto!.Contains(filtro.CodProduto));
 
             if (!string.IsNullOrWhiteSpace(filtro.DescricaoSimples))
                 query = query.Where(p => p.DescricaoSimples!.Contains(filtro.DescricaoSimples));
 
             if (!string.IsNullOrWhiteSpace(filtro.NFe))
-                query = query.Where(p => p.NFe!.Contains(filtro.NFe));
+                query = query.Where(p => p.ItensEstoque!.Any(p => p.NFe.Contains(filtro.NFe)));
 
             if (Enum.IsDefined(typeof(CategoriaEnum), filtro.Categoria))
                 query = query.Where(p => p.Categoria == (CategoriaEnum)filtro.Categoria);
 
             if (filtro.DataEntrega != null)
-                query = query.Where(p => p.DataEntrega == filtro.DataEntrega);
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataEntrega == filtro.DataEntrega));
+
 
             if (filtro.DataValidade != null)
-                query = query.Where(p => p.Validade == filtro.DataValidade);
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataValidade == filtro.DataValidade));
 
             var produtos = await query.ToListAsync();
             return produtos;

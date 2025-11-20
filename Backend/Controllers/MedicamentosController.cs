@@ -1,7 +1,9 @@
+using Backend.Models.Medicamentos;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Shared.DTOs;
+using Shared.DTOs.Medicamentos;
 
 namespace Backend.Controllers
 {
@@ -18,17 +20,20 @@ namespace Backend.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MedicamentoDTO>>> Get()
+        public async Task<ActionResult<IEnumerable<MedicamentoCadastroDTO>>> Get([FromQuery] MedicamentosFiltroDTO filtro)
         {
-            var medicamentos = await _service.BuscarTodosAsync();
-            return Ok(medicamentos);
+            var filteredRequest = HttpContext.Request.GetDisplayUrl().Contains('?');
 
+            if (filteredRequest)
+                return Ok(await _service.BuscarTodosAsync(filtro));
+            else
+                return Ok(await _service.BuscarTodosAsync());
         }
 
 
         [HttpGet("{id:int}")]
 
-        public async Task<ActionResult<MedicamentoDTO>> GetMedicamentoById(int id)
+        public async Task<ActionResult<MedicamentoCadastroDTO>> GetById(int id)
         {
             var medicamento = await _service.BuscarPorIdAsync(id);
             if (medicamento == null)
@@ -40,16 +45,17 @@ namespace Backend.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<MedicamentoDTO>> Post(MedicamentoDTO medicamentoDto)
+        public async Task<ActionResult<MedicamentoCadastroDTO>> Post(MedicamentoCadastroDTO medicamentoDto)
         {
-            var novoMedicamento = await _service.CriarAsync(medicamentoDto);
-            return CreatedAtAction(nameof(GetMedicamentoById), new { id = novoMedicamento.CodigoId }, novoMedicamento);
+            MedicamentosModel model = medicamentoDto;
+            var novoMedicamento = await _service.CriarAsync(model);
+            return CreatedAtAction(nameof(GetById), new { id = novoMedicamento.IdItem }, novoMedicamento);
         }
 
 
         [HttpPut]
 
-        public async Task<ActionResult<MedicamentoDTO>> Put(MedicamentoDTO medicamentoDto)
+        public async Task<ActionResult<MedicamentoCadastroDTO>> Put(MedicamentoCadastroDTO medicamentoDto)
         {
             var medicamentoAtualizado = await _service.AtualizarAsync(medicamentoDto);
             if (medicamentoAtualizado == null)
@@ -62,7 +68,7 @@ namespace Backend.Controllers
 
         [HttpDelete("{id:int}")]
 
-        public async Task<ActionResult<MedicamentoDTO>> Delete(int id)
+        public async Task<ActionResult<MedicamentoCadastroDTO>> Delete(int id)
         {
             var sucesso = await _service.DeletarAsync(id);
             if (!sucesso)

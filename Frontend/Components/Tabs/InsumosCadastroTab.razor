@@ -1,0 +1,63 @@
+﻿@using Shared.Enums
+@using Shared.Helpers
+
+<h3>Cadastro de Insumos</h3>
+<div class="caixaBranca">
+    <EditForm Model="@ViewModel.InsumoCadastro" OnValidSubmit="() => ViewModel.CadastrarInsumoCommand.ExecuteAsync(ViewModel.InsumoCadastro)">
+        <DataAnnotationsValidator />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.InsumoCadastro.DescricaoSimplificada)</label>
+        <InputText @bind-Value="ViewModel.InsumoCadastro.DescricaoSimplificada" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.InsumoCadastro.DescricaoSimplificada)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.InsumoCadastro.Lote)</label>
+        <InputText @bind-Value="ViewModel.InsumoCadastro.Lote" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.InsumoCadastro.Lote)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.InsumoCadastro.DataEntrega)</label>
+        <InputDate @bind-Value="ViewModel.InsumoCadastro.DataEntrega" TValue="DateTime" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.InsumoCadastro.DataEntrega)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.InsumoCadastro.NFe)</label>
+        <InputText @bind-Value="ViewModel.InsumoCadastro.NFe" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.InsumoCadastro.NFe)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.InsumoCadastro.DescricaoDetalhada)</label>
+        <InputText @bind-Value="ViewModel.InsumoCadastro.DescricaoDetalhada" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.InsumoCadastro.DescricaoDetalhada)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.InsumoCadastro.Unidade)</label>
+        <InputSelect @bind-Value="ViewModel.InsumoCadastro.Unidade" TValue="UnidadeInsumosEnum" class="form-select">
+            <option value="">-- Escolha uma opção --</option>
+            @foreach (var unidade in Enum.GetValues<UnidadeInsumosEnum>())
+            {
+                <option value="@unidade">@unidade</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => ViewModel.InsumoCadastro.Unidade)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.InsumoCadastro.Quantidade)</label>
+        <InputNumber @bind-Value="ViewModel.InsumoCadastro.Quantidade" min="0" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.InsumoCadastro.Quantidade)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.InsumoCadastro.DataValidade)</label>
+        <InputDate @bind-Value:culture="pt-BR" @bind-Value:format="dd/MM/yyyy" @bind-Value="ViewModel.InsumoCadastro.DataValidade" TValue="DateTime?" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.InsumoCadastro.DataValidade)" class="text-danger" />
+
+        @if (ViewModel.Cadastrando)
+        {
+            <SpinnerComponent />
+        }
+        else
+        {
+            <div>
+                <button type="submit" class="btn btn-primary mb-3">Cadastrar</button>
+            </div>
+        }
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public InsumosViewModel ViewModel { get; set; } = default!;
+}

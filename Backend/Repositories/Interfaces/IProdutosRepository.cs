@@ -1,9 +1,9 @@
 ﻿using Backend.Models.Produtos;
-using Shared.DTOs;
+using Shared.DTOs.Produtos;
 
 namespace Backend.Repositories.Interfaces
 {
-    public interface IProdutosRepository : IRepository<ProdutosModel, string>
+    public interface IProdutosRepository : IRepository<ProdutosModel>
     {
         Task<IEnumerable<ProdutosModel>> GetAsync(ProdutosFiltroDTO filtro);
     }

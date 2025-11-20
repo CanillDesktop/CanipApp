@@ -2,10 +2,10 @@
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.DTOs;
 using Microsoft.AspNetCore.Http.Extensions;
 using Backend.Exceptions;
 using Shared.Models;
+using Shared.DTOs.Produtos;
 
 namespace Backend.Controllers
 {
@@ -22,7 +22,7 @@ namespace Backend.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProdutosDTO>>> Get([FromQuery] ProdutosFiltroDTO filtro)
+        public async Task<ActionResult<IEnumerable<ProdutosLeituraDTO>>> Get([FromQuery] ProdutosFiltroDTO filtro)
         {
             var filteredRequest = HttpContext.Request.GetDisplayUrl().Contains('?');
 
@@ -33,7 +33,7 @@ namespace Backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProdutosDTO>> GetById(string id)
+        public async Task<ActionResult<ProdutosLeituraDTO>> GetById(int id)
         {
             var model = await _service.BuscarPorIdAsync(id);
 
@@ -45,7 +45,7 @@ namespace Backend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ProdutosDTO dto)
+        public async Task<IActionResult> Create([FromBody] ProdutosCadastroDTO dto)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace Backend.Controllers
 
                 await _service.CriarAsync(model);
 
-                return CreatedAtAction(nameof(GetById), new { id = model.IdProduto }, dto);
+                return CreatedAtAction(nameof(GetById), new { id = model.IdItem }, dto);
             }
             catch (ModelIncompletaException ex)
             {
@@ -68,7 +68,7 @@ namespace Backend.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put([FromRoute] string id, [FromBody] ProdutosDTO dto)
+        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] ProdutosCadastroDTO dto)
         {
             try
             {
@@ -84,7 +84,7 @@ namespace Backend.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {

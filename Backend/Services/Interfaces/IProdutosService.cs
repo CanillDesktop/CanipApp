@@ -1,9 +1,9 @@
-﻿using Shared.DTOs;
+﻿using Shared.DTOs.Produtos;
 
 namespace Backend.Services.Interfaces
 {
-    public interface IProdutosService : IService<ProdutosDTO, string>
+    public interface IProdutosService : IService<ProdutosCadastroDTO, ProdutosLeituraDTO>
     {
-        Task<IEnumerable<ProdutosDTO>> BuscarTodosAsync(ProdutosFiltroDTO filtro);
+        Task<IEnumerable<ProdutosLeituraDTO>> BuscarTodosAsync(ProdutosFiltroDTO filtro);
     }
 }

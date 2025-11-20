@@ -2,10 +2,10 @@
 {
     public interface IService<T, U>
     {
-        Task<IEnumerable<T>> BuscarTodosAsync();
-        Task<T?> BuscarPorIdAsync(U id);
-        Task<T?> CriarAsync(T obj);
-        Task<T?> AtualizarAsync(T obj);
-        Task<bool> DeletarAsync(U id);
+        Task<IEnumerable<U>> BuscarTodosAsync();
+        Task<U?> BuscarPorIdAsync(int id);
+        Task<U?> CriarAsync(T obj);
+        Task<U?> AtualizarAsync(T obj);
+        Task<bool> DeletarAsync(int id);
     }
 }

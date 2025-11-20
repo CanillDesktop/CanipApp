@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrationDeCorrecaoConflito : Migration
+    public partial class MigrationDeCorrecaoComEstoque : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,6 +35,18 @@ namespace Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ItensBase",
+                columns: table => new
+                {
+                    IdItem = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItensBase", x => x.IdItem);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Medicamentos",
                 columns: table => new
                 {
@@ -59,27 +71,6 @@ namespace Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Produtos",
-                columns: table => new
-                {
-                    IdProduto = table.Column<string>(type: "TEXT", nullable: false),
-                    DescricaoSimples = table.Column<string>(type: "TEXT", nullable: true),
-                    DataEntrega = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    NFe = table.Column<string>(type: "TEXT", nullable: true),
-                    DescricaoDetalhada = table.Column<string>(type: "TEXT", nullable: true),
-                    Unidade = table.Column<int>(type: "INTEGER", nullable: false),
-                    Categoria = table.Column<int>(type: "INTEGER", nullable: false),
-                    Quantidade = table.Column<int>(type: "INTEGER", nullable: false),
-                    Validade = table.Column<string>(type: "TEXT", nullable: true),
-                    DataHoraInsercaoRegistro = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    EstoqueDisponivel = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Produtos", x => x.IdProduto);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Usuarios",
                 columns: table => new
                 {
@@ -98,6 +89,72 @@ namespace Backend.Migrations
                 {
                     table.PrimaryKey("PK_Usuarios", x => x.Id);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "ItensEstoque",
+                columns: table => new
+                {
+                    IdItem = table.Column<int>(type: "INTEGER", nullable: false),
+                    Lote = table.Column<string>(type: "TEXT", nullable: false),
+                    Quantidade = table.Column<int>(type: "INTEGER", nullable: false),
+                    DataEntrega = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    NFe = table.Column<string>(type: "TEXT", nullable: true),
+                    DataValidade = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    DataHoraInsercaoRegistro = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItensEstoque", x => new { x.IdItem, x.Lote });
+                    table.ForeignKey(
+                        name: "FK_ItensEstoque_ItensBase_IdItem",
+                        column: x => x.IdItem,
+                        principalTable: "ItensBase",
+                        principalColumn: "IdItem",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItensNivelEstoque",
+                columns: table => new
+                {
+                    IdItem = table.Column<int>(type: "INTEGER", nullable: false),
+                    NivelMinimoEstoque = table.Column<int>(type: "INTEGER", nullable: false),
+                    DataHoraInsercaoRegistro = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItensNivelEstoque", x => x.IdItem);
+                    table.ForeignKey(
+                        name: "FK_ItensNivelEstoque_ItensBase_IdItem",
+                        column: x => x.IdItem,
+                        principalTable: "ItensBase",
+                        principalColumn: "IdItem",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Produtos",
+                columns: table => new
+                {
+                    IdItem = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    CodProduto = table.Column<string>(type: "TEXT", nullable: false),
+                    DescricaoSimples = table.Column<string>(type: "TEXT", nullable: true),
+                    DescricaoDetalhada = table.Column<string>(type: "TEXT", nullable: true),
+                    Unidade = table.Column<int>(type: "INTEGER", nullable: false),
+                    Categoria = table.Column<int>(type: "INTEGER", nullable: false),
+                    DataHoraInsercaoRegistro = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Produtos", x => x.IdItem);
+                    table.ForeignKey(
+                        name: "FK_Produtos_ItensBase_IdItem",
+                        column: x => x.IdItem,
+                        principalTable: "ItensBase",
+                        principalColumn: "IdItem",
+                        onDelete: ReferentialAction.Cascade);
+                });
         }
 
         /// <inheritdoc />
@@ -107,6 +164,12 @@ namespace Backend.Migrations
                 name: "Insumos");
 
             migrationBuilder.DropTable(
+                name: "ItensEstoque");
+
+            migrationBuilder.DropTable(
+                name: "ItensNivelEstoque");
+
+            migrationBuilder.DropTable(
                 name: "Medicamentos");
 
             migrationBuilder.DropTable(
@@ -114,6 +177,9 @@ namespace Backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Usuarios");
+
+            migrationBuilder.DropTable(
+                name: "ItensBase");
         }
     }
 }

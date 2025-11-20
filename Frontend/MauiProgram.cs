@@ -28,8 +28,11 @@ public static class MauiProgram
 
         builder.Services.AddScoped<ProdutosViewModel>();
         builder.Services.AddScoped<MedicamentosViewModel>();
+        builder.Services.AddScoped<InsumosViewModel>();
         builder.Services.AddScoped<LoginViewModel>();
         builder.Services.AddScoped<CadastroViewModel>();
+        builder.Services.AddScoped<EstoqueDetailViewModel>();
+        builder.Services.AddScoped<AddLoteEstoqueViewModel>();
         builder.Services.AddScoped(sp => new HttpClient
         {
             BaseAddress = new Uri("https://localhost:7019/")

@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Shared.Enums
+﻿namespace Shared.Enums
 {
     public enum PrioridadeEnum
     {
-        
-           Baixa,
-            Media,
-            Alta
-        
+
+        Baixa,
+        Media,
+        Alta
+
     }
 }
