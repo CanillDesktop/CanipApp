@@ -32,7 +32,7 @@ namespace Backend.Controllers
             return Ok(produtosLocais);
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet]
         public async Task<ActionResult<ProdutosDTO>> GetProdutosById(string id)
         {
             var produtos = await _Prodservice.BuscarPorIdAsync(id);
@@ -66,6 +66,7 @@ namespace Backend.Controllers
 
 
             return NoContent();
+            return CreatedAtAction(nameof(GetProdutosById), new { id = novoProduto.IdProduto }, novoProduto);
         }
 
         [HttpPut]
@@ -93,13 +94,13 @@ namespace Backend.Controllers
             return Ok(produtoAtualizado);
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete]
         public async Task<ActionResult<ProdutosDTO>> Delete(string id)
         {
             var sucesso = await _Prodservice.DeletarAsync(id);
             if (!sucesso)
             {
-                return NotFound($"Medicamento com o ID {id} não foi encontrado.");
+                return NotFound($"Produto com o ID {id} não foi encontrado.");
             }
 
             try

@@ -7,7 +7,6 @@ using Shared.Enums;
 using Shared.Models;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Net.Http;
 
 namespace Frontend.ViewModels;
 
@@ -60,8 +59,39 @@ public partial class CadastroViewModel : ObservableObject
             }
             else
             {
-                var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-                await Application.Current!.MainPage!.DisplayAlert(error!.Title, error!.Message, "OK");
+                // 🔥 TRATAMENTO ROBUSTO DE ERRO
+                string errorMessage = "Erro ao cadastrar usuário.";
+
+                try
+                {
+                    var contentType = response.Content.Headers.ContentType?.MediaType;
+
+                    if (contentType == "application/json" || contentType == "application/problem+json")
+                    {
+                        // Tenta ler como JSON
+                        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                        if (error != null)
+                        {
+                            errorMessage = error.Message ?? error.Title ?? errorMessage;
+                        }
+                    }
+                    else
+                    {
+                        // Se não for JSON, lê como texto
+                        var textError = await response.Content.ReadAsStringAsync();
+                        if (!string.IsNullOrWhiteSpace(textError) && textError.Length < 500)
+                        {
+                            errorMessage = textError;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Se falhar ao ler o erro, usa mensagem genérica
+                    errorMessage = $"Erro {(int)response.StatusCode}: {response.ReasonPhrase}";
+                }
+
+                await Application.Current!.MainPage!.DisplayAlert("Erro", errorMessage, "OK");
             }
         }
         catch (Exception ex)

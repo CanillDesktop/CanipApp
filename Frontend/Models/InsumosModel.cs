@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Frontend.Attributes;
 using Shared.DTOs;
 using Shared.Enums;

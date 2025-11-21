@@ -3,71 +3,66 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
-namespace Frontend.Handlers
+public class AuthDelegatingHandler : DelegatingHandler
 {
-    public partial class AuthDelegatingHandler : DelegatingHandler
+    public AuthDelegatingHandler()
     {
-        private readonly IServiceProvider _serviceProvider;
+    }
 
-        public AuthDelegatingHandler(IServiceProvider serviceProvider)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var token = await SecureStorage.GetAsync("auth_token");
+
+        if (!string.IsNullOrWhiteSpace(token))
         {
-            _serviceProvider = serviceProvider;
+            request.Headers.Authorization =
+                new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
         }
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) 
+        var response = await base.SendAsync(request, cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            var token = await SecureStorage.GetAsync("auth_token");
-            if (!string.IsNullOrWhiteSpace(token))
+            if (await TryRefreshTokenAsync(request))
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+                // tenta novamente
+                response = await base.SendAsync(request, cancellationToken);
             }
-
-            var response = await base.SendAsync(request, cancellationToken);
-
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                bool refreshed = await TentarRefreshTokenAsync();
-
-                if (refreshed)
-                {
-                    var newToken = await SecureStorage.GetAsync("auth_token");
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken!.Replace("Bearer ", ""));
-
-                    response = await base.SendAsync(request, cancellationToken);
-                }
-            }
-
-            return response;
         }
 
-        private async Task<bool> TentarRefreshTokenAsync()
+        return response;
+    }
+
+    private async Task<bool> TryRefreshTokenAsync(HttpRequestMessage originalRequest)
+    {
+        try
         {
-            try
-            {
-                var refreshToken = await SecureStorage.GetAsync("refresh_token");
-                if (string.IsNullOrWhiteSpace(refreshToken))
-                    return false;
+            var refresh = await SecureStorage.GetAsync("refresh_token");
+            if (string.IsNullOrWhiteSpace(refresh)) return false;
 
-                // pega um HttpClient “limpo” (sem o mesmo handler) pra não cair em loop
-                using var client = new HttpClient { BaseAddress = new Uri("https://localhost:7019/") };
+            // Recupera a BaseAddress dinâmica
+            var baseUrl = originalRequest.RequestUri!.GetLeftPart(UriPartial.Authority);
 
-                var response = await client.PostAsJsonAsync("api/refresh", refreshToken);
-                if (!response.IsSuccessStatusCode)
-                    return false;
+            using var client = new HttpClient() { BaseAddress = new Uri(baseUrl) };
 
-                var result = await response.Content.ReadFromJsonAsync<TokenResponse>();
-                if (result == null)
-                    return false;
+            var response = await client.PostAsJsonAsync("api/login/refresh", new { RefreshToken = refresh });
 
-                await SecureStorage.SetAsync("auth_token", result.AccessToken!);
-                await SecureStorage.SetAsync("refresh_token", result.RefreshToken!);
-
-                return true;
-            }
-            catch
-            {
+            if (!response.IsSuccessStatusCode)
                 return false;
-            }
+
+            var result = await response.Content.ReadFromJsonAsync<TokenResponse>();
+            if (result == null) return false;
+
+            await SecureStorage.SetAsync("auth_token", result.AccessToken);
+
+            if (!string.IsNullOrWhiteSpace(result.RefreshToken))
+                await SecureStorage.SetAsync("refresh_token", result.RefreshToken);
+
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 }
