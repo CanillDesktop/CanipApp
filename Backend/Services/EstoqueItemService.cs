@@ -27,6 +27,6 @@ namespace Backend.Services
 
         public async Task<ItemEstoqueDTO?> AtualizarAsync(ItemEstoqueDTO dto) => (await _repository.UpdateAsync(dto))!;
 
-        public async Task<bool> DeletarAsync(int id) => await _repository.DeleteAsync(id);
+        public async Task<bool> DeletarAsync(string lote) => await _repository.DeleteAsync(lote);
     }
 }

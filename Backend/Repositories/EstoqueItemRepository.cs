@@ -42,13 +42,13 @@ namespace Backend.Repositories
             return model;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(string lote)
         {
-            var produto = await _context.Produtos.FindAsync(id);
+            var item = await _context.ItensEstoque.FirstOrDefaultAsync(x => x.Lote == lote);
 
-            ArgumentNullException.ThrowIfNull(produto);
+            ArgumentNullException.ThrowIfNull(item);
 
-            _context.Produtos.Remove(produto);
+            _context.ItensEstoque.Remove(item);
             await _context.SaveChangesAsync();
             return true;
         }

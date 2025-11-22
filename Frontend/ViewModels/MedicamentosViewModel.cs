@@ -278,11 +278,13 @@ namespace Frontend.ViewModels
         }
 
         public static string DisplayDataEntregaRecente(MedicamentoLeituraDTO m) =>
+            m.ItensEstoque.Length > 0 ?
             m.ItensEstoque?
             .Select(i => i.DataEntrega)?
             .OrderDescending()?
             .FirstOrDefault()
-            .ToShortDateString() ?? "-";
+            .ToShortDateString() ?? "-"
+            : "-";
 
         public static string DisplayDataValidadeRecente(MedicamentoLeituraDTO m) =>
             m.ItensEstoque?

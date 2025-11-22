@@ -280,11 +280,13 @@ namespace Frontend.ViewModels
         }
 
         public static string DisplayDataEntregaRecente(InsumosLeituraDTO i) =>
+            i.ItensEstoque.Length > 0 ?
             i.ItensEstoque?
             .Select(i => i.DataEntrega)?
             .OrderDescending()?
             .FirstOrDefault()
-            .ToShortDateString() ?? "-";
+            .ToShortDateString() ?? "-"
+            : "-";
 
         public static string DisplayDescricaoDetalhada(InsumosLeituraDTO i) => string.IsNullOrEmpty(i.DescricaoDetalhada) ? "-" : i.DescricaoDetalhada;
 

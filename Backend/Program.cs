@@ -81,6 +81,8 @@ namespace Backend
             builder.Services.AddScoped<IInsumosService, InsumosService>();
             builder.Services.AddScoped<EstoqueItemService>();
             builder.Services.AddScoped<EstoqueItemRepository>();
+            builder.Services.AddScoped<RetiradaEstoqueService>();
+            builder.Services.AddScoped<RetiradaEstoqueRepository>();
 
             var app = builder.Build();
 

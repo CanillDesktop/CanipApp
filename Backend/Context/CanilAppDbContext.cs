@@ -18,6 +18,7 @@ namespace Backend.Context
         public DbSet<InsumosModel> Insumos { get; set; }
         public DbSet<ItemNivelEstoqueModel> ItensNivelEstoque { get; set; }
         public DbSet<ItemEstoqueModel> ItensEstoque { get; set; }
+        public DbSet<RetiradaEstoqueModel> RetiradaEstoque { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

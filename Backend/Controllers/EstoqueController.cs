@@ -48,19 +48,18 @@ namespace Backend.Controllers
                 var erro = new ErrorResponse
                 {
                     StatusCode = 400,
-                    Title = "Erro ao criar produto",
+                    Title = "Erro ao adicionar lote",
                     Message = ex.Message
                 };
                 return StatusCode(erro.StatusCode, erro);
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] ItemEstoqueDTO dto)
+        [HttpPut("{lote}")]
+        public async Task<IActionResult> Put([FromBody] ItemEstoqueDTO dto)
         {
             try
             {
-                dto.IdItem = id;
                 await _service.AtualizarAsync(dto);
 
                 return NoContent();
@@ -71,12 +70,12 @@ namespace Backend.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{lote}")]
+        public async Task<IActionResult> Delete(string lote)
         {
             try
             {
-                await _service.DeletarAsync(id);
+                await _service.DeletarAsync(lote);
 
                 return NoContent();
             }

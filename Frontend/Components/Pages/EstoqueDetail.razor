@@ -24,6 +24,7 @@ else
 {
     <div class="caixaBranca p-4 shadow-sm rounded">
 
+
         <h4 class="fw-bold mb-4">@VM.EstoqueItem.NomeItem</h4>
 
         <div class="row">
@@ -104,12 +105,14 @@ else
 
                                 <td class="text-center">
                                     <button class="btn btn-success btn-sm me-2"
-                                            title="Retirar quantidade">
+                                            title="Retirar quantidade"
+                                            @onclick="() => VM.RetirarQtdCommand.ExecuteAsync(itemEstoque)">
                                         <i class="bi bi-box-arrow-up"></i>
                                     </button>
 
                                     <button class="btn btn-danger btn-sm"
-                                            title="Remover lote">
+                                            title="Remover lote"
+                                            @onclick="() => VM.DeletarLoteCommand.ExecuteAsync(itemEstoque.Lote)">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </td>
@@ -149,6 +152,8 @@ else
 
     protected override void OnInitialized()
     {
+        VM.OnDeleted += StateHasChanged;
+        VM.OnRemoval += StateHasChanged;
         if (VM is INotifyPropertyChanged notify)
         {
             notify.PropertyChanged += OnVmPropertyChanged;
@@ -170,6 +175,8 @@ else
 
     public void Dispose()
     {
+        VM.OnDeleted -= StateHasChanged;
+        VM.OnRemoval -= StateHasChanged;
         if (VM is INotifyPropertyChanged notify)
         {
             notify.PropertyChanged -= OnVmPropertyChanged;
