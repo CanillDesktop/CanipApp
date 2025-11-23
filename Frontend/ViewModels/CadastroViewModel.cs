@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Frontend.Models;
+using Frontend.Models.Usuarios;
 using Microsoft.AspNetCore.Components;
 using Shared.DTOs;
 using Shared.Enums;

@@ -3,7 +3,7 @@ using Shared.DTOs;
 using Shared.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace Frontend.Models
+namespace Frontend.Models.Usuarios
 {
     public partial class UsuariosModel : ObservableObject
     {

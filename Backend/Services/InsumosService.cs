@@ -17,11 +17,6 @@ namespace Backend.Services
     {
         public readonly IInsumosRepository _repository;
 
-        public InsumosService(IInsumosRepository insumosRepository)
-        {
-            _insumosRepository = insumosRepository;
-        }
-
         public InsumosService(IInsumosRepository repository)
         {
             _repository = repository;

@@ -78,6 +78,7 @@ namespace Backend.Controllers
             catch (Exception ex)
             {
                 Debug.WriteLine($"FALHA DE SYNC (Post): {ex.Message}");
+                return StatusCode(500);
             }
         }
 
@@ -103,6 +104,7 @@ namespace Backend.Controllers
             catch (Exception ex)
             {
                 Debug.WriteLine($"Falha ao sincronizar (Atualizar): {ex.Message}");
+                return StatusCode(500);
             }
         }
 
@@ -131,6 +133,7 @@ namespace Backend.Controllers
             catch (Exception ex)
             {
                 Debug.WriteLine($"Falha ao sincronizar (Deletar): {ex.Message}");
+                return StatusCode(500);
             }
         }
     }

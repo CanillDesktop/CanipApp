@@ -46,11 +46,5 @@ namespace Backend.Services
 
             return await _repository.GetRefreshTokenAsync(refreshToken);
         }
-
-
-        Task<IEnumerable<UsuarioRequestDTO>> IService<UsuarioRequestDTO, int>.BuscarTodosAsync() => throw new NotImplementedException();
-        Task<UsuarioRequestDTO?> IService<UsuarioRequestDTO, int>.BuscarPorIdAsync(int id) => throw new NotImplementedException();
-        Task<UsuarioRequestDTO?> IService<UsuarioRequestDTO, int>.CriarAsync(UsuarioRequestDTO obj) => throw new NotImplementedException();
-        Task<UsuarioRequestDTO?> IService<UsuarioRequestDTO, int>.AtualizarAsync(UsuarioRequestDTO obj) => throw new NotImplementedException();
     }
 }

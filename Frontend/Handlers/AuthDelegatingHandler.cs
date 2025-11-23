@@ -49,7 +49,6 @@ namespace Frontend.Handlers
 
                 var response = await client.PostAsJsonAsync("api/login/refresh", new { RefreshToken = refresh });
 
-                var response = await client.PostAsJsonAsync("api/refresh", refreshToken);
                 if (!response.IsSuccessStatusCode)
                     return false;
 

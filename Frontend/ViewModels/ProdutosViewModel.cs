@@ -82,7 +82,7 @@ namespace Frontend.ViewModels
             get => _activeTab;
             set
             {
-                if(SetProperty(ref _activeTab, value))
+                if (SetProperty(ref _activeTab, value))
                 {
                     OnTabChanged?.Invoke();
                 }
@@ -138,7 +138,7 @@ namespace Frontend.ViewModels
             _http = httpClientFactory.CreateClient("ApiClient");
             CarregarProdutosCommand = new AsyncRelayCommand(CarregarProdutosAsync);
             CadastrarProdutoCommand = new AsyncRelayCommand<ProdutosModel?>(CadastrarProdutoAsync);
-          SincronizarProdutosCommand = new AsyncRelayCommand(SincronizarProdutosAsyncFront);
+            //SincronizarProdutosCommand = new AsyncRelayCommand(SincronizarProdutosAsyncFront);
             FiltrarProdutosCommand = new AsyncRelayCommand<PesquisaProduto?>(BuscarProdutosFiltradosAsync);
             DeletarProdutoCommand = new AsyncRelayCommand<ProdutosLeituraDTO?>(DeletarProdutoAsync);
         }
@@ -272,12 +272,12 @@ namespace Frontend.ViewModels
                 await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
             }
             finally
-        {
+            {
                 Deletando = false;
             }
         }
 
-        public static string DisplayDataEntregaRecente(ProdutosLeituraDTO p) => 
+        public static string DisplayDataEntregaRecente(ProdutosLeituraDTO p) =>
             p.ItensEstoque.Length > 0 ?
             p.ItensEstoque
             .Select(i => i.DataEntrega)?

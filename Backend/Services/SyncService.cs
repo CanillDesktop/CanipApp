@@ -44,11 +44,11 @@ namespace Backend.Services
             var localItens = await localDbSet.AsNoTracking().ToListAsync();
 
             var dynamoMap = dynamoItens
-                      .GroupBy(i => i.CodigoId)
+                      .GroupBy(i => i.IdItem)
                       .ToDictionary(g => g.Key, g => g.First());
 
             var localMap = localItens
-                    .GroupBy(i => i.CodigoId)
+                    .GroupBy(i => i.IdItem)
                     .ToDictionary(g => g.Key, g => g.First());
 
             var dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<MedicamentosModel>();
@@ -56,7 +56,7 @@ namespace Backend.Services
 
             foreach (var localItem in localMap.Values)
             {
-                if (dynamoMap.TryGetValue(localItem.CodigoId, out var dynamoItem))
+                if (dynamoMap.TryGetValue(localItem.IdItem, out var dynamoItem))
                 {
                     if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
                     {
@@ -67,7 +67,7 @@ namespace Backend.Services
                         localDbSet.Update(dynamoItem);
                         changesToLocalDb = true;
                     }
-                    dynamoMap.Remove(localItem.CodigoId);
+                    dynamoMap.Remove(localItem.IdItem);
                 }
                 else
                 {
@@ -101,7 +101,7 @@ namespace Backend.Services
                 Console.WriteLine($"✅ {localItens.Count} produtos encontrados localmente");
 
                 // Verificar IDs vazios
-                var produtosSemId = localItens.Where(p => string.IsNullOrWhiteSpace(p.IdProduto)).ToList();
+                var produtosSemId = localItens.Where(p => p.IdItem > 0).ToList();
                 if (produtosSemId.Any())
                 {
                     throw new InvalidOperationException(
@@ -111,13 +111,13 @@ namespace Backend.Services
 
                 if (localItens.Any())
                 {
-                    Console.WriteLine($"   Exemplo de ID local: '{localItens.First().IdProduto}'");
+                    Console.WriteLine($"   Exemplo de ID local: '{localItens.First().IdItem}'");
                 }
 
                 // PASSO 2: Buscar do DynamoDB
                 Console.WriteLine("☁️  Iniciando scan do DynamoDB...");
                 var dynamoItens = await _dynamoDBContext
-                    .ScanAsync<Produtos>(new List<ScanCondition>())
+                    .ScanAsync<ProdutosModel>(new List<ScanCondition>())
                     .GetRemainingAsync();
 
                 Console.WriteLine($"✅ {dynamoItens.Count} produtos encontrados no DynamoDB");
@@ -125,45 +125,45 @@ namespace Backend.Services
                 if (dynamoItens.Any())
                 {
                     var primeiroItem = dynamoItens.First();
-                    Console.WriteLine($"   Exemplo de ID DynamoDB: '{primeiroItem.IdProduto}'");
+                    Console.WriteLine($"   Exemplo de ID DynamoDB: '{primeiroItem.IdItem}'");
                     Console.WriteLine($"   Descrição: '{primeiroItem.DescricaoSimples}'");
                 }
 
                 // PASSO 3: Criar dicionários
                 Console.WriteLine("🔄 Criando dicionários para comparação...");
-                var dynamoMap = dynamoItens.ToDictionary(i => i.IdProduto);
+                var dynamoMap = dynamoItens.ToDictionary(i => i.IdItem);
 
-                var itemsParaEnviarAoDynamo = new List<Produtos>();
+                var itemsParaEnviarAoDynamo = new List<ProdutosModel>();
                 bool changesToLocalDb = false;
 
                 // PASSO 4: Comparar e sincronizar
                 Console.WriteLine("🔍 Comparando itens locais vs DynamoDB...");
                 foreach (var localItem in localItens)
                 {
-                    if (dynamoMap.TryGetValue(localItem.IdProduto, out var dynamoItem))
+                    if (dynamoMap.TryGetValue(localItem.IdItem, out var dynamoItem))
                     {
                         // Item existe em ambos
                         if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
                         {
-                            Console.WriteLine($"   ⬆️  Local mais novo: {localItem.IdProduto}");
+                            Console.WriteLine($"   ⬆️  Local mais novo: {localItem.IdItem}");
                             itemsParaEnviarAoDynamo.Add(localItem);
                         }
                         else if (dynamoItem.DataAtualizacao > localItem.DataAtualizacao)
                         {
-                            Console.WriteLine($"   ⬇️  DynamoDB mais novo: {localItem.IdProduto}");
+                            Console.WriteLine($"   ⬇️  DynamoDB mais novo: {localItem.IdItem}");
                             localDbSet.Update(dynamoItem);
                             changesToLocalDb = true;
                         }
                         else
                         {
-                            Console.WriteLine($"   ✔️  Igual: {localItem.IdProduto}");
+                            Console.WriteLine($"   ✔️  Igual: {localItem.IdItem}");
                         }
-                        dynamoMap.Remove(localItem.IdProduto);
+                        dynamoMap.Remove(localItem.IdItem);
                     }
                     else
                     {
                         // Item apenas local
-                        Console.WriteLine($"   🆕 Novo no local: {localItem.IdProduto}");
+                        Console.WriteLine($"   🆕 Novo no local: {localItem.IdItem}");
                         itemsParaEnviarAoDynamo.Add(localItem);
                     }
                 }
@@ -171,7 +171,7 @@ namespace Backend.Services
                 // PASSO 5: Itens apenas no DynamoDB
                 foreach (var dynamoItem in dynamoMap.Values)
                 {
-                    Console.WriteLine($"   ☁️  Novo no DynamoDB: {dynamoItem.IdProduto}");
+                    Console.WriteLine($"   ☁️  Novo no DynamoDB: {dynamoItem.IdItem}");
                     await localDbSet.AddAsync(dynamoItem);
                     changesToLocalDb = true;
                 }
@@ -180,7 +180,7 @@ namespace Backend.Services
                 if (itemsParaEnviarAoDynamo.Count > 0)
                 {
                     Console.WriteLine($"📤 Enviando {itemsParaEnviarAoDynamo.Count} itens para DynamoDB...");
-                    var dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<Produtos>();
+                    var dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<ProdutosModel>();
 
                     for (int i = 0; i < itemsParaEnviarAoDynamo.Count; i++)
                     {
@@ -193,7 +193,7 @@ namespace Backend.Services
 
                             if ((i + 1) < itemsParaEnviarAoDynamo.Count)
                             {
-                                dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<Produtos>();
+                                dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<ProdutosModel>();
                             }
                         }
                     }
@@ -248,11 +248,11 @@ namespace Backend.Services
             var localItens = await localDbSet.AsNoTracking().ToListAsync();
 
             var dynamoMap = dynamoItens
-                      .GroupBy(i => i.CodigoId)
+                      .GroupBy(i => i.IdItem)
                       .ToDictionary(g => g.Key, g => g.First());
 
             var localMap = localItens
-                    .GroupBy(i => i.CodigoId)
+                    .GroupBy(i => i.IdItem)
                     .ToDictionary(g => g.Key, g => g.First());
 
             var dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<InsumosModel>();
@@ -260,7 +260,7 @@ namespace Backend.Services
 
             foreach (var localItem in localItens)
             {
-                if (dynamoMap.TryGetValue(localItem.CodigoId, out var dynamoItem))
+                if (dynamoMap.TryGetValue(localItem.IdItem, out var dynamoItem))
                 {
                     if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
                     {
@@ -271,7 +271,7 @@ namespace Backend.Services
                         localDbSet.Update(dynamoItem);
                         changesToLocalDb = true;
                     }
-                    dynamoMap.Remove(localItem.CodigoId);
+                    dynamoMap.Remove(localItem.IdItem);
                 }
                 else
                 {
@@ -327,7 +327,7 @@ namespace Backend.Services
 
             if (itensParaDeletar.Count == 0) return;
 
-            var dynamoBatchDeleter = _dynamoDBContext.CreateBatchWrite<Produtos>();
+            var dynamoBatchDeleter = _dynamoDBContext.CreateBatchWrite<ProdutosModel>();
             foreach (var item in itensParaDeletar)
             {
                 dynamoBatchDeleter.AddDeleteItem(item);

@@ -70,22 +70,21 @@ public class SyncController : ControllerBase
         try
         {
             // Create a test product
-            var testProduto = new Produtos
+            var testProduto = new ProdutosModel
             {
-                IdProduto = $"TEST-{Guid.NewGuid()}",
+                IdItem = new Random().Next(1, 1000000),
                 DescricaoSimples = "Test Product",
-                Quantidade = 1,
-                EstoqueDisponivel = 1,
                 DataAtualizacao = DateTime.UtcNow,
                 Unidade = Shared.Enums.UnidadeEnum.KG,
-                Categoria = Shared.Enums.CategoriaEnum.DIVERSOS
+                Categoria = Shared.Enums.CategoriaEnum.DIVERSOS,
+                CodProduto = "TEST" + Guid.NewGuid()
             };
 
             // Try to save
             await _dynamoDBContext.SaveAsync(testProduto);
 
             // Try to load it back
-            var loaded = await _dynamoDBContext.LoadAsync<Produtos>(testProduto.IdProduto);
+            var loaded = await _dynamoDBContext.LoadAsync<ProdutosModel>(testProduto.IdItem);
 
             if (loaded != null)
             {
@@ -94,7 +93,7 @@ public class SyncController : ControllerBase
                 return Ok(new
                 {
                     message = "✅ Success! Schema is correct.",
-                    testedId = testProduto.IdProduto,
+                    testedId = testProduto.IdItem,
                     loaded = loaded
                 });
             }

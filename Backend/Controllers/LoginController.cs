@@ -15,11 +15,11 @@ namespace Backend.Controllers;
 public class LoginController : ControllerBase
 {
     private readonly string _jwtKey = "chave_simetrica_de_teste_validacao";
-    private readonly IUsuariosService<UsuarioResponseDTO> _usuariosService;
+    private readonly IUsuariosService _usuariosService;
     private readonly ILogger<LoginController> _logger;
 
     public LoginController(
-        IUsuariosService<UsuarioResponseDTO> usuariosService,
+        IUsuariosService usuariosService,
         ILogger<LoginController> logger)
     {
         _usuariosService = usuariosService;

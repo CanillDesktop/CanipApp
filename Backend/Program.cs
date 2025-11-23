@@ -1,4 +1,6 @@
-﻿using Amazon.DynamoDBv2;
+﻿// Program.cs corrigido
+// -------------------------------------------------------------
+using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Backend.Context;
 using Backend.Models.Usuarios;
@@ -13,12 +15,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
-using Shared.DTOs;
 using Shared.Models;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using System.Threading.RateLimiting;
 
 namespace Backend
 {
@@ -30,14 +30,7 @@ namespace Backend
 
         public static void Main(string[] args)
         {
-            // ============================================================================
-            // 🔥 CONFIGURAÇÃO DE LOGS ROTATIVOS COM SERILOG
-            // ============================================================================
-            var logsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "CanilApp",
-                "logs"
-            );
+            var logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CanilApp", "logs");
             Directory.CreateDirectory(logsPath);
 
             Log.Logger = new LoggerConfiguration()
@@ -46,12 +39,8 @@ namespace Backend
                 .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .WriteTo.File(
-                    Path.Combine(logsPath, "backend-.log"),
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 30,
-                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
-                )
+                .WriteTo.File(Path.Combine(logsPath, "backend-.log"), rollingInterval: RollingInterval.Day, retainedFileCountLimit: 30,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
 
             try
@@ -60,37 +49,20 @@ namespace Backend
 
                 var builder = WebApplication.CreateBuilder(args);
 
-                // ============================================================================
-                // 🔥 CONFIGURAÇÃO KESTREL COM PORTA DINÂMICA
-                // ============================================================================
                 builder.WebHost.UseKestrel();
 
-                // Se não vier --urls nos args, força porta dinâmica
                 if (!args.Any(a => a.StartsWith("--urls", StringComparison.OrdinalIgnoreCase)))
                 {
                     builder.WebHost.UseUrls("http://127.0.0.1:0");
                     Log.Information("⚙️ Porta dinâmica configurada (http://127.0.0.1:0)");
                 }
-                else
-                {
-                    var urlsArg = args.FirstOrDefault(a => a.StartsWith("--urls", StringComparison.OrdinalIgnoreCase));
-                    Log.Information($"⚙️ URLs configuradas via args: {urlsArg}");
-                }
 
-                // ============================================================================
-                // 🔥 INTEGRAÇÃO COM SERILOG
-                // ============================================================================
                 builder.Host.UseSerilog();
 
-                // ============================================================================
-                // 🔥 CONFIGURAÇÃO DE SERVIÇOS
-                // ============================================================================
                 builder.Services.AddControllers();
                 builder.Services.AddEndpointsApiExplorer();
 
-                // ============================================================================
-                // 🔥 CORS RESTRITO A LOCALHOST
-                // ============================================================================
+                // CORS
                 builder.Services.AddCors(options =>
                 {
                     options.AddPolicy("LocalhostOnly", policy =>
@@ -100,13 +72,8 @@ namespace Backend
                             if (string.IsNullOrEmpty(origin)) return false;
 
                             var uri = new Uri(origin);
-                            var isLocalhost = uri.Host == "localhost" ||
-                                            uri.Host == "127.0.0.1" ||
-                                            uri.Host.StartsWith("192.168.") ||
-                                            uri.Host.StartsWith("10.") ||
-                                            uri.Host == "::1";
-
-                            return isLocalhost;
+                            return uri.Host == "localhost" || uri.Host == "127.0.0.1" ||
+                                   uri.Host.StartsWith("192.168.") || uri.Host.StartsWith("10.") || uri.Host == "::1";
                         })
                         .AllowAnyHeader()
                         .AllowAnyMethod()
@@ -114,6 +81,7 @@ namespace Backend
                     });
                 });
 
+                // Swagger
                 builder.Services.AddSwaggerGen(c =>
                 {
                     c.SwaggerDoc("v1", new OpenApiInfo { Title = "CanilApp API", Version = "v1" });
@@ -127,36 +95,31 @@ namespace Backend
                         In = ParameterLocation.Header,
                     });
 
-                    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+                    c.AddSecurityRequirement(new OpenApiSecurityRequirement
                     {
-                        new OpenApiSecurityScheme {
-                            Reference = new OpenApiReference {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        Array.Empty<string>()
-                    }});
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                }
+                            },
+                            Array.Empty<string>()
+                        }
+                    });
                 });
-            });
 
-                // ============================================================================
-                // 🔥 CONFIGURAÇÃO DO BANCO SQLITE
-                // ============================================================================
+                // DB
                 var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 var canilAppPath = Path.Combine(appDataPath, "CanilApp");
                 Directory.CreateDirectory(canilAppPath);
-
                 var dbPath = Path.Combine(canilAppPath, "canilapp.db");
-                Log.Information($"📂 Banco de dados: {dbPath}");
 
-                builder.Services.AddDbContext<CanilAppDbContext>(options =>
-                    options.UseSqlite($"Data Source={dbPath}")
-                );
+                builder.Services.AddDbContext<CanilAppDbContext>(options => options.UseSqlite($"Data Source={dbPath}"));
 
-                // ============================================================================
-                // 🔥 AUTENTICAÇÃO JWT
-                // ============================================================================
+                // Auth
                 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
@@ -168,12 +131,11 @@ namespace Backend
                             ValidateIssuerSigningKey = true,
                             ValidIssuer = "backend",
                             ValidAudience = "CanilApp",
-                            IssuerSigningKey = new SymmetricSecurityKey(
-                                Encoding.UTF8.GetBytes("chave_simetrica_de_teste_validacao")
-                            )
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("chave_simetrica_de_teste_validacao"))
                         };
                     });
 
+                // Rate Limiter
                 builder.Services.AddRateLimiter(options =>
                 {
                     options.AddFixedWindowLimiter("sync-policy", opt =>
@@ -184,9 +146,7 @@ namespace Backend
                     });
                 });
 
-                // ============================================================================
-                // 🔥 REPOSITÓRIOS E SERVIÇOS
-                // ============================================================================
+                // Services & Repositories
                 builder.Services.AddScoped<IMedicamentosRepository, MedicamentosRepository>();
                 builder.Services.AddScoped<IMedicamentosService, MedicamentosService>();
 
@@ -194,15 +154,16 @@ namespace Backend
                 builder.Services.AddScoped<IProdutosService, ProdutosService>();
 
                 builder.Services.AddScoped<IUsuariosRepository<UsuariosModel>, UsuariosRepository>();
-            builder.Services.AddScoped<IUsuariosService, UsuariosService>();
-            builder.Services.AddScoped<IInsumosRepository, IInsumosModelRepository>();
-                builder.Services.AddScoped<IInsumosService, InsumosService>();
-            builder.Services.AddScoped<EstoqueItemService>();
-            builder.Services.AddScoped<EstoqueItemRepository>();
-            builder.Services.AddScoped<RetiradaEstoqueService>();
-            builder.Services.AddScoped<RetiradaEstoqueRepository>();
+                builder.Services.AddScoped<IUsuariosService, UsuariosService>();
 
-                // AWS DynamoDB
+                builder.Services.AddScoped<IInsumosRepository, IInsumosModelRepository>();
+                builder.Services.AddScoped<IInsumosService, InsumosService>();
+
+                builder.Services.AddScoped<EstoqueItemService>();
+                builder.Services.AddScoped<EstoqueItemRepository>();
+                builder.Services.AddScoped<RetiradaEstoqueService>();
+                builder.Services.AddScoped<RetiradaEstoqueRepository>();
+
                 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
                 builder.Services.AddAWSService<IAmazonDynamoDB>();
                 builder.Services.AddScoped<IDynamoDBContext, DynamoDBContext>();
@@ -210,37 +171,28 @@ namespace Backend
 
                 var app = builder.Build();
 
-                // ============================================================================
-                // 🔥 APLICAR MIGRATIONS AUTOMATICAMENTE
-                // ============================================================================
+                // Migrations
                 using (var scope = app.Services.CreateScope())
                 {
                     var db = scope.ServiceProvider.GetRequiredService<CanilAppDbContext>();
                     try
                     {
-                        Log.Information("🔄 Aplicando migrations do banco de dados...");
                         db.Database.Migrate();
-                        Log.Information("✅ Migrations aplicadas com sucesso!");
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(ex, "❌ Erro ao aplicar migrations");
+                        Log.Error(ex, "Erro ao aplicar migrations");
                         throw;
                     }
                 }
 
-                // ============================================================================
-                // 🔥 PIPELINE DE MIDDLEWARE
-                // ============================================================================
+                // Pipeline
                 if (app.Environment.IsDevelopment())
                 {
                     app.UseSwagger();
                     app.UseSwaggerUI();
                     app.UseDeveloperExceptionPage();
                 }
-
-                // ❌ NÃO usar HTTPS redirect para desenvolvimento local
-                // app.UseHttpsRedirection();
 
                 app.UseExceptionHandler(errorApp =>
                 {
@@ -249,18 +201,16 @@ namespace Backend
                         context.Response.StatusCode = 500;
                         context.Response.ContentType = "application/json";
 
-                        var exceptionHandler = context.Features
-                            .Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+                        var exceptionHandler = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
 
                         var response = new ErrorResponse
                         {
                             Title = "Erro interno no servidor",
                             StatusCode = 500,
-                            Message = exceptionHandler?.Error.Message ?? "Erro interno no servidor"
+                            Message = exceptionHandler?.Error.Message ?? "Erro desconhecido"
                         };
 
-                        Log.Error(exceptionHandler?.Error, "❌ Erro não tratado");
-
+                        Log.Error(exceptionHandler?.Error, "Erro não tratado");
                         await context.Response.WriteAsJsonAsync(response);
                     });
                 });
@@ -271,149 +221,67 @@ namespace Backend
                 app.UseAuthorization();
                 app.MapControllers();
 
-                // ============================================================================
-                // 🔥 ENDPOINTS UTILITÁRIOS
-                // ============================================================================
-                app.MapGet("/", () => new
-                {
-                    status = "backend rodando",
-                    version = "1.0.0",
-                    timestamp = DateTime.UtcNow
-                });
-
+                // Endpoints
+                app.MapGet("/", () => new { status = "backend rodando", version = "1.0.0", timestamp = DateTime.UtcNow });
                 app.MapGet("/api/health", () => "OK");
 
-                // ============================================================================
-                // 🔥 ENDPOINT DE SHUTDOWN (Graceful)
-                // ============================================================================
+                // Shutdown
                 app.MapPost("/internal/shutdown", async (IHostApplicationLifetime lifetime) =>
                 {
-                    Log.Warning("⚠️ Shutdown solicitado via API");
-
-                    // Aguarda 500ms para responder antes de encerrar
                     _ = Task.Run(async () =>
                     {
                         await Task.Delay(500);
 
-                        // Deleta arquivo de discovery
-                        if (!string.IsNullOrEmpty(_discoveryFilePath) && File.Exists(_discoveryFilePath))
-                        {
-                            try
-                            {
-                                File.Delete(_discoveryFilePath);
-                                Log.Information($"🗑️ Arquivo de discovery deletado: {_discoveryFilePath}");
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "❌ Erro ao deletar arquivo de discovery");
-                            }
-                        }
+                        if (_discoveryFilePath != null && File.Exists(_discoveryFilePath))
+                            File.Delete(_discoveryFilePath);
 
-                        Log.Information("👋 Backend encerrando gracefully...");
                         lifetime.StopApplication();
                     });
 
                     return Results.Ok(new { message = "Shutdown iniciado" });
                 });
 
-                // ============================================================================
-                // 🔥 CAPTURA DA PORTA DINÂMICA E GRAVAÇÃO DO DISCOVERY FILE
-                // ============================================================================
                 _currentPid = Process.GetCurrentProcess().Id;
 
                 app.Lifetime.ApplicationStarted.Register(() =>
                 {
-                    var urls = app.Urls.ToList();
+                    var httpUrl = app.Urls.First(u => u.StartsWith("http://"));
+                    _assignedPort = new Uri(httpUrl).Port;
 
-                    if (urls.Count > 0)
+                    var canilPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CanilApp");
+                    Directory.CreateDirectory(canilPath);
+
+                    _discoveryFilePath = Path.Combine(canilPath, "backend.json");
+
+                    var discoveryInfo = new
                     {
-                        var httpUrl = urls.FirstOrDefault(u => u.StartsWith("http://", StringComparison.OrdinalIgnoreCase));
+                        port = _assignedPort,
+                        pid = _currentPid,
+                        startedAt = DateTime.UtcNow.ToString("o"),
+                        version = "1.0.0",
+                        url = httpUrl
+                    };
 
-                        if (httpUrl != null)
-                        {
-                            var uri = new Uri(httpUrl);
-                            _assignedPort = uri.Port;
+                    var tempFile = _discoveryFilePath + ".tmp";
+                    File.WriteAllText(tempFile, JsonSerializer.Serialize(discoveryInfo, new JsonSerializerOptions { WriteIndented = true }));
 
-                            Log.Information($"✅ Backend rodando em: {httpUrl}");
+                    if (File.Exists(_discoveryFilePath)) File.Delete(_discoveryFilePath);
+                    File.Move(tempFile, _discoveryFilePath);
 
-                            // ============================================================================
-                            // 🔥 GRAVAÇÃO DO ARQUIVO backend.json (ATOMIC WRITE)
-                            // ============================================================================
-                            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                            var canilAppPath = Path.Combine(appDataPath, "CanilApp");
-                            Directory.CreateDirectory(canilAppPath);
-
-                            _discoveryFilePath = Path.Combine(canilAppPath, "backend.json");
-
-                            var discoveryInfo = new
-                            {
-                                port = _assignedPort,
-                                pid = _currentPid,
-                                startedAt = DateTime.UtcNow.ToString("o"),
-                                version = "1.0.0",
-                                url = httpUrl
-                            };
-
-                            try
-                            {
-                                // Atomic write: escrever em arquivo temporário e renomear
-                                var tempFile = _discoveryFilePath + ".tmp";
-                                var json = JsonSerializer.Serialize(discoveryInfo, new JsonSerializerOptions
-                                {
-                                    WriteIndented = true
-                                });
-
-                                File.WriteAllText(tempFile, json);
-
-                                // Renomeia (operação atômica no Windows)
-                                if (File.Exists(_discoveryFilePath))
-                                    File.Delete(_discoveryFilePath);
-
-                                File.Move(tempFile, _discoveryFilePath);
-
-                                Log.Information($"📝 Arquivo de discovery criado: {_discoveryFilePath}");
-                                Log.Information($"   Porta: {_assignedPort}, PID: {_currentPid}");
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "❌ Erro ao criar arquivo de discovery");
-                            }
-
-                            // ============================================================================
-                            // 🔥 IMPRIME BACKEND_URL PARA STDOUT (FALLBACK)
-                            // ============================================================================
-                            Console.WriteLine($"BACKEND_URL:{httpUrl}");
-                        }
-                    }
+                    Console.WriteLine($"BACKEND_URL:{httpUrl}");
                 });
 
-                // ============================================================================
-                // 🔥 LIMPEZA AO ENCERRAR
-                // ============================================================================
                 app.Lifetime.ApplicationStopping.Register(() =>
                 {
-                    Log.Information("🛑 Backend encerrando...");
-
-                    // Deleta arquivo de discovery
-                    if (!string.IsNullOrEmpty(_discoveryFilePath) && File.Exists(_discoveryFilePath))
-                    {
-                        try
-                        {
-                            File.Delete(_discoveryFilePath);
-                            Log.Information($"🗑️ Arquivo de discovery deletado: {_discoveryFilePath}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "❌ Erro ao deletar arquivo de discovery");
-                        }
-                    }
+                    if (_discoveryFilePath != null && File.Exists(_discoveryFilePath))
+                        File.Delete(_discoveryFilePath);
                 });
 
                 app.Run();
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "💥 Backend falhou ao iniciar");
+                Log.Fatal(ex, "Backend falhou ao iniciar");
                 throw;
             }
             finally

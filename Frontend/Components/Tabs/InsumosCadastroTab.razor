@@ -60,11 +60,4 @@
 @code {
     [Parameter]
     public InsumosViewModel ViewModel { get; set; } = default!;
-
-    // Converte DateOnly? para DateTime? e vice-versa
-    private DateTime? ValidadeTemp
-    {
-        get => ViewModel.Insumo.ValidadeInsumo?.ToDateTime(TimeOnly.MinValue);
-        set => ViewModel.Insumo.ValidadeInsumo = value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
-    }
 }

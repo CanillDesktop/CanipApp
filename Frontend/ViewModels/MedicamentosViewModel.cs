@@ -143,12 +143,7 @@ namespace Frontend.ViewModels
         public IAsyncRelayCommand<MedicamentosModel?> CadastrarMedicamentoCommand;
         public IAsyncRelayCommand<PesquisaProduto?> FiltrarMedicamentosCommand;
         public IAsyncRelayCommand<MedicamentoLeituraDTO?> DeletarMedicamentoCommand;
-     
-        public IAsyncRelayCommand CarregarMedicamentosCommand { get; }
-        public IAsyncRelayCommand<MedicamentosModel?> CadastrarMedicamentoCommand { get; }
-        public IAsyncRelayCommand<PesquisaMedicamento?> FiltrarMedicamentosCommand { get; }
         public IAsyncRelayCommand SincronizarMedicamentoCommand { get; }
-        public IAsyncRelayCommand<int> DeletarMedicamentoCommand { get; } 
 
         public MedicamentosViewModel(IHttpClientFactory httpClientFactory)
         {
@@ -172,8 +167,6 @@ namespace Frontend.ViewModels
                 Carregando = true;
 
                 var medicamentos = await _http.GetFromJsonAsync<MedicamentoLeituraDTO[]>("api/medicamentos");
-                
-                var medicamentos = await _http.GetFromJsonAsync<MedicamentoDTO[]>("api/medicamentos");
 
                 Medicamentos.Clear();
                 foreach (var m in medicamentos ?? [])
@@ -298,6 +291,7 @@ namespace Frontend.ViewModels
             finally
             {
                 Deletando = false;
+            }
         }
 
         private async Task SincronizarMedicamentoAsyncFront()

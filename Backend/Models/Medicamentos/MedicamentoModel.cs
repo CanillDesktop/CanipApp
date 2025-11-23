@@ -1,10 +1,12 @@
-﻿using Shared.DTOs.Estoque;
+﻿using Amazon.DynamoDBv2.DataModel;
+using Shared.DTOs.Estoque;
 using Shared.DTOs.Medicamentos;
 using Shared.Enums;
 
 namespace Backend.Models.Medicamentos
 {
-    
+
+    [DynamoDBTable("Medicamentos")]
     public class MedicamentosModel : ItemComEstoqueBaseModel
     {
         public string CodMedicamento { get; set; } = string.Empty;
@@ -13,6 +15,11 @@ namespace Backend.Models.Medicamentos
         public required string Formula { get; set; }
         public required string NomeComercial { get; set; }
         public PublicoAlvoMedicamentoEnum PublicoAlvo { get; set; }
+        [DynamoDBProperty]
+        public bool IsDeleted { get; set; } = false;
+
+        [DynamoDBProperty]
+        public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
 
         public static implicit operator MedicamentosModel(MedicamentoCadastroDTO dto)
         {

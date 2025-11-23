@@ -27,8 +27,6 @@ namespace Backend.Repositories
                 .ToListAsync();
 
             return produtos;
-
-            return await query.AsNoTracking().ToListAsync();
         }
 
         public async Task<ProdutosModel?> GetByIdAsync(int id)

@@ -30,7 +30,7 @@ namespace Backend.Repositories
         }
 
         public async Task<InsumosModel?> GetByIdAsync(int id)
-            {
+        {
 
             var insumosRepository = await _context.Insumos
                 .Include(i => i.ItensEstoque)
@@ -38,8 +38,6 @@ namespace Backend.Repositories
                 .FirstOrDefaultAsync(i => i.IdItem == id);
 
             return insumosRepository is null ? throw new InvalidOperationException("Insumos é null") : insumosRepository;
-            }
-            return await query.AsNoTracking().ToListAsync();
         }
 
         public async Task<InsumosModel> CreateAsync(InsumosModel insumo)
@@ -47,7 +45,7 @@ namespace Backend.Repositories
             if (insumo is null)
             {
                 throw new ArgumentNullException(nameof(insumo));
-        }
+            }
 
             await _context.Insumos.AddAsync(insumo);
             await _context.SaveChangesAsync();
@@ -70,12 +68,11 @@ namespace Backend.Repositories
         public async Task<bool> DeleteAsync(int id)
         {
             var Insumosrepository = await _context.Insumos.FindAsync(id);
-            
+
             if (Insumosrepository is null)
             {
                 throw new ArgumentException(nameof(Insumosrepository));
             }
-            entry.State = EntityState.Modified;
 
             _context.Insumos.Remove(Insumosrepository);
             await _context.SaveChangesAsync();
@@ -106,10 +103,6 @@ namespace Backend.Repositories
             if (filtro.DataEntrega != null)
                 query = query.Where(p => p.ItensEstoque!.Any(e => e.DataEntrega == filtro.DataEntrega));
 
-            // No seu padrão (ProdutosService), DeletarAsync do repositório
-            // nem é chamado. O service chama BuscarPorIdAsync e AtualizarAsync.
-            // Vou manter este método por consistência, mas o service fará soft-delete
-            // via AtualizarAsync.
 
             if (filtro.DataValidade != null)
                 query = query.Where(p => p.ItensEstoque!.Any(e => e.DataValidade == filtro.DataValidade));
