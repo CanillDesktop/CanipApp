@@ -2,10 +2,8 @@
 {
     public enum PrioridadeEnum
     {
-
         Baixa,
         Media,
         Alta
-
     }
 }

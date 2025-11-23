@@ -10,8 +10,16 @@ using Shared.DTOs.Insumos;
 using Shared.DTOs.Medicamentos;
 using Shared.DTOs.Produtos;
 using Shared.Models;
+using Frontend.Records;
 using System.Collections.ObjectModel;
 using System.Net.Http.Json;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Diagnostics; // CORREÇÃO: Adicionado para Debug.WriteLine
+
+// CORREÇÃO: Adicionado o record que estava faltando, igual ao de Medicamentos
+public record PesquisaInsumos(string Chave, string Valor);
 
 namespace Frontend.ViewModels
 {
@@ -45,7 +53,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _carregando, value);
-            }
+        }
         }
 
         public bool Cadastrando
@@ -54,7 +62,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _cadastrando, value);
-            }
+        }
         }
 
         public bool Deletando
@@ -72,7 +80,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _hasTabs, value);
-            }
+        }
         }
 
         public ObservableCollection<TabItemModel> TabsShowing
@@ -98,7 +106,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _insumoCadastro, value);
-            }
+        }
         }
 
         public InsumosFiltroModel Filtro
@@ -107,7 +115,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _filtro, value);
-            }
+        }
         }
 
         public string ValorPesquisa
@@ -116,7 +124,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _valorPesquisa, value);
-            }
+        }
         }
 
         public string ChavePesquisa
@@ -125,7 +133,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _chavePesquisa, value);
-            }
+        }
         }
 
         public Action? OnTabChanged { get; set; }
@@ -154,6 +162,7 @@ namespace Frontend.ViewModels
                     return;
 
                 Carregando = true;
+                var insumos = await _http.GetFromJsonAsync<InsumosDTO[]>("api/insumos");
 
                 var insumos = await _http.GetFromJsonAsync<InsumosLeituraDTO[]>("api/insumos");
 
@@ -202,6 +211,7 @@ namespace Frontend.ViewModels
                 }
                 else
                 {
+                    // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
                     var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
                     await Application.Current!.MainPage!.DisplayAlert(error!.Title, error!.Message, "OK");
                 }

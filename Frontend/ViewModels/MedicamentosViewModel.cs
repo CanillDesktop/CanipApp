@@ -1,15 +1,19 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Frontend.Models;
+using Frontend.Models; 
 using Frontend.Models.Medicamentos;
 using Frontend.Records;
 using Frontend.ViewModels.Interfaces;
 using Shared.DTOs.Medicamentos;
 using Shared.DTOs.Produtos;
-using Shared.Enums;
-using Shared.Models;
+using Shared.Enums; 
+using Shared.Models; 
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Net.Http;
 using System.Net.Http.Json;
+
+public record PesquisaMedicamento(string Chave, string Valor);
 
 namespace Frontend.ViewModels
 {
@@ -23,19 +27,24 @@ namespace Frontend.ViewModels
             new TabItemModel("Medicamentos", true),
             new TabItemModel("Cadastrar")
         ];
-        private string _activeTab = "Medicamentos";
+        private string _activeTab = "Medicamentos"; 
 
         private bool _carregando;
         private bool _cadastrando;
         private bool _deletando;
 
         private MedicamentosModel _medicamentoCadastro = new();
+       
+        private MedicamentosModel _medicamento = new();
 
+      
         private MedicamentosFiltroModel _filtro = new();
+
         private string _chavePesquisa = string.Empty;
         private string _valorPesquisa = string.Empty;
 
         public ObservableCollection<MedicamentoLeituraDTO> Medicamentos { get; } = [];
+
 
         public bool Carregando
         {
@@ -43,7 +52,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _carregando, value);
-            }
+        }
         }
 
         public bool Cadastrando
@@ -52,7 +61,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _cadastrando, value);
-            }
+        }
         }
 
         public bool Deletando
@@ -70,7 +79,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _hasTabs, value);
-            }
+        }
         }
 
         public ObservableCollection<TabItemModel> TabsShowing
@@ -96,16 +105,17 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _medicamentoCadastro, value);
-            }
+        }
         }
 
+      
         public MedicamentosFiltroModel Filtro
         {
             get => _filtro;
             set
             {
                 SetProperty(ref _filtro, value);
-            }
+        }
         }
 
         public string ValorPesquisa
@@ -114,7 +124,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _valorPesquisa, value);
-            }
+        }
         }
 
         public string ChavePesquisa
@@ -123,7 +133,7 @@ namespace Frontend.ViewModels
             set
             {
                 SetProperty(ref _chavePesquisa, value);
-            }
+        }
         }
 
         public Action? OnTabChanged { get; set; }
@@ -133,10 +143,18 @@ namespace Frontend.ViewModels
         public IAsyncRelayCommand<MedicamentosModel?> CadastrarMedicamentoCommand;
         public IAsyncRelayCommand<PesquisaProduto?> FiltrarMedicamentosCommand;
         public IAsyncRelayCommand<MedicamentoLeituraDTO?> DeletarMedicamentoCommand;
+     
+        public IAsyncRelayCommand CarregarMedicamentosCommand { get; }
+        public IAsyncRelayCommand<MedicamentosModel?> CadastrarMedicamentoCommand { get; }
+        public IAsyncRelayCommand<PesquisaMedicamento?> FiltrarMedicamentosCommand { get; }
+        public IAsyncRelayCommand SincronizarMedicamentoCommand { get; }
+        public IAsyncRelayCommand<int> DeletarMedicamentoCommand { get; } 
 
         public MedicamentosViewModel(IHttpClientFactory httpClientFactory)
         {
             _http = httpClientFactory.CreateClient("ApiClient");
+
+            
             CarregarMedicamentosCommand = new AsyncRelayCommand(CarregarMedicamentosAsync);
             CadastrarMedicamentoCommand = new AsyncRelayCommand<MedicamentosModel?>(CadastrarMedicamentoAsync);
             FiltrarMedicamentosCommand = new AsyncRelayCommand<PesquisaProduto?>(BuscarMedicamentosFiltradosAsync);
@@ -154,6 +172,8 @@ namespace Frontend.ViewModels
                 Carregando = true;
 
                 var medicamentos = await _http.GetFromJsonAsync<MedicamentoLeituraDTO[]>("api/medicamentos");
+                
+                var medicamentos = await _http.GetFromJsonAsync<MedicamentoDTO[]>("api/medicamentos");
 
                 Medicamentos.Clear();
                 foreach (var m in medicamentos ?? [])
@@ -192,6 +212,7 @@ namespace Frontend.ViewModels
                 var dto = (MedicamentoCadastroDTO)med;
 
                 Cadastrando = true;
+               
                 var response = await _http.PostAsJsonAsync("api/medicamentos", dto);
 
                 if (response.IsSuccessStatusCode)
@@ -252,6 +273,9 @@ namespace Frontend.ViewModels
 
         private async Task DeletarMedicamentoAsync(MedicamentoLeituraDTO? m)
         {
+            if (Carregando) return;
+            Carregando = true;
+
             try
             {
                 if (Deletando)
@@ -274,7 +298,11 @@ namespace Frontend.ViewModels
             finally
             {
                 Deletando = false;
-            }
+        }
+
+        private async Task SincronizarMedicamentoAsyncFront()
+        {
+            await _http.PostAsync("api/Sync", null);
         }
 
         public static string DisplayDataEntregaRecente(MedicamentoLeituraDTO m) =>

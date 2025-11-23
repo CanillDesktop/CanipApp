@@ -28,7 +28,7 @@
 
         <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.InsumoCadastro.Unidade)</label>
         <InputSelect @bind-Value="ViewModel.InsumoCadastro.Unidade" TValue="UnidadeInsumosEnum" class="form-select">
-            <option value="">-- Escolha uma opção --</option>
+            <option value="">-- Escolha uma op��o --</option>
             @foreach (var unidade in Enum.GetValues<UnidadeInsumosEnum>())
             {
                 <option value="@unidade">@unidade</option>
@@ -60,4 +60,11 @@
 @code {
     [Parameter]
     public InsumosViewModel ViewModel { get; set; } = default!;
+
+    // Converte DateOnly? para DateTime? e vice-versa
+    private DateTime? ValidadeTemp
+    {
+        get => ViewModel.Insumo.ValidadeInsumo?.ToDateTime(TimeOnly.MinValue);
+        set => ViewModel.Insumo.ValidadeInsumo = value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
+    }
 }

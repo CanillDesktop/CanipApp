@@ -32,7 +32,7 @@
 /* Cabeçalho do card */
 .card-header {
     border-radius: 12px 12px 0 0;
-}
+    }
 
 .tituloCard h5 {
     margin: 0;
@@ -51,7 +51,7 @@
 
 .info-principal span {
     margin-left: 0.25rem;
-}
+    }
 
 /* Informações extras */
 .maisInfo {
@@ -62,10 +62,11 @@
 }
 
     .maisInfo label {
-        display: block;
+        display: block; 
         font-weight: 600;
         font-size: 0.85rem;
-    }
+        color: #6c757d;
+}
 
     .maisInfo div {
         margin-top: 0.25rem;

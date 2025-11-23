@@ -1,11 +1,15 @@
-﻿using Backend.Models.Produtos;
+﻿using Backend.Exceptions;
+using Backend.Models.Produtos;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Extensions;
 using Backend.Exceptions;
 using Shared.Models;
 using Shared.DTOs.Produtos;
+using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.Controllers
 {
@@ -15,10 +19,12 @@ namespace Backend.Controllers
     public class ProdutosController : ControllerBase
     {
         private readonly IProdutosService _service;
+        private readonly IServiceProvider _serviceProvider;
 
-        public ProdutosController(IProdutosService service)
+        public ProdutosController(IProdutosService service, IServiceProvider serviceProvider)
         {
             _service = service;
+            _serviceProvider = serviceProvider;
         }
 
         [HttpGet]
@@ -50,8 +56,12 @@ namespace Backend.Controllers
             try
             {
                 ProdutosModel model = dto;
-
                 await _service.CriarAsync(model);
+
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var syncService = scope.ServiceProvider.GetRequiredService<IProdutosService>();
+                }
 
                 return CreatedAtAction(nameof(GetById), new { id = model.IdItem }, dto);
             }
@@ -65,6 +75,10 @@ namespace Backend.Controllers
                 };
                 return StatusCode(erro.StatusCode, erro);
             }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"FALHA DE SYNC (Post): {ex.Message}");
+            }
         }
 
         [HttpPut("{id}")]
@@ -75,11 +89,20 @@ namespace Backend.Controllers
                 dto.IdProduto = id;
                 await _service.AtualizarAsync(dto);
 
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var syncService = scope.ServiceProvider.GetRequiredService<IProdutosService>();
+                }
+
                 return NoContent();
             }
             catch (ArgumentNullException)
             {
                 return NotFound();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Falha ao sincronizar (Atualizar): {ex.Message}");
             }
         }
 
@@ -88,13 +111,26 @@ namespace Backend.Controllers
         {
             try
             {
-                await _service.DeletarAsync(id);
+                var sucesso = await _service.DeletarAsync(id);
+                if (!sucesso)
+                {
+                    return NotFound($"Produto com o ID {id} não foi encontrado.");
+                }
+
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var produtosService = scope.ServiceProvider.GetRequiredService<IProdutosService>();
+                }
 
                 return NoContent();
             }
             catch (ArgumentNullException)
             {
                 return NotFound();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Falha ao sincronizar (Deletar): {ex.Message}");
             }
         }
     }

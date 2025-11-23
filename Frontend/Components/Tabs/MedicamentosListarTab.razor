@@ -15,17 +15,18 @@
             {
                 <option value="@filtro.Name">@DisplayNameHelper.DisplayNameFor(filtro)</option>
             }
-        </InputSelect>
+        </InputSelect> 
 
         <InputText class="form-control filtro-input"
                    placeholder="Digite o valor..."
                    @bind-Value="ViewModel.ValorPesquisa" />
     </div>
-
+        
     <button class="btn btn-primary filtro-botao"
             @onclick='() => ViewModel.FiltrarMedicamentosCommand.ExecuteAsync(new PesquisaProduto(ViewModel.ChavePesquisa, ViewModel.ValorPesquisa))'>
-        <i class="bi bi-search"></i> Filtrar
-    </button>
+            <i class="bi bi-search"></i> Filtrar
+        </button>
+    </div>
 </div>
 
 <div class="caixaBranca">
@@ -35,6 +36,7 @@
     }
     else
     {
+      
         <div class="row g-3">
             @foreach (var m in ViewModel.Medicamentos)
             {
@@ -58,7 +60,7 @@
                                     <label class="fw-bold me-1"><i class="bi bi-calendar-event"></i>Data Última Entrega:</label>
                                     <span>@MedicamentosViewModel.DisplayDataEntregaRecente(m)</span>
                                 </div>
-                            </div>
+                        </div>
                             <div class="d-flex justify-content-between mb-3">
                                 <div class="info-principal">
                                     <label class="fw-bold me-1"><i class="bi bi-calendar-event"></i>Quantidade em Estoque:</label>
@@ -82,15 +84,17 @@
                                         <div class="col-6 mb-2">
                                             <label class="fw-bold"><i class="bi bi-tags"></i>@DisplayNameHelper.DisplayNameFor(() => m.PublicoAlvo):</label>
                                             <span class="badge bg-info text-dark">@m.PublicoAlvo.GetDescription()</span>
+                                            </div>
                                         </div>
+                                        
                                         <div class="col-6 mb-2">
                                             <label class="fw-bold"><i class="bi bi-clock"></i>Data Última Validade:</label>
                                             <div class="@(((DateTime.TryParse(MedicamentosViewModel.DisplayDataValidadeRecente(m), out DateTime result) ? result : DateTime.Today) < DateTime.Today) ? "text-danger fw-bold" : "")">@MedicamentosViewModel.DisplayDataValidadeRecente(m)</div>
                                         </div>
-                                    </div>
-                                </div>
+                                    </div> 
+                                </div> 
                             }
-                        </div>
+                        </div> 
 
                         <div class="mt-4 d-flex justify-content-end gap-2">
                             <button class="btn btn-outline-danger btn-sm"
@@ -104,14 +108,14 @@
                             </button>
                         </div>
 
-                    </div>
+                    </div> 
 
-                </div>
-            }
+                </div> 
+            } 
 
-        </div>
-    }
-</div>
+        </div> 
+    } 
+</div> 
 
 <div>
     <button class="btn btn-primary mb-3" @onclick="ViewModel.CarregarMedicamentosCommand.ExecuteAsync">Atualizar Dados</button>

@@ -12,7 +12,8 @@
 }
 
 .caixaBranca {
-    background: white;
+    background: var(--bg-caixa); /* <-- MUDOU */
+    color: var(--text); /* <-- ADICIONADO */
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.15);
@@ -22,8 +23,8 @@
 }
 
 .spinner {
-    border: 8px solid #f3f3f3; /* Cor da borda clara */
-    border-top: 8px solid #3498db; /* Cor da borda superior (a parte que gira) */
+    border: 8px solid var(--cor-borda-clara, #f3f3f3); /* <-- MUDOU */
+    border-top: 8px solid var(--cor-primaria); /* <-- MUDOU */
     border-radius: 50%; /* Deixa a div redonda */
     width: 60px;
     height: 60px;

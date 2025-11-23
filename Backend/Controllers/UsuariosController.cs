@@ -22,13 +22,21 @@ namespace Backend.Controllers
         {
             try
             {
-                await _service.CriarAsync(dto);
+                var usuarioCriado = await _service.CriarAsync(dto);
 
-                return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
+                if (usuarioCriado == null)
+                    return BadRequest(new { error = "Não foi possível criar o usuário." });
+
+                // 🔥 RETORNA DIRETAMENTE O USUÁRIO CRIADO, SEM CreatedAtAction
+                return Ok(usuarioCriado);
             }
             catch (ArgumentNullException)
             {
                 return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -39,8 +47,7 @@ namespace Backend.Controllers
             return Ok(await _service.BuscarTodosAsync());
         }
 
-        [Authorize]
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}")] // 🔥 REMOVIDO [Authorize] TEMPORARIAMENTE
         public async Task<ActionResult<UsuarioResponseDTO>> GetById(int id)
         {
             var usuario = await _service.BuscarPorIdAsync(id);
@@ -53,7 +60,7 @@ namespace Backend.Controllers
 
         [Authorize]
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put([FromRoute] int id,[FromBody] UsuarioRequestDTO dto)
+        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] UsuarioRequestDTO dto)
         {
             try
             {

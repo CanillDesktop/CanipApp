@@ -15,95 +15,173 @@ namespace Backend.Controllers;
 public class LoginController : ControllerBase
 {
     private readonly string _jwtKey = "chave_simetrica_de_teste_validacao";
+    private readonly IUsuariosService<UsuarioResponseDTO> _usuariosService;
+    private readonly ILogger<LoginController> _logger;
 
-    private readonly IUsuariosService _usuariosService;
-
-    public LoginController(IUsuariosService usuariosService)
+    public LoginController(
+        IUsuariosService<UsuarioResponseDTO> usuariosService,
+        ILogger<LoginController> logger)
     {
         _usuariosService = usuariosService;
+        _logger = logger;
     }
 
+    /// <summary>
+    /// Endpoint de login - gera AccessToken e RefreshToken
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
     {
-        var usuario = await _usuariosService.ValidarUsuarioAsync(request.Login, request.Senha);
-        if (usuario == null)
-            return Unauthorized(new ErrorResponse
-            {
-                Title = "Acesso não autorizado",
-                StatusCode = 401,
-                Message = "Usuário ou senha inválidos."
-            });
-
-        var claims = new[]
+        try
         {
-            new Claim(ClaimTypes.Email, usuario.Email),
-            new Claim(ClaimTypes.Role, usuario.Permissao.ToString() ?? PermissoesEnum.LEITURA.ToString())
-        };
+            _logger.LogInformation($"Tentativa de login para: {request.Login}");
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var usuario = await _usuariosService.ValidarUsuarioAsync(request.Login, request.Senha);
 
-        var token = new JwtSecurityToken(
-            issuer: "backend",
-            audience: "CanilApp",
-            claims: claims,
-            expires: DateTime.Now.AddMinutes(30),
-            signingCredentials: creds
-        );
+            if (usuario == null)
+            {
+                _logger.LogWarning($"Login falhou para: {request.Login}");
 
-        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-        var refreshToken = Guid.NewGuid().ToString();
+                return Unauthorized(new ErrorResponse
+                {
+                    Title = "Acesso não autorizado",
+                    StatusCode = 401,
+                    Message = "Usuário ou senha inválidos."
+                });
+            }
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Email, usuario.Email),
+                new Claim(ClaimTypes.Role, usuario.Permissao.ToString() ?? PermissoesEnum.LEITURA.ToString()),
+                new Claim("UserId", usuario.Id.ToString())
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: "backend",
+                audience: "CanilApp",
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(30),
+                signingCredentials: creds
+            );
+
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            var refreshToken = Guid.NewGuid().ToString();
         await _usuariosService.SalvarRefreshTokenAsync(usuario.Id, refreshToken, DateTime.Now.AddDays(7));
 
-        UsuarioResponseDTO dto = usuario;
+            UsuarioResponseDTO dto = usuario;
+            await _usuariosService.SalvarRefreshTokenAsync(usuario.Id, refreshToken, DateTime.UtcNow.AddDays(7));
 
-        return Ok(new LoginResponseModel()
-        {
-            Token = new TokenResponse
+            _logger.LogInformation($"✅ Login bem-sucedido para: {usuario.Email}");
+
+            return Ok(new LoginResponseModel
             {
-                AccessToken = tokenString,
-                RefreshToken = refreshToken
-            },
+                Token = new TokenResponse
+                {
+                    AccessToken = tokenString,
+                    RefreshToken = refreshToken
+                },
             Usuario = dto
-        });
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Erro ao processar login");
+
+            return StatusCode(500, new ErrorResponse
+            {
+                Title = "Erro interno",
+                StatusCode = 500,
+                Message = "Erro ao processar login. Tente novamente."
+            });
+        }
     }
 
+    /// <summary>
+    /// Endpoint de refresh - CORRIGIDO para sempre retornar RefreshToken
+    /// </summary>
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] string? refreshToken)
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
     {
-        var usuario = await _usuariosService.BuscaPorRefreshTokenAsync(refreshToken);
-
-        if (usuario == null)
-            return Unauthorized("Refresh token inválido ou expirado.");
-
-        var claims = new[]
+        try
         {
-            new Claim(ClaimTypes.Email, usuario.Email),
-            new Claim(ClaimTypes.Role, usuario.Permissao.ToString() ?? PermissoesEnum.LEITURA.ToString())
-        };
+            _logger.LogInformation("Tentativa de refresh token");
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            if (string.IsNullOrWhiteSpace(request.RefreshToken))
+            {
+                _logger.LogWarning("Refresh token vazio ou nulo");
+                return BadRequest(new ErrorResponse
+                {
+                    Title = "Requisição inválida",
+                    StatusCode = 400,
+                    Message = "RefreshToken é obrigatório"
+                });
+            }
 
-        var novoAccessToken = new JwtSecurityToken(
-            issuer: "backend",
-            audience: "CanilApp",
-            claims: claims,
-            expires: DateTime.Now.AddMinutes(30),
-            signingCredentials: creds
-        );
+            var usuario = await _usuariosService.BuscaPorRefreshTokenAsync(request.RefreshToken);
 
-        var novoAccessTokenString = new JwtSecurityTokenHandler().WriteToken(novoAccessToken);
+            if (usuario == null)
+            {
+                _logger.LogWarning("Refresh token inválido ou expirado");
 
-        return Ok(new TokenResponse()
+                return Unauthorized(new ErrorResponse
+                {
+                    Title = "Token inválido",
+                    StatusCode = 401,
+                    Message = "Refresh token inválido ou expirado."
+                });
+            }
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Email, usuario.Email),
+                new Claim(ClaimTypes.Role, usuario.Permissao.ToString() ?? PermissoesEnum.LEITURA.ToString()),
+                new Claim("UserId", usuario.Id.ToString())
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var novoAccessToken = new JwtSecurityToken(
+                issuer: "backend",
+                audience: "CanilApp",
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(30),
+                signingCredentials: creds
+            );
+
+            var novoAccessTokenString = new JwtSecurityTokenHandler().WriteToken(novoAccessToken);
+
+            // ============================================================================
+            // 🔥 CORREÇÃO CRÍTICA: SEMPRE GERAR E RETORNAR NOVO REFRESHTOKEN
+            // ============================================================================
+            var novoRefreshToken = Guid.NewGuid().ToString();
+            await _usuariosService.SalvarRefreshTokenAsync((int)usuario.Id, novoRefreshToken, DateTime.UtcNow.AddDays(7));
+
+            _logger.LogInformation($"✅ Refresh bem-sucedido para: {usuario.Email}");
+
+            return Ok(new TokenResponse
+            {
+                AccessToken = novoAccessTokenString,
+                RefreshToken = novoRefreshToken // ✅ AGORA SEMPRE RETORNA!
+            });
+        }
+        catch (Exception ex)
         {
-            AccessToken = novoAccessTokenString,
-            RefreshToken = refreshToken
-        });
+            _logger.LogError(ex, "❌ Erro ao processar refresh token");
+
+            return StatusCode(500, new ErrorResponse
+            {
+                Title = "Erro interno",
+                StatusCode = 500,
+                Message = "Erro ao processar refresh token. Tente novamente."
+            });
+        }
     }
-
 }
 
-
+public record RefreshTokenRequest(string RefreshToken);
 public record LoginRequest(string Login, string Senha);

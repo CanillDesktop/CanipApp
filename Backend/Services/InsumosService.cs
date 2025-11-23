@@ -5,6 +5,11 @@ using Backend.Services.Interfaces;
 using Shared.DTOs.Insumos;
 using Shared.DTOs.Medicamentos;
 using Shared.Enums;
+using Humanizer;
+using Shared.DTOs;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Backend.Services
 {
@@ -12,6 +17,10 @@ namespace Backend.Services
     {
         public readonly IInsumosRepository _repository;
 
+        public InsumosService(IInsumosRepository insumosRepository)
+        {
+            _insumosRepository = insumosRepository;
+        }
 
         public InsumosService(IInsumosRepository repository)
         {
@@ -28,7 +37,7 @@ namespace Backend.Services
                 || string.IsNullOrWhiteSpace(dto.DescricaoSimplificada)
                 || !Enum.IsDefined(typeof(UnidadeInsumosEnum), (int)dto.Unidade)
                 || string.IsNullOrWhiteSpace(dto.Lote))
-            {
+        {
                 throw new ModelIncompletaException("Um ou mais campos obrigatórios não foram preenchidos");
             }
 

@@ -1,31 +1,39 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Frontend.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
-public class ValuesFromEnumAttribute : ValidationAttribute
-{
-    public ValuesFromEnumAttribute() : base("Valor vazio ou não permitido") { }
-
-    protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+    public class ValuesFromEnumAttribute : ValidationAttribute
     {
-        ArgumentNullException.ThrowIfNull(value);
+        public ValuesFromEnumAttribute() : base("Valor vazio ou não permitido") { }
 
-        var property = validationContext.ObjectType.GetProperty(validationContext.MemberName!);
-
-        if (!property!.PropertyType.IsEnum)
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            throw new ArgumentException("A propriedade a qual esse atributo é aplicado deve ser um enum");
-        }
+            if (value is null)
+            {
+                return ValidationResult.Success;
+            }
 
-        if (!Enum.IsDefined(property.PropertyType, value))
-        {
-            return new ValidationResult(
-                FormatErrorMessage(validationContext.DisplayName),
-                [validationContext.MemberName!]
-            );
-        }
+            var property = validationContext.ObjectType.GetProperty(validationContext.MemberName!);
+            var propertyType = property!.PropertyType;
 
-        return ValidationResult.Success;
+            var enumType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+
+            if (!enumType.IsEnum)
+            {
+                throw new ArgumentException("A propriedade a qual esse atributo é aplicado deve ser um enum");
+            }
+
+            if (!Enum.IsDefined(enumType, value))
+            {
+                return new ValidationResult(
+                    FormatErrorMessage(validationContext.DisplayName),
+                    [validationContext.MemberName!]
+                );
+            }
+
+            return ValidationResult.Success;
+        }
     }
 }

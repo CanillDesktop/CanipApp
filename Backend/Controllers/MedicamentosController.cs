@@ -4,6 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs.Medicamentos;
+using System.Diagnostics;
+using System;
+using Microsoft.Extensions.DependencyInjection;
+using Backend.Repositories.Interfaces;
 
 namespace Backend.Controllers
 {
@@ -13,10 +17,12 @@ namespace Backend.Controllers
     public class MedicamentosController : ControllerBase
     {
         private readonly IMedicamentosService _service;
+        private readonly IServiceProvider _serviceProvider;
 
-        public MedicamentosController(IMedicamentosService service)
+        public MedicamentosController(IMedicamentosService service, IServiceProvider serviceProvider)
         {
-           _service = service;
+            _service = service;
+            _serviceProvider = serviceProvider;
         }
 
         [HttpGet]
@@ -47,9 +53,23 @@ namespace Backend.Controllers
         [HttpPost]
         public async Task<ActionResult<MedicamentoCadastroDTO>> Post(MedicamentoCadastroDTO medicamentoDto)
         {
-            MedicamentosModel model = medicamentoDto;
-            var novoMedicamento = await _service.CriarAsync(model);
-            return CreatedAtAction(nameof(GetById), new { id = novoMedicamento.IdItem }, novoMedicamento);
+            try
+            {
+                MedicamentosModel model = medicamentoDto;
+                var novoMedicamento = await _service.CriarAsync(model);
+
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var syncService = scope.ServiceProvider.GetRequiredService<IMedicamentosService>();
+                }
+
+                return CreatedAtAction(nameof(GetById), new { id = novoMedicamento.IdItem }, novoMedicamento);
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"FALHA DE SYNC (Post): {ex.Message}");
+            }
         }
 
 
@@ -57,26 +77,57 @@ namespace Backend.Controllers
 
         public async Task<ActionResult<MedicamentoCadastroDTO>> Put(MedicamentoCadastroDTO medicamentoDto)
         {
-            var medicamentoAtualizado = await _service.AtualizarAsync(medicamentoDto);
-            if (medicamentoAtualizado == null)
+            try
             {
-                return NotFound($"Medicamento com o ID não foi encontrado.");
+                var medicamentoAtualizado = await _service.AtualizarAsync(medicamentoDto);
+                if (medicamentoAtualizado == null)
+                {
+                    return NotFound($"Medicamento com o ID não foi encontrado.");
+                }
+
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var syncService = scope.ServiceProvider.GetRequiredService<IMedicamentosService>();
+
+                }
+
+                return Ok(medicamentoAtualizado);
             }
-            return Ok(medicamentoAtualizado);
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Falha ao sincronizar (Atualizar): {ex.Message}");
+            }
+
         }
-       
+
 
         [HttpDelete("{id:int}")]
 
         public async Task<ActionResult<MedicamentoCadastroDTO>> Delete(int id)
         {
-            var sucesso = await _service.DeletarAsync(id);
-            if (!sucesso)
+
+            try
             {
-                return NotFound($"Medicamento com o ID {id} não foi encontrado.");
+                var sucesso = await _service.DeletarAsync(id);
+                if (!sucesso)
+                {
+                    return NotFound($"Medicamento com o ID {id} não foi encontrado.");
+                }
+
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var medicamentosService = scope.ServiceProvider.GetRequiredService<IMedicamentosService>();
+
+                }
+
+                return NoContent();
             }
-          
-            return NoContent();
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Falha ao sincronizar (Deletar): {ex.Message}");
+            }
         }
+
+
     }
 }

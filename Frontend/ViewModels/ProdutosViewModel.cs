@@ -6,6 +6,7 @@ using Frontend.Records;
 using Frontend.ViewModels.Interfaces;
 using Shared.DTOs.Produtos;
 using Shared.Models;
+using Frontend.Records;
 using System.Collections.ObjectModel;
 using System.Net.Http.Json;
 
@@ -137,6 +138,7 @@ namespace Frontend.ViewModels
             _http = httpClientFactory.CreateClient("ApiClient");
             CarregarProdutosCommand = new AsyncRelayCommand(CarregarProdutosAsync);
             CadastrarProdutoCommand = new AsyncRelayCommand<ProdutosModel?>(CadastrarProdutoAsync);
+          SincronizarProdutosCommand = new AsyncRelayCommand(SincronizarProdutosAsyncFront);
             FiltrarProdutosCommand = new AsyncRelayCommand<PesquisaProduto?>(BuscarProdutosFiltradosAsync);
             DeletarProdutoCommand = new AsyncRelayCommand<ProdutosLeituraDTO?>(DeletarProdutoAsync);
         }
@@ -270,7 +272,7 @@ namespace Frontend.ViewModels
                 await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
             }
             finally
-            {
+        {
                 Deletando = false;
             }
         }

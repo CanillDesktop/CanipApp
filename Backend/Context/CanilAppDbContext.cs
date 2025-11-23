@@ -4,6 +4,8 @@ using Backend.Models.Medicamentos;
 using Backend.Models.Produtos;
 using Backend.Models.Usuarios;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion; // 2. Adicionar o using de Conversores
+using System.Globalization;
 
 namespace Backend.Context
 {
@@ -11,7 +13,7 @@ namespace Backend.Context
     {
         public CanilAppDbContext(DbContextOptions<CanilAppDbContext> options): base(options)
         {}
-
+     
         public DbSet<MedicamentosModel> Medicamentos {  get; set; }
         public DbSet<ProdutosModel> Produtos { get; set; }
         public DbSet<UsuariosModel> Usuarios { get; set; }
@@ -19,6 +21,7 @@ namespace Backend.Context
         public DbSet<ItemNivelEstoqueModel> ItensNivelEstoque { get; set; }
         public DbSet<ItemEstoqueModel> ItensEstoque { get; set; }
         public DbSet<RetiradaEstoqueModel> RetiradaEstoque { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,7 +31,7 @@ namespace Backend.Context
             modelBuilder.Entity<ProdutosModel>().ToTable("Produtos");
             modelBuilder.Entity<InsumosModel>().ToTable("Insumos");
             modelBuilder.Entity<MedicamentosModel>().ToTable("Medicamentos");
-
+            
             modelBuilder.Entity<ItemEstoqueModel>()
                 .HasKey(i => new { i.IdItem, i.Lote });
 
@@ -37,7 +40,7 @@ namespace Backend.Context
                 .WithMany(p => p.ItensEstoque)
                 .HasForeignKey(i => i.IdItem)
                 .OnDelete(DeleteBehavior.Cascade);
-
+            
             modelBuilder.Entity<ItemNivelEstoqueModel>()
                 .HasKey(i => i.IdItem);
 
@@ -50,9 +53,23 @@ namespace Backend.Context
             modelBuilder.Entity<ItemComEstoqueBaseModel>()
                 .Property(i => i.IdItem)
                 .ValueGeneratedOnAdd();
-
+         
             modelBuilder.Entity<ProdutosModel>()
                 .HasBaseType<ItemComEstoqueBaseModel>();
+
+            var dateOnlyConverter = new ValueConverter<DateOnly?, string?>(
+                v => v.HasValue ? v.Value.ToString("o") : null,
+                v => string.IsNullOrEmpty(v) ? null : DateOnly.Parse(v)
+            );
+
+
+            modelBuilder.Entity<MedicamentosModel>()
+                .Property(m => m.ValidadeMedicamento)
+                .HasConversion(dateOnlyConverter);
+
+            modelBuilder.Entity<InsumosModel>()
+                .Property(i => i.ValidadeInsumo)
+                .HasConversion(dateOnlyConverter);
         }
 
 

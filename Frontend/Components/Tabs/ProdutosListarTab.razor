@@ -11,16 +11,16 @@
     <div class="filtro-campos">
         <InputSelect class="form-select filtro-select" @bind-Value="ViewModel.ChavePesquisa">
             <option value="">Filtrar por...</option>
-            @foreach (var filtro in ViewModel.Filtro.GetType().GetProperties())
-            {
-                <option value="@filtro.Name">@DisplayNameHelper.DisplayNameFor(filtro)</option>
-            }
-        </InputSelect>
+        @foreach (var filtro in ViewModel.Filtro.GetType().GetProperties())
+        {
+            <option value="@filtro.Name">@DisplayNameHelper.DisplayNameFor(filtro)</option>
+        }
+    </InputSelect>
 
         <InputText class="form-control filtro-input"
                    placeholder="Digite o valor..."
                    @bind-Value="ViewModel.ValorPesquisa" />
-    </div>
+</div>
 
     <button class="btn btn-primary filtro-botao"
             @onclick='() => ViewModel.FiltrarProdutosCommand.ExecuteAsync(new PesquisaProduto(ViewModel.ChavePesquisa, ViewModel.ValorPesquisa))'>
@@ -65,7 +65,7 @@
                                 </div>
                             </div>
 
-
+       
                             @if (ItensAbertos.ContainsKey(p.CodItem) && ItensAbertos[p.CodItem])
                             {
                                 <div class="maisInfo mt-2">
@@ -115,6 +115,11 @@
 <div>
     <button class="btn btn-primary mb-3" @onclick="ViewModel.CarregarProdutosCommand.ExecuteAsync">Atualizar Dados</button>
     <button class="btn btn-primary mb-3" @onclick="(() => ViewModel.AbreAbaCadastro())">Cadastrar Novo Produto</button>
+    <button class="btn btn-primary mb-3">Deletar Produto</button>
+
+    <button class="btn btn-success" @onclick="async () => await ViewModel.SincronizarProdutosCommand.ExecuteAsync(null)">
+        Sincronizar na nuvem
+    </button>
 </div>
 
 @code {

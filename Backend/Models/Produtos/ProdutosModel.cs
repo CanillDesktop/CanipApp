@@ -1,17 +1,28 @@
 ﻿using Shared.DTOs.Estoque;
 using Shared.DTOs.Produtos;
+using Amazon.DynamoDBv2.DataModel;
+using Shared.DTOs;
 using Shared.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Backend.Models.Produtos
 {
+    [DynamoDBTable("Produtos")]
     public class ProdutosModel : ItemComEstoqueBaseModel
     {
         public ProdutosModel() { }
         public string CodProduto { get; set; } = string.Empty;
         public string? DescricaoSimples { get; set; }
+        public DateTime? DataEntrega { get; init; }
+
+        public string? NFe { get; set; }
         public string? DescricaoDetalhada { get; set; }
         public UnidadeEnum Unidade { get; set; }
         public CategoriaEnum Categoria { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        [DynamoDBProperty]
+        public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
 
         public static implicit operator ProdutosModel(ProdutosCadastroDTO dto)
         {
@@ -36,7 +47,7 @@ namespace Backend.Models.Produtos
                         Lote = dto.Lote,
                         NFe = dto.NFe,
                         Quantidade = dto.Quantidade
-                    }
+            }
                 ]
             };
         }

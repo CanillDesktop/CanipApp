@@ -1,0 +1,100 @@
+﻿.cadastro-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: #ffffff;
+    padding: 1rem;
+}
+
+.cadastro-container {
+    background: #ffffff;
+    border: 1px solid #c9d8ff;
+    padding: 2.5rem 2.25rem;
+    border-radius: 18px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    color: #222;
+}
+
+    .cadastro-container h1 {
+        margin-bottom: .6rem;
+    }
+
+    .cadastro-container p {
+        margin-bottom: 1.2rem;
+        color: #555;
+    }
+
+    /* Nota: A classe "cad-input" que você usa no HTML não está sendo estilizada aqui.
+      O CSS está usando '::deep input'. Isso vai funcionar, mas se quisesse
+      usar a classe .cad-input, você trocaria '::deep input' por '.cad-input'.
+    */
+    .cadastro-container ::deep input {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        background: #fff;
+        color: #333;
+    }
+
+        .cadastro-container ::deep input:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,.15);
+            outline: none;
+        }
+
+    .cadastro-container button {
+        width: 100%;
+        margin: 10px 0;
+        padding: 12px;
+        border-radius: 12px;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+.btn-primary {
+    background-color: #1a73e8;
+    color: #fff;
+}
+
+    .btn-primary:hover {
+        background-color: #155bb5;
+    }
+
+.btn-secondary {
+    background-color: #fff;
+    color: #1a73e8;
+    border: 1px solid rgba(26,115,232,.35);
+}
+
+    .btn-secondary:hover {
+        background-color: rgba(26,115,232,.05);
+    }
+
+/* spinner */
+.spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #1a73e8;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

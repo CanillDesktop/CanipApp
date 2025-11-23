@@ -1,43 +1,61 @@
-/* Centralização do container */
+ï»¿/* CentralizaÃ§Ã£o do container */
 .login-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: blue;
+    background: var(--bg-body);
     padding: 1rem;
 }
 
 /* Card de login */
 .login-container {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    background: var(--bg-card);
+    border: 1px solid var(--cor-borda);
+    padding: 2.5rem 2.25rem;
+    border-radius: 18px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     text-align: center;
-    transition: all 0.3s ease;
+    color: var(--text);
 }
 
-    /* Inputs */
+    .login-container h1 {
+        font-size: 2.2rem;
+        margin-bottom: .65rem;
+    }
+
+    .login-container p {
+        margin-bottom: 1.4rem;
+        color: #555;
+    }
+
+    /* inputs */
     .login-container input {
         display: block;
         width: 100%;
         margin: 10px 0;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--cor-borda);
+        background: var(--bg-body);
         font-size: 16px;
-        box-sizing: border-box;
+        color: var(--text);
     }
 
-    /* Botões */
+        .login-container input:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,.15);
+            outline: none;
+        }
+
+    /* botï¿½es */
     .login-container button {
         width: 100%;
         margin: 10px 0;
         padding: 12px;
-        border-radius: 8px;
+        border-radius: 12px;
         border: none;
         font-size: 16px;
         cursor: pointer;
@@ -45,19 +63,41 @@
     }
 
 .btn-primary {
-    background-color: blue;
-    color: white;
+    background-color: var(--cor-primaria);
+    color: var(--texto-primario);
 }
 
     .btn-primary:hover {
-        background-color: #0069d9;
+        background-color: #155bb5;
     }
 
 .btn-secondary {
-    background-color: blue;
-    color: white;
+    background-color: #fff;
+    color: #1a73e8;
+    border: 1px solid rgba(26,115,232,.35);
 }
 
     .btn-secondary:hover {
-        background-color: #0069d9;
+        background-color: rgba(26,115,232,.05);
     }
+
+/* spinner */
+.spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #1a73e8;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

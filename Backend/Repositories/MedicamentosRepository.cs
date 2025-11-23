@@ -5,6 +5,10 @@ using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Shared.DTOs.Medicamentos;
 using Shared.Enums;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Backend.Repositories
 {
@@ -26,7 +30,7 @@ namespace Backend.Repositories
                 .ToListAsync();
 
             return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
-        }
+            }
 
         public async Task<MedicamentosModel?> GetByIdAsync(int id)
         {
@@ -43,7 +47,7 @@ namespace Backend.Repositories
             if (Medicamento is null)
             {
                 throw new ArgumentNullException(nameof(Medicamento));
-            }
+        }
 
             await _context.Medicamentos.AddAsync(Medicamento);
             await _context.SaveChangesAsync();

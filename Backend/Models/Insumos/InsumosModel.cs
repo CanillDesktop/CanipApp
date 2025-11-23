@@ -1,16 +1,25 @@
 ﻿using Shared.DTOs.Estoque;
 using Shared.DTOs.Insumos;
+using Amazon.DynamoDBv2.DataModel;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Shared.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Backend.Models.Insumos
 {
-
+    [DynamoDBTable("Insumos")]
     public class InsumosModel : ItemComEstoqueBaseModel
     {
         public string CodInsumo { get; set; } = string.Empty;
         public required string DescricaoSimplificada { get; set; }
         public required string DescricaoDetalhada { get; set; }
-        public  UnidadeInsumosEnum Unidade { get; set; }
+        public UnidadeInsumosEnum Unidade { get; set; }
+        public bool IsDeleted { get; set; } = false;
+
+        [DynamoDBProperty]
+        public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
 
         public static implicit operator InsumosModel(InsumosCadastroDTO dto)
         {
@@ -70,6 +79,3 @@ namespace Backend.Models.Insumos
         }
     }
 }
-
-
-

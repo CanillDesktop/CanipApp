@@ -1,9 +1,12 @@
 ﻿using Backend.Context;
+using Backend.Exceptions;
 using Backend.Models.Produtos;
 using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Shared.DTOs.Produtos;
 using Shared.Enums;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace Backend.Repositories
 {
@@ -25,6 +28,7 @@ namespace Backend.Repositories
 
             return produtos;
 
+            return await query.AsNoTracking().ToListAsync();
         }
 
         public async Task<ProdutosModel?> GetByIdAsync(int id)
@@ -44,9 +48,9 @@ namespace Backend.Repositories
                 ArgumentNullException.ThrowIfNull(model);
 
                 _context.Produtos.Add(model);
-                await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-                return model;
+            return model;
         }
 
 
