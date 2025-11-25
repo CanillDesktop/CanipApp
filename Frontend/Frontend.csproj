@@ -1,50 +1,53 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
+		<!-- Plataformas -->
 		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
+			$(TargetFrameworks);net8.0-windows10.0.19041.0
+		</TargetFrameworks>
 
+		<!-- MAUI -->
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 
+		<!-- Metadados -->
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Frontend</RootNamespace>
-
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<DefaultLanguage>pt-BR</DefaultLanguage>
 
-		<EnableDefaultCssItems>false</EnableDefaultCssItems>
-		<RazorLangVersion>8.0</RazorLangVersion>
-
-		<!-- Display name -->
+		<!-- Identidade -->
 		<ApplicationTitle>Frontend</ApplicationTitle>
-
-		<!-- App Identifier -->
 		<ApplicationId>com.companyname.frontend</ApplicationId>
-
-		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
+		<!-- Windows -->
+		<WindowsPackageType>None</WindowsPackageType>
+		<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
 
-		<DefaultLanguage>pt-BR</DefaultLanguage>
+		<!-- Razor -->
+		<EnableDefaultCssItems>false</EnableDefaultCssItems>
+		<RazorLangVersion>8.0</RazorLangVersion>
 	</PropertyGroup>
 
+	<!-- Recursos MAUI -->
 	<ItemGroup>
 		<MauiImage Include="Resources\Images\**" />
 		<MauiFont Include="Resources\Fonts\**" />
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
+	<!-- Assets do Windows -->
 	<ItemGroup>
-		  <Content Include="Platforms\Windows\Assets\SplashScreen.png">
-			    <Link>Assets\SplashScreen.png</Link>
-			 
-		</Content>
+		<Content Include="Platforms\Windows\Assets\appicon.png" />
 	</ItemGroup>
 
+	<!-- Pacotes NuGet -->
 	<ItemGroup>
 		<PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="4.0.4.4" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.90" />
@@ -53,6 +56,8 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+
+		<!-- Pacotes extras do primeiro csproj -->
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.21" />
 
@@ -62,12 +67,20 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<!-- Shared Layer -->
 	<ItemGroup>
 		<ProjectReference Include="..\Shared\Shared.csproj" />
 	</ItemGroup>
 
 	<!-- ============================================================================ -->
-	<!-- 🔥 TARGET PARA COPIAR BACKEND APÓS BUILD                                    -->
+	<!-- 🔥 KILL BACKEND BEFORE BUILD -->
+	<!-- ============================================================================ -->
+	<Target Name="KillBackendBeforeBuild" BeforeTargets="Build">
+		<Exec Command="taskkill /IM Backend.exe /F" ContinueOnError="true" />
+	</Target>
+
+	<!-- ============================================================================ -->
+	<!-- 🔥 COPY BACKEND AFTER BUILD -->
 	<!-- ============================================================================ -->
 	<Target Name="CopyBackendAfterBuild" AfterTargets="Build" Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">
 
@@ -78,15 +91,12 @@
 			<BackendDestination>$(FrontendOutputPath)Backend\</BackendDestination>
 		</PropertyGroup>
 
-		<PropertyGroup>
-			<NoWarn>CA1416</NoWarn>
-		</PropertyGroup>
-
-
 		<Message Text="🔥 Copiando Backend para Frontend..." Importance="high" />
 
+		<!-- Build backend -->
 		<MSBuild Projects="$(BackendProjectPath)" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=net8.0" />
 
+		<!-- Criar pasta destino -->
 		<MakeDir Directories="$(BackendDestination)" />
 
 		<ItemGroup>
@@ -99,7 +109,7 @@
 	</Target>
 
 	<!-- ============================================================================ -->
-	<!-- 🔥 TARGET PARA COPIAR BACKEND APÓS PUBLISH                                  -->
+	<!-- 🔥 COPY BACKEND AFTER PUBLISH -->
 	<!-- ============================================================================ -->
 	<Target Name="CopyBackendAfterPublish" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">
 
@@ -112,7 +122,8 @@
 
 		<Message Text="🔥 Publicando Backend..." Importance="high" />
 
-		<MSBuild Projects="$(BackendProjectPath)" Targets="Publish" Properties="Configuration=$(Configuration);&#xD;&#xA;                             PublishDir=$(BackendPublishOutput)\;&#xD;&#xA;                             TargetFramework=net8.0" />
+		<!-- Publish backend -->
+		<MSBuild Projects="$(BackendProjectPath)" Targets="Publish" Properties="Configuration=$(Configuration);PublishDir=$(BackendPublishOutput)\;TargetFramework=net8.0" />
 
 		<MakeDir Directories="$(BackendPublishDestination)" />
 
@@ -125,9 +136,4 @@
 		<Message Text="✅ Backend publicado em: $(BackendPublishDestination)" Importance="high" />
 	</Target>
 
-	<Target Name="KillBackendBeforeBuild" BeforeTargets="Build">
-		<Exec Command="taskkill /IM Backend.exe /F" ContinueOnError="true" />
-	</Target>
-
 </Project>
- 

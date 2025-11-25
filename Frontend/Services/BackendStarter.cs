@@ -91,7 +91,7 @@ public static class BackendStarter
             // ============================================================================
             // 🔥 ETAPA 2: LOCALIZA O EXECUTÁVEL DO BACKEND
             // ============================================================================
-            var baseDir = AppContext.BaseDirectory;
+            var baseDir = "C:\\Users\\mstom\\source\\repos\\CanilApp\\Frontend\\bin\\Debug\\net8.0-windows10.0.19041.0\\win10-x64";
 
             var possiblePaths = new[]
             {

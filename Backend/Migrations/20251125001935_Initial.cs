@@ -6,40 +6,18 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrationDeCorrecaoComEstoque : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Insumos",
-                columns: table => new
-                {
-                    CodigoId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DescricaoSimplificada = table.Column<string>(type: "TEXT", nullable: false),
-                    DescricaoDetalhada = table.Column<string>(type: "TEXT", nullable: false),
-                    DataDeEntradaDoMedicamento = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    NotaFiscal = table.Column<string>(type: "TEXT", nullable: true),
-                    Unidade = table.Column<int>(type: "INTEGER", nullable: false),
-                    ConsumoMensal = table.Column<int>(type: "INTEGER", nullable: false),
-                    ConsumoAnual = table.Column<int>(type: "INTEGER", nullable: false),
-                    ValidadeInsumo = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    EstoqueDisponivel = table.Column<int>(type: "INTEGER", nullable: false),
-                    EntradaEstoque = table.Column<int>(type: "INTEGER", nullable: false),
-                    SaidaTotalEstoque = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Insumos", x => x.CodigoId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ItensBase",
                 columns: table => new
                 {
                     IdItem = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    DataHoraInsercaoRegistro = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -47,27 +25,22 @@ namespace Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Medicamentos",
+                name: "RetiradaEstoque",
                 columns: table => new
                 {
-                    CodigoId = table.Column<int>(type: "INTEGER", nullable: false)
+                    IdRetirada = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Prioridade = table.Column<int>(type: "INTEGER", nullable: false),
-                    DescricaoMedicamentos = table.Column<string>(type: "TEXT", nullable: false),
-                    DataDeEntradaDoMedicamento = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    NotaFiscal = table.Column<string>(type: "TEXT", nullable: true),
-                    NomeComercial = table.Column<string>(type: "TEXT", nullable: false),
-                    PublicoAlvo = table.Column<int>(type: "INTEGER", nullable: false),
-                    ConsumoMensal = table.Column<int>(type: "INTEGER", nullable: false),
-                    ConsumoAnual = table.Column<int>(type: "INTEGER", nullable: false),
-                    ValidadeMedicamento = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    EstoqueDisponivel = table.Column<int>(type: "INTEGER", nullable: false),
-                    EntradaEstoque = table.Column<int>(type: "INTEGER", nullable: false),
-                    SaidaTotalEstoque = table.Column<int>(type: "INTEGER", nullable: false)
+                    CodItem = table.Column<string>(type: "TEXT", nullable: false),
+                    NomeItem = table.Column<string>(type: "TEXT", nullable: false),
+                    Quantidade = table.Column<int>(type: "INTEGER", nullable: false),
+                    Lote = table.Column<string>(type: "TEXT", nullable: false),
+                    De = table.Column<string>(type: "TEXT", nullable: false),
+                    Para = table.Column<string>(type: "TEXT", nullable: false),
+                    DataHoraInsercaoRegistro = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Medicamentos", x => x.CodigoId);
+                    table.PrimaryKey("PK_RetiradaEstoque", x => x.IdRetirada);
                 });
 
             migrationBuilder.CreateTable(
@@ -91,11 +64,36 @@ namespace Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Insumos",
+                columns: table => new
+                {
+                    IdItem = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    CodInsumo = table.Column<string>(type: "TEXT", nullable: false),
+                    DescricaoSimplificada = table.Column<string>(type: "TEXT", nullable: false),
+                    DescricaoDetalhada = table.Column<string>(type: "TEXT", nullable: false),
+                    Unidade = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false),
+                    DataAtualizacao = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Insumos", x => x.IdItem);
+                    table.ForeignKey(
+                        name: "FK_Insumos_ItensBase_IdItem",
+                        column: x => x.IdItem,
+                        principalTable: "ItensBase",
+                        principalColumn: "IdItem",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ItensEstoque",
                 columns: table => new
                 {
                     IdItem = table.Column<int>(type: "INTEGER", nullable: false),
                     Lote = table.Column<string>(type: "TEXT", nullable: false),
+                    CodItem = table.Column<string>(type: "TEXT", nullable: false),
                     Quantidade = table.Column<int>(type: "INTEGER", nullable: false),
                     DataEntrega = table.Column<DateTime>(type: "TEXT", nullable: false),
                     NFe = table.Column<string>(type: "TEXT", nullable: true),
@@ -133,6 +131,32 @@ namespace Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Medicamentos",
+                columns: table => new
+                {
+                    IdItem = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    CodMedicamento = table.Column<string>(type: "TEXT", nullable: false),
+                    Prioridade = table.Column<int>(type: "INTEGER", nullable: false),
+                    DescricaoMedicamento = table.Column<string>(type: "TEXT", nullable: false),
+                    Formula = table.Column<string>(type: "TEXT", nullable: false),
+                    NomeComercial = table.Column<string>(type: "TEXT", nullable: false),
+                    PublicoAlvo = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false),
+                    DataAtualizacao = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Medicamentos", x => x.IdItem);
+                    table.ForeignKey(
+                        name: "FK_Medicamentos_ItensBase_IdItem",
+                        column: x => x.IdItem,
+                        principalTable: "ItensBase",
+                        principalColumn: "IdItem",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Produtos",
                 columns: table => new
                 {
@@ -140,10 +164,13 @@ namespace Backend.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     CodProduto = table.Column<string>(type: "TEXT", nullable: false),
                     DescricaoSimples = table.Column<string>(type: "TEXT", nullable: true),
+                    DataEntrega = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    NFe = table.Column<string>(type: "TEXT", nullable: true),
                     DescricaoDetalhada = table.Column<string>(type: "TEXT", nullable: true),
                     Unidade = table.Column<int>(type: "INTEGER", nullable: false),
                     Categoria = table.Column<int>(type: "INTEGER", nullable: false),
-                    DataHoraInsercaoRegistro = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false),
+                    DataAtualizacao = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -174,6 +201,9 @@ namespace Backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Produtos");
+
+            migrationBuilder.DropTable(
+                name: "RetiradaEstoque");
 
             migrationBuilder.DropTable(
                 name: "Usuarios");

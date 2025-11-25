@@ -162,6 +162,9 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("DataAtualizacao")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DescricaoDetalhada")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -169,6 +172,9 @@ namespace Backend.Migrations
                     b.Property<string>("DescricaoSimplificada")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Unidade")
                         .HasColumnType("INTEGER");
@@ -184,6 +190,9 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("DataAtualizacao")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DescricaoMedicamento")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -191,6 +200,9 @@ namespace Backend.Migrations
                     b.Property<string>("Formula")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("NomeComercial")
                         .IsRequired()
@@ -216,10 +228,22 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("DataAtualizacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DataEntrega")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DescricaoDetalhada")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DescricaoSimples")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NFe")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Unidade")

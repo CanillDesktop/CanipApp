@@ -172,19 +172,19 @@ namespace Backend
                 var app = builder.Build();
 
                 // Migrations
-                using (var scope = app.Services.CreateScope())
-                {
-                    var db = scope.ServiceProvider.GetRequiredService<CanilAppDbContext>();
-                    try
-                    {
-                        db.Database.Migrate();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Erro ao aplicar migrations");
-                        throw;
-                    }
-                }
+                //using (var scope = app.Services.CreateScope())
+                //{
+                //    var db = scope.ServiceProvider.GetRequiredService<CanilAppDbContext>();
+                //    try
+                //    {
+                //        db.Database.Migrate();
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        Log.Error(ex, "Erro ao aplicar migrations");
+                //        throw;
+                //    }
+                //}
 
                 // Pipeline
                 if (app.Environment.IsDevelopment())

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations
 {
     [DbContext(typeof(CanilAppDbContext))]
-    [Migration("20251119023536_ReestruturandoMedicamentoModel")]
-    partial class ReestruturandoMedicamentoModel
+    [Migration("20251125001935_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -84,50 +84,41 @@ namespace Backend.Migrations
                     b.ToTable("ItensNivelEstoque");
                 });
 
-            modelBuilder.Entity("Backend.Models.Medicamentos.InsumosModel", b =>
+            modelBuilder.Entity("Backend.Models.RetiradaEstoqueModel", b =>
                 {
-                    b.Property<int>("CodigoId")
+                    b.Property<int>("IdRetirada")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ConsumoAnual")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ConsumoMensal")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("DataDeEntradaDoMedicamento")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DescricaoDetalhada")
+                    b.Property<string>("CodItem")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("DescricaoSimplificada")
+                    b.Property<DateTime>("DataHoraInsercaoRegistro")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("De")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("EntradaEstoque")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("EstoqueDisponivel")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("NotaFiscal")
+                    b.Property<string>("Lote")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("SaidaTotalEstoque")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Unidade")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateOnly?>("ValidadeInsumo")
+                    b.Property<string>("NomeItem")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("CodigoId");
+                    b.Property<string>("Para")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
-                    b.ToTable("Insumos", (string)null);
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("IdRetirada");
+
+                    b.ToTable("RetiradaEstoque");
                 });
 
             modelBuilder.Entity("Backend.Models.Usuarios.UsuariosModel", b =>
@@ -166,12 +157,43 @@ namespace Backend.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("Backend.Models.Insumos.InsumosModel", b =>
+                {
+                    b.HasBaseType("Backend.Models.ItemComEstoqueBaseModel");
+
+                    b.Property<string>("CodInsumo")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DataAtualizacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DescricaoDetalhada")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DescricaoSimplificada")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Unidade")
+                        .HasColumnType("INTEGER");
+
+                    b.ToTable("Insumos", (string)null);
+                });
+
             modelBuilder.Entity("Backend.Models.Medicamentos.MedicamentosModel", b =>
                 {
                     b.HasBaseType("Backend.Models.ItemComEstoqueBaseModel");
 
                     b.Property<string>("CodMedicamento")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DataAtualizacao")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DescricaoMedicamento")
@@ -181,6 +203,9 @@ namespace Backend.Migrations
                     b.Property<string>("Formula")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("NomeComercial")
                         .IsRequired()
@@ -206,10 +231,22 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("DataAtualizacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DataEntrega")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DescricaoDetalhada")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DescricaoSimples")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NFe")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Unidade")
@@ -238,6 +275,15 @@ namespace Backend.Migrations
                         .IsRequired();
 
                     b.Navigation("ItemBase");
+                });
+
+            modelBuilder.Entity("Backend.Models.Insumos.InsumosModel", b =>
+                {
+                    b.HasOne("Backend.Models.ItemComEstoqueBaseModel", null)
+                        .WithOne()
+                        .HasForeignKey("Backend.Models.Insumos.InsumosModel", "IdItem")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Backend.Models.Medicamentos.MedicamentosModel", b =>
