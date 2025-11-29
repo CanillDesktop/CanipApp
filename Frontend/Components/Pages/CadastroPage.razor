@@ -1,97 +1,128 @@
 ﻿@page "/cadastro"
-@layout Layout.LoginLayout
+@using Frontend.ViewModels
+@using Microsoft.JSInterop
 @inject CadastroViewModel ViewModel
-@inject NavigationManager NavManager
+@inject IJSRuntime JS
 @implements IDisposable
 
-<div class="cadastro-wrapper">
-    <div class="cadastro-container">
-        <h1>Registre-se</h1>
-        <p>Preencha os dados para criar sua conta</p>
+<div class="cadastro-container">
+    <div class="cadastro-card">
+        <h2>CanilApp - Cadastro</h2>
 
-        <EditForm Model="@ViewModel.Usuario" OnValidSubmit="@HandleValidSubmit">
-            <DataAnnotationsValidator />
+        @if (!string.IsNullOrEmpty(ViewModel.ErrorMessage))
+        {
+            <div class="alert alert-danger">
+                @ViewModel.ErrorMessage
+            </div>
+        }
 
-            <!-- Nome -->
-            <InputText class="cad-input"
-                       @bind-Value="ViewModel.Usuario.PrimeiroNome"
-                       placeholder="Nome" />
-            <ValidationMessage For="@(() => ViewModel.Usuario.PrimeiroNome)" />
+        @if (!string.IsNullOrEmpty(ViewModel.SuccessMessage))
+        {
+            <div class="alert alert-success">
+                @ViewModel.SuccessMessage
+            </div>
+        }
 
-            <!-- Sobrenome -->
-            <InputText class="cad-input"
-                       @bind-Value="ViewModel.Usuario.Sobrenome"
-                       placeholder="Sobrenome" />
-            <ValidationMessage For="@(() => ViewModel.Usuario.Sobrenome)" />
+        <div class="form-group">
+            <label>Nome *</label>
+            <input type="text"
+                   class="form-control"
+                   @bind="ViewModel.PrimeiroNome"
+                   placeholder="João"
+                   disabled="@ViewModel.IsLoading" />
+        </div>
 
-            <!-- Email -->
-            <InputText class="cad-input"
-                       @bind-Value="ViewModel.Usuario.Email"
-                       type="email"
-                       placeholder="Email" />
-            <ValidationMessage For="@(() => ViewModel.Usuario.Email)" />
+        <div class="form-group">
+            <label>Sobrenome</label>
+            <input type="text"
+                   class="form-control"
+                   @bind="ViewModel.Sobrenome"
+                   placeholder="Silva"
+                   disabled="@ViewModel.IsLoading" />
+        </div>
 
-            <!-- Senha -->
-            <InputText class="cad-input"
-                       @bind-Value="ViewModel.Usuario.Senha"
-                       type="password"
-                       placeholder="Senha" />
-            <ValidationMessage For="@(() => ViewModel.Usuario.Senha)" />
+        <div class="form-group">
+            <label>Email *</label>
+            <input type="email"
+                   class="form-control"
+                   @bind="ViewModel.Email"
+                   placeholder="joao@email.com"
+                   disabled="@ViewModel.IsLoading" />
+        </div>
 
-            <!-- Confirmar senha -->
-            <InputText class="cad-input"
-                       @bind-Value="ViewModel.Usuario.SenhaConfirmacao"
-                       type="password"
-                       placeholder="Confirme a senha" />
-            <ValidationMessage For="@(() => ViewModel.Usuario.SenhaConfirmacao)" />
+        <div class="form-group">
+            <label>Senha * (mín. 8 caracteres)</label>
+            <input type="password"
+                   class="form-control"
+                   @bind="ViewModel.Senha"
+                   placeholder="********"
+                   disabled="@ViewModel.IsLoading" />
+            <small class="form-text">
+                Deve conter: maiúscula, minúscula, número e caractere especial
+            </small>
+        </div>
 
-            @if (ViewModel.Carregando)
+        <div class="form-group">
+            <label>Confirmar Senha *</label>
+            <input type="password"
+                   class="form-control"
+                   @bind="ViewModel.SenhaConfirmacao"
+                   placeholder="********"
+                   disabled="@ViewModel.IsLoading" />
+        </div>
+
+        <div class="form-group">
+            <label>Permissão</label>
+            <select class="form-control"
+                    @bind="ViewModel.PermissaoSelecionada"
+                    disabled="@ViewModel.IsLoading">
+                @foreach (var permissao in ViewModel.Permissoes)
+                {
+                    <option value="@permissao">@permissao</option>
+                }
+            </select>
+        </div>
+
+        <button class="btn btn-success w-100 mb-3"
+                @onclick="async () => await ViewModel.RegistrarCommand.ExecuteAsync(null)"
+                disabled="@ViewModel.IsLoading">
+            @if (ViewModel.IsLoading)
             {
-                <div class="spinner"></div>
+                <span>⏳ Cadastrando...</span>
             }
             else
             {
-                <button type="submit" class="btn-primary">Registrar</button>
-                <button type="button" class="btn-secondary" @onclick="VoltarParaLogin">
-                    Já tenho conta
-                </button>
+                <span>Cadastrar</span>
             }
-        </EditForm>
+        </button>
+
+        <div class="text-center">
+            <button class="btn btn-link"
+                    @onclick="() => ViewModel.NavigateToLoginCommand.Execute(null)"
+                    disabled="@ViewModel.IsLoading">
+                Já tem conta? Faça login
+            </button>
+        </div>
     </div>
 </div>
 
 @code {
-    private async Task HandleValidSubmit()
-    {
-        await ViewModel.RegisterCommand.ExecuteAsync(null);
-    }
-
-    private void VoltarParaLogin()
-    {
-        NavManager.NavigateTo("/");
-    }
-
-  
-
     protected override void OnInitialized()
     {
-       
-        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        ViewModel.NavigationRequested += HandleNavigation;
     }
 
-   
-    private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private async void HandleNavigation(string url)
     {
-        
-        StateHasChanged();
+        await JS.InvokeVoidAsync("eval", $"window.location.href = '{url}'");
     }
 
     public void Dispose()
     {
-       
-        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
-    }
-
-  
+        ViewModel.NavigationRequested -= HandleNavigation;
     }
 }
+
+<style>
+    /* ... mesmo CSS anterior ... */
+</style>

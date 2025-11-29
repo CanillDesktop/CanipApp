@@ -23,9 +23,11 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="4.0.4.4" />
+		<PackageReference Include="AWSSDK.CognitoIdentity" Version="4.0.2.7" />
+		<PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="4.0.4.5" />
 		<PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.7.1" />
 		<PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.5" />
+		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.20" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.1">

@@ -2,6 +2,7 @@
 using Frontend.ViewModels;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Frontend;
 
@@ -56,9 +57,26 @@ public static class MauiProgram
         builder.Services.AddSingleton(new BackendConfig { Url = backendUrl });
 
         // ============================================================================
+        // 🔥 AUTENTICAÇÃO E AUTORIZAÇÃO
+        // ============================================================================
+        // Registra ISecureStorage do MAUI para uso no AuthenticationStateService
+        builder.Services.AddSingleton<ISecureStorage>(SecureStorage.Default);
+
+        // Registra AuthenticationStateService (gerencia tokens e estado de autenticação)
+        builder.Services.AddScoped<AuthenticationStateService>();
+
+        // Registra CustomAuthenticationStateProvider (integra com sistema de autorização do Blazor)
+        builder.Services.AddScoped<CustomAuthenticationStateProvider>();
+        builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
+            sp.GetRequiredService<CustomAuthenticationStateProvider>());
+
+        // Adiciona suporte a autorização no Blazor (permite uso de [Authorize] e <AuthorizeView>)
+        builder.Services.AddAuthorizationCore();
+
+        // ============================================================================
         // 🔥 REGISTRA DELEGATING HANDLER
         // ============================================================================
-      
+
 
         // ============================================================================
         // 🔥 VIEWMODELS
@@ -76,7 +94,7 @@ public static class MauiProgram
         {
             var cfg = sp.GetRequiredService<BackendConfig>();
             client.BaseAddress = new Uri(cfg.Url);
-            client.Timeout = TimeSpan.FromSeconds(30);
+            client.Timeout = TimeSpan.FromMinutes(4);
         })
    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler())   // obrigatório
   .AddHttpMessageHandler(() => new AuthDelegatingHandler());

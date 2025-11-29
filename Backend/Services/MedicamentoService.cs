@@ -3,6 +3,7 @@ using Backend.Repositories.Interfaces; // (Namespace do seu IMedicamentosReposit
 using Backend.Services.Interfaces;
 using Shared.DTOs;
 using System.Globalization;
+using System.Net.Http.Headers;
 
 namespace Backend.Services
 {
@@ -18,6 +19,7 @@ namespace Backend.Services
 
         public async Task<IEnumerable<MedicamentoDTO>> BuscarTodosAsync()
         {
+
             // 1. Busca MODELOS do repositório local
             // (Adicionando filtro de soft delete)
             var models = await _medicamentosRepository.BuscarTodosAsync(m => m.IsDeleted == false);

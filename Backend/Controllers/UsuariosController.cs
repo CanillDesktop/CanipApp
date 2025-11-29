@@ -1,90 +1,38 @@
-﻿using Backend.Repositories.Interfaces;
-using Backend.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+﻿using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
 
-namespace Backend.Controllers
+namespace Backend.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class UsuariosController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UsuariosController : ControllerBase
+    private readonly ICognitoService _cognitoService;
+    private readonly ILogger<UsuariosController> _logger;
+
+    public UsuariosController(ICognitoService cognitoService, ILogger<UsuariosController> logger)
     {
-        private readonly IUsuariosService<UsuarioResponseDTO> _service;
+        _cognitoService = cognitoService;
+        _logger = logger;
+    }
 
-        public UsuariosController(IUsuariosService<UsuarioResponseDTO> service)
+    [HttpPost]
+    public async Task<ActionResult<UsuarioResponseDTO>> Create([FromBody] UsuarioRequestDTO dto)
+    {
+        try
         {
-            _service = service;
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<UsuarioResponseDTO>> Create([FromBody] UsuarioRequestDTO dto)
-        {
-            try
-            {
-                var usuarioCriado = await _service.CriarAsync(dto);
-
-                if (usuarioCriado == null)
-                    return BadRequest(new { error = "Não foi possível criar o usuário." });
-
-                // 🔥 RETORNA DIRETAMENTE O USUÁRIO CRIADO, SEM CreatedAtAction
-                return Ok(usuarioCriado);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<UsuarioResponseDTO>>>? Get()
-        {
-            return Ok(await _service.BuscarTodosAsync());
-        }
-
-        [HttpGet("{id:int}")] // 🔥 REMOVIDO [Authorize] TEMPORARIAMENTE
-        public async Task<ActionResult<UsuarioResponseDTO>> GetById(int id)
-        {
-            var usuario = await _service.BuscarPorIdAsync(id);
-
-            if (usuario == null)
-                return NotFound();
-
+            var usuario = await _cognitoService.RegisterUserAsync(dto);
             return Ok(usuario);
         }
-
-        [Authorize]
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] UsuarioRequestDTO dto)
+        catch (InvalidOperationException ex)
         {
-            try
-            {
-                dto.Id = id;
-                await _service.AtualizarAsync(dto);
-
-                return NoContent();
-            }
-            catch (ArgumentNullException)
-            {
-                return NotFound();
-            }
+            return BadRequest(new { error = ex.Message });
         }
-
-        [Authorize]
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        catch (Exception ex)
         {
-            try
-            {
-                await _service.DeletarAsync(id);
-
-                return NoContent();
-            }
-            catch (ArgumentNullException)
-            {
-                return NotFound();
-            }
+            _logger.LogError(ex, "Erro ao criar usuário");
+            return StatusCode(500, new { error = "Erro ao criar usuário" });
         }
     }
 }

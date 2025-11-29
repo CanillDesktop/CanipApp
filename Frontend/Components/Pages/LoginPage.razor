@@ -1,36 +1,80 @@
-﻿@page "/"
-@layout Layout.LoginLayout
+﻿@page "/login" 
+@layout LoginLayout
+@using Frontend.ViewModels
+@using Microsoft.JSInterop
 @inject LoginViewModel ViewModel
+@inject IJSRuntime JS
 @implements IDisposable
 
-<div class="login-wrapper">
-    <div class="login-container">
-        <h1>Seja Bem-Vindo!</h1>
-        <p>Faça login para continuar</p>
+<div class="login-container">
+    <div class="login-card">
+        <h2>CanilApp - Login</h2>
 
-        <input type="text" placeholder="Nome de usuário" @bind="ViewModel.Login" @bind:event="oninput" />
-        <input type="password" placeholder="Senha" @bind="ViewModel.Password" @bind:event="oninput" />
+        @if (!string.IsNullOrEmpty(ViewModel.ErrorMessage))
+        {
+            <div class="alert alert-danger">
+                @ViewModel.ErrorMessage
+            </div>
+        }
 
-        @if (ViewModel.Carregando)
-        {
-            <div class="spinner"></div>
-        }
-        else
-        {
-            <button class="btn-primary" @onclick="async () => await ViewModel.LoginCommand.ExecuteAsync(null)">Entrar</button>
-            <button class="btn-secondary" @onclick="ViewModel.RegisterCommand.Execute">Registrar</button>
-        }
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email"
+                   class="form-control"
+                   @bind="ViewModel.Login"
+                   placeholder="seu@email.com"
+                   disabled="@ViewModel.IsLoading" />
+        </div>
+
+        <div class="form-group">
+            <label>Senha</label>
+            <input type="password"
+                   class="form-control"
+                   @bind="ViewModel.Password"
+                   placeholder="********"
+                   disabled="@ViewModel.IsLoading" />
+        </div>
+
+        <button class="btn btn-primary w-100 mb-3"
+                @onclick="async () => await ViewModel.LoginCommand.ExecuteAsync(null)"
+                disabled="@ViewModel.IsLoading">
+            @if (ViewModel.IsLoading)
+            {
+                <span>⏳ Entrando...</span>
+            }
+            else
+            {
+                <span>Entrar</span>
+            }
+        </button>
+
+        <div class="text-center">
+            <button class="btn btn-link"
+                    @onclick="() => ViewModel.NavigateToRegisterCommand.Execute(null)"
+                    disabled="@ViewModel.IsLoading">
+                Não tem conta? Cadastre-se
+            </button>
+        </div>
     </div>
 </div>
 
 @code {
     protected override void OnInitialized()
     {
-        ViewModel.PropertyChanged += (sender, e) => StateHasChanged();
+        ViewModel.NavigationRequested += HandleNavigation;
+    }
+
+    private async void HandleNavigation(string url)
+    {
+        await JS.InvokeVoidAsync("eval", $"window.location.href = '{url}'");
     }
 
     public void Dispose()
     {
-        ViewModel.PropertyChanged -= (sender, e) => StateHasChanged();
+        ViewModel.NavigationRequested -= HandleNavigation;
     }
 }
+
+<style>
+    /* ... mesmo CSS anterior ... */
+</style>

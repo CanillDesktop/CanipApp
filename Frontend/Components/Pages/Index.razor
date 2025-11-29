@@ -1,0 +1,13 @@
+﻿
+@page "/"
+@namespace Frontend.Components.Pages
+@inject NavigationManager Navigation
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Sempre redireciona para login
+        // A verificação de autenticação será feita no LoginPage.razor
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

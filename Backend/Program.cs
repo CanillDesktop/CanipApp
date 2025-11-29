@@ -1,4 +1,6 @@
-﻿using Amazon.DynamoDBv2;
+﻿using Amazon.CognitoIdentity;
+using Amazon.CognitoIdentityProvider;
+using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Backend.Context;
 using Backend.Models.Usuarios;
@@ -156,20 +158,66 @@ namespace Backend
                 // ============================================================================
                 // 🔥 AUTENTICAÇÃO JWT
                 // ============================================================================
+                var region = builder.Configuration["AWS:Region"] ?? throw new InvalidOperationException("AWS:Region não configurada");
+                var userPoolId = builder.Configuration["AWS:UserPoolId"] ?? throw new InvalidOperationException("AWS:UserPoolId não configurada");
+                var clientId = builder.Configuration["AWS:ClientId"] ?? throw new InvalidOperationException("AWS:ClientId não configurada");
+
                 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
+                        // Cognito como autoridade de validação
+                        options.Authority = $"https://cognito-idp.{region}.amazonaws.com/{userPoolId}";
+
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
                             ValidateIssuer = true,
                             ValidateAudience = true,
                             ValidateLifetime = true,
                             ValidateIssuerSigningKey = true,
-                            ValidIssuer = "backend",
-                            ValidAudience = "CanilApp",
-                            IssuerSigningKey = new SymmetricSecurityKey(
-                                Encoding.UTF8.GetBytes("chave_simetrica_de_teste_validacao")
-                            )
+
+                            // Cognito usa o UserPoolId como issuer
+                            ValidIssuer = $"https://cognito-idp.{region}.amazonaws.com/{userPoolId}",
+
+                            // Audience é o Client ID do Cognito User Pool
+                            ValidAudience = clientId,
+
+                            // Margem de tempo para evitar rejeições por clock skew
+                            ClockSkew = TimeSpan.FromMinutes(5)
+                        };
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnAuthenticationFailed = context =>
+                            {
+                                Log.Error($"🔴 [JWT] Autenticação falhou: {context.Exception.Message}");
+                                if (context.Exception.InnerException != null)
+                                {
+                                    Log.Error($"🔴 [JWT] Inner Exception: {context.Exception.InnerException.Message}");
+                                }
+                                return Task.CompletedTask;
+                            },
+                            OnTokenValidated = context =>
+                            {
+                                var userId = context.Principal?.FindFirst("sub")?.Value ?? "desconhecido";
+                                Log.Information($"✅ [JWT] Token validado com sucesso - User: {userId}");
+                                return Task.CompletedTask;
+                            },
+                            OnMessageReceived = context =>
+                            {
+                                var authHeader = context.Request.Headers["Authorization"].ToString();
+                                if (!string.IsNullOrEmpty(authHeader))
+                                {
+                                    var tokenPreview = authHeader.Length > 50
+                                        ? authHeader.Substring(0, 50) + "..."
+                                        : authHeader;
+                                    Log.Information($"📩 [JWT] Token recebido: {tokenPreview}");
+                                }
+                                return Task.CompletedTask;
+                            },
+                            OnChallenge = context =>
+                            {
+                                Log.Warning($"⚠️ [JWT] Challenge disparado - Error: {context.Error}, ErrorDescription: {context.ErrorDescription}");
+                                return Task.CompletedTask;
+                            }
                         };
                     });
 
@@ -199,8 +247,15 @@ namespace Backend
                 builder.Services.AddScoped<IInsumosService, InsumosService>();
 
                 // AWS DynamoDB
+                builder.Services.AddHttpContextAccessor(); // NOVO - Necessário para SyncService
+
+                builder.Services.AddSingleton<ICognitoService, CognitoService>();
+
                 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
                 builder.Services.AddAWSService<IAmazonDynamoDB>();
+                builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>(); // NOVO
+                builder.Services.AddAWSService<IAmazonCognitoIdentity>(); // NOVO
+
                 builder.Services.AddScoped<IDynamoDBContext, DynamoDBContext>();
                 builder.Services.AddScoped<ISyncService, SyncService>();
 

@@ -1,15 +1,15 @@
 ﻿using Shared.DTOs;
 
-namespace Backend.Services.Interfaces
+namespace Backend.Services.Interfaces;
+
+public interface IUsuariosService<T> where T : class
 {
-    public interface IUsuariosService<T> : IService<UsuarioRequestDTO, int>
-    {
-        new Task<IEnumerable<T?>> BuscarTodosAsync();
-        new Task<T?> BuscarPorIdAsync(int id);
-        new Task<T?> AtualizarAsync(UsuarioRequestDTO dto);
-        new Task<T?> CriarAsync(UsuarioRequestDTO dto);
-        Task<UsuarioRequestDTO?> ValidarUsuarioAsync(string email, string senha);
-        Task SalvarRefreshTokenAsync(int id, string refreshToken, DateTime expira);
-        Task<T?> BuscaPorRefreshTokenAsync(string? refreshToken);
-    }
+    Task<T?> CriarAsync(UsuarioRequestDTO dto);
+    Task<T?> AtualizarAsync(UsuarioRequestDTO dto);
+    Task<bool> DeletarAsync(int id);
+    Task<IEnumerable<T>> BuscarTodosAsync();
+    Task<T?> BuscarPorIdAsync(int id);
+    Task<T?> ValidarUsuarioAsync(string login, string senha);
+    Task SalvarRefreshTokenAsync(int usuarioId, string refreshToken, DateTime expiry);
+    Task<T?> BuscaPorRefreshTokenAsync(string? refreshToken);
 }

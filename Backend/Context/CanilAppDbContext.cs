@@ -3,7 +3,7 @@ using Backend.Models.Medicamentos;
 using Backend.Models.Produtos;
 using Backend.Models.Usuarios;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion; // 2. Adicionar o using de Conversores
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion; 
 using System.Globalization;
 
 namespace Backend.Context

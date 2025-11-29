@@ -73,7 +73,7 @@ namespace Frontend.Models
         {
             return new UsuarioRequestDTO
             {
-                PrimeiroNome = model.PrimeiroNome,
+                Nome = model.PrimeiroNome,
                 Sobrenome = model.Sobrenome,
                 Email = model.Email,
                 Senha = model.Senha,

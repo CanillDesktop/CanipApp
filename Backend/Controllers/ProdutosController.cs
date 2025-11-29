@@ -25,14 +25,14 @@ namespace Backend.Controllers
             _serviceProvider = serviceProvider;
         }
 
-        [HttpGet]
+        [HttpGet("")]
         public async Task<ActionResult<IEnumerable<ProdutosDTO>>> Get()
         {
             var produtosLocais = await _Prodservice.BuscarTodosAsync();
             return Ok(produtosLocais);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<ActionResult<ProdutosDTO>> GetProdutosById(string id)
         {
             var produtos = await _Prodservice.BuscarPorIdAsync(id);
@@ -66,7 +66,7 @@ namespace Backend.Controllers
 
 
             return NoContent();
-            return CreatedAtAction(nameof(GetProdutosById), new { id = novoProduto.IdProduto }, novoProduto);
+          
         }
 
         [HttpPut]

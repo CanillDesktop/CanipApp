@@ -1,11 +1,7 @@
-﻿using Backend.Models.Usuarios;
+﻿namespace Backend.Repositories.Interfaces;
 
-namespace Backend.Repositories.Interfaces
+public interface IUsuariosRepository<T> : IRepository<T, int> where T : class
 {
-    public interface IUsuariosRepository<T> : IRepository<UsuariosModel, int>
-    {
-        Task SaveRefreshTokenAsync(int id, string refreshToken, DateTime expira);
-        Task<T?> GetRefreshTokenAsync(string? refreshToken);
-        Task<T?> GetByEmailAsync(string email);
-    }
+    Task<T?> GetByEmailAsync(string email);
+    Task<T?> GetByRefreshTokenAsync(string refreshToken);
 }

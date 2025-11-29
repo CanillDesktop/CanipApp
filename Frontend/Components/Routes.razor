@@ -1,6 +1,37 @@
-﻿<Router AppAssembly="@typeof(MauiProgram).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-</Router>
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@namespace Frontend.Components
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(MauiProgram).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Components.Layout.MainLayout)">
+                <NotAuthorized>
+                    @if (context.User?.Identity?.IsAuthenticated != true)
+                    {
+                        <RedirectToLogin />
+                    }
+                    else
+                    {
+                        <div style="padding: 2rem; text-align: center; font-family: Arial;">
+                            <h1>403 - Acesso Negado</h1>
+                            <p>Você não tem permissão para acessar este recurso.</p>
+                            <p><a href="/home" style="color: #667eea; text-decoration: underline;">Voltar para Home</a></p>
+                        </div>
+                    }
+                </NotAuthorized>
+                <Authorizing>
+                    <div style="padding: 2rem; text-align: center; font-family: Arial;">
+                        <p>Verificando autenticação...</p>
+                    </div>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <div style="padding: 2rem; text-align: center; font-family: Arial;">
+                <h1>404 - Página não encontrada</h1>
+                <p><a href="/login" style="color: #667eea; text-decoration: underline;">Ir para Login</a></p>
+            </div>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
