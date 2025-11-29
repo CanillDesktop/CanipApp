@@ -1,153 +1,146 @@
 ﻿@using Shared.Helpers
 @using System.Reflection
-@using Frontend.ViewModels;
+@using Frontend.Records
 @using Frontend.Models.Interfaces
-@implements IItemListablePageModel<int>
+@using Shared.Models.Interfaces
+@implements IItemListablePageModel<string>
+@inject NavigationManager Navigation
 
 <h3>Medicamentos</h3>
 
-<div class="card p-3 mb-4 shadow-sm filtro-container">
-    <div class="input-group">
-
-      
-        <InputSelect @bind-Value="ViewModel.ChavePesquisa" class="form-select" style="max-width: 200px;">
-            <option value="">-- Escolha uma opção --</option>
+<div class="filtro-container">
+    <div class="filtro-campos">
+        <InputSelect class="form-select filtro-select" @bind-Value="ViewModel.ChavePesquisa">
+            <option value="">Filtrar por...</option>
             @foreach (var filtro in ViewModel.Filtro.GetType().GetProperties())
             {
                 <option value="@filtro.Name">@DisplayNameHelper.DisplayNameFor(filtro)</option>
             }
-        </InputSelect> 
+        </InputSelect>
 
-        
-        <InputText @bind-Value="ViewModel.ValorPesquisa" class="form-control" placeholder="Digite o termo de pesquisa..." />
-
-        <button @onclick="async () => await ViewModel.CarregarMedicamentosCommand.ExecuteAsync(null)" class="btn btn-primary">
-            <i class="bi bi-search"></i> Filtrar
-        </button>
+        <InputText class="form-control filtro-input"
+                   placeholder="Digite o valor..."
+                   @bind-Value="ViewModel.ValorPesquisa" />
     </div>
+
+    <button class="btn btn-primary filtro-botao"
+            @onclick="() => ViewModel.FiltrarMedicamentosCommand.ExecuteAsync(new PesquisaProduto(ViewModel.ChavePesquisa, ViewModel.ValorPesquisa))">
+        <i class="bi bi-search"></i> Filtrar
+    </button>
 </div>
 
 <div class="caixaBranca">
     @if (ViewModel.Carregando)
     {
-        <div class="spinner"></div>
+        <SpinnerComponent />
     }
     else
     {
-      
         <div class="row g-3">
-            @foreach (var med in ViewModel.Medicamentos)
+            @foreach (var m in ViewModel.Medicamentos)
             {
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm">
 
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <div class="tituloCard">
-                                <h5 class="mb-1">@med.NomeComercial</h5>
-                                <small>@DisplayNameHelper.DisplayNameFor(() => med.CodigoId): @med.CodigoId</small>
+                                <h5 class="mb-1">@m.NomeItem</h5>
+                                <small>@m.Formula</small><br />
+                                <small>@DisplayNameHelper.DisplayNameFor(() => m.CodItem): @m.CodItem</small>
                             </div>
-                            <button class="btn btn-light btn-sm" @onclick="@(() => Toggle(med.CodigoId))">
-                                @(ItensAbertos.ContainsKey(med.CodigoId) && ItensAbertos[med.CodigoId] ? "Fechar" : "Ver mais")
+
+                            <button class="btn btn-light btn-sm" @onclick="() => Toggle(m.CodItem)">
+                                @(ItensAbertos.ContainsKey(m.CodItem) && ItensAbertos[m.CodItem] ? "Fechar" : "Ver mais")
                             </button>
                         </div>
 
                         <div class="card-body">
                             <div class="d-flex justify-content-between mb-3">
                                 <div class="info-principal">
-                                    <label class="fw-bold me-1"><i class="bi bi-calendar-event"></i> Data Entrada:</label>
-                                    <span>
-                                     
-                                        @(med.DataDeEntradaDoMedicamento.HasValue
-                                                                        ? med.DataDeEntradaDoMedicamento.Value.ToString("d")
-                                                                        : "-")
-                            </span>
-                        </div>
-                                <div class="info-principal">
-                                    <label class="fw-bold me-1"><i class="bi bi-stack"></i> Estoque:</label>
-                                    <span>@med.EstoqueDisponivel</span>
+                                    <label class="fw-bold me-1"><i class="bi bi-calendar-event"></i> Data Última Entrega:</label>
+                                    <span>@MedicamentosViewModel.DisplayDataEntregaRecente(m)</span>
                                 </div>
                             </div>
 
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="info-principal">
+                                    <label class="fw-bold me-1"><i class="bi bi-boxes"></i> Quantidade em Estoque:</label>
+                                    <span>@m.ItensEstoque.Sum(i => i.Quantidade)</span>
+                                </div>
+                            </div>
 
-                            @if (ItensAbertos.ContainsKey(med.CodigoId) && ItensAbertos[med.CodigoId])
+                            @if (ItensAbertos.ContainsKey(m.CodItem) && ItensAbertos[m.CodItem])
                             {
                                 <div class="maisInfo mt-2">
                                     <div class="row">
-                                        <div class="col-12 mb-2">
-                                            <label class="fw-bold"><i class="bi bi-file-earmark-text"></i> @DisplayNameHelper.DisplayNameFor(() => med.NotaFiscal):</label>
-                                            <div>@med.NotaFiscal</div>
-                                        </div>
-                                        <div class="col-12 mb-2">
-                                            <label class="fw-bold"><i class="bi bi-card-text"></i> @DisplayNameHelper.DisplayNameFor(() => med.DescricaoMedicamentos):</label>
-                                            <div>@med.DescricaoMedicamentos</div>
-                                        </div>
-                                        <div class="col-6 mb-2">
-                                            <label class="fw-bold"><i class="bi bi-tags"></i> @DisplayNameHelper.DisplayNameFor(() => med.PublicoAlvo):</label>
-                                            <span class="badge bg-info text-dark">@med.PublicoAlvo.ToString()</span>
-                                        </div>
-                                        <div class="col-6 mb-2">
-                                            <label class="fw-bold"><i class="bi bi-clock"></i> @DisplayNameHelper.DisplayNameFor(() => med.ValidadeMedicamento):</label>
 
-                                            @* Lógica de validade simplificada, já que o DTO usa DateOnly *@
-                                            <div class="@(med.ValidadeMedicamento < DateOnly.FromDateTime(DateTime.Today) ? "text-danger fw-bold" : "")">
-                                                @(med.ValidadeMedicamento.HasValue? med.ValidadeMedicamento.Value.ToShortDateString() : "-")
+                                        <div class="col-12 mb-2">
+                                            <label class="fw-bold"><i class="bi bi-card-text"></i> @DisplayNameHelper.DisplayNameFor(() => m.DescricaoMedicamento):</label>
+                                            <div>@m.DescricaoMedicamento</div>
+                                        </div>
+
+                                        <div class="col-6 mb-2">
+                                            <label class="fw-bold"><i class="bi bi-box-seam"></i> @DisplayNameHelper.DisplayNameFor(() => m.Prioridade):</label>
+                                            <span class="badge bg-success">@m.Prioridade</span>
+                                        </div>
+
+                                        <div class="col-6 mb-2">
+                                            <label class="fw-bold"><i class="bi bi-tags"></i> @DisplayNameHelper.DisplayNameFor(() => m.PublicoAlvo):</label>
+                                            <span class="badge bg-info text-dark">@m.PublicoAlvo.GetDescription()</span>
+                                        </div>
+
+                                        <div class="col-6 mb-2">
+                                            <label class="fw-bold"><i class="bi bi-clock"></i> Data Última Validade:</label>
+                                            <div class="@(((DateTime.TryParse(MedicamentosViewModel.DisplayDataValidadeRecente(m), out DateTime result) ? result : DateTime.Today) < DateTime.Today) ? "text-danger fw-bold" : "")">
+                                                @MedicamentosViewModel.DisplayDataValidadeRecente(m)
                                             </div>
                                         </div>
-                                        
-                                        <div class="col-6 mb-2">
-                                            <label class="fw-bold"><i class="bi bi-clock"></i> @DisplayNameHelper.DisplayNameFor(() => med.NotaFiscal):</label>
-                                           
-                                            <div class="">@med.NotaFiscal</div>
-                                        </div>
-                                    </div> 
-                                </div> 
-                            }
-                        </div> 
 
-                        <div class="card-footer text-end">
-                            <button class="btn btn-danger btn-sm" @onclick="() => ViewModel.DeletarMedicamentoCommand.ExecuteAsync(med.CodigoId)">
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="mt-4 d-flex justify-content-end gap-2">
+                            <button class="btn btn-outline-danger btn-sm"
+                                    @onclick="() => ViewModel.DeletarMedicamentoCommand.ExecuteAsync(m)">
                                 <i class="bi bi-trash"></i> Deletar
+                            </button>
+
+                            <button class="btn btn-outline-primary btn-sm"
+                                    @onclick="() => VerDetalhes(m.IdItem)">
+                                <i class="bi bi-info-circle"></i> Detalhes
                             </button>
                         </div>
 
-                    </div> 
-                </div> 
-            } 
-        </div> 
-    } 
-</div> 
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
 
-<div class="d-flex gap-3 mt-4 mb-4">
-
-   
-    <button class="btn btn-primary" @onclick="async () => await ViewModel.CarregarMedicamentosCommand.ExecuteAsync(null)">
-        Atualizar Dados
-    </button>
-
-    
-    <button class="btn btn-success" @onclick='() => ViewModel.ActiveTab = "Cadastrar"'>
-        Cadastrar Novo Medicamento
-    </button>
-
-    <button class="btn btn-success" @onclick="async () => await ViewModel.SincronizarMedicamentoCommand.ExecuteAsync(null)">
-        Sincronizar na nuvem
-    </button>
-
-
+<div>
+    <button class="btn btn-primary mb-3" @onclick="ViewModel.CarregarMedicamentosCommand.ExecuteAsync">Atualizar Dados</button>
+    <button class="btn btn-primary mb-3" @onclick="() => ViewModel.AbreAbaCadastro()">Cadastrar Novo Medicamento</button>
 </div>
 
 @code {
     [Parameter]
     public MedicamentosViewModel ViewModel { get; set; } = default!;
 
+    public Dictionary<string, bool> ItensAbertos { get; set; } = new();
 
-    public Dictionary<int, bool> ItensAbertos { get; set; } = new();
-
-    void Toggle(int codigo) 
+    void Toggle(string codigo)
     {
         if (ItensAbertos.TryGetValue(codigo, out bool value))
             ItensAbertos[codigo] = !value;
         else
             ItensAbertos[codigo] = true;
+    }
+
+    void VerDetalhes(int idMedicamento, string tipo = "medicamentos")
+    {
+        Navigation.NavigateTo($"/estoque/detalhes/{tipo}/{idMedicamento}");
     }
 }

@@ -2,88 +2,116 @@
 using Backend.Models.Insumos;
 using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
+using Shared.DTOs.Insumos;
+using Shared.Enums;
 
 namespace Backend.Repositories
 {
-    // Esta implementação assume que você NÃO tem uma classe Repository<T> genérica.
-    // Se tiver, apenas herde dela:
-    // public class InsumosRepository : Repository<InsumosModel, int>, IInsumosRepository
-
-    public class InsumosRepository : IInsumosRepository
+    public class IInsumosModelRepository : IInsumosRepository
     {
+
         private readonly CanilAppDbContext _context;
         private readonly DbSet<InsumosModel> _dbSet;
 
-        public InsumosRepository(CanilAppDbContext context)
+        public IInsumosModelRepository(CanilAppDbContext context)
         {
             _context = context;
             _dbSet = context.Set<InsumosModel>();
         }
 
-        public async Task<IEnumerable<InsumosModel>> BuscarTodosAsync(Expression<Func<InsumosModel, bool>>? predicate = null)
+        public async Task<IEnumerable<InsumosModel>> GetAsync()
         {
-            var query = _dbSet.AsQueryable();
-            if (predicate != null)
+            var insumosRepository = await _context.Insumos
+                .Include(i => i.ItensEstoque)
+                .Include(i => i.ItemNivelEstoque)
+                .ToListAsync();
+
+            return insumosRepository is null ? throw new InvalidOperationException("Insumos é null") : insumosRepository;
+        }
+
+        public async Task<InsumosModel?> GetByIdAsync(int id)
+        {
+
+            var insumosRepository = await _context.Insumos
+                .Include(i => i.ItensEstoque)
+                .Include(i => i.ItemNivelEstoque)
+                .FirstOrDefaultAsync(i => i.IdItem == id);
+
+            return insumosRepository is null ? throw new InvalidOperationException("Insumos é null") : insumosRepository;
+        }
+
+        public async Task<InsumosModel> CreateAsync(InsumosModel insumo)
+        {
+            if (insumo is null)
             {
-                query = query.Where(predicate);
+                throw new ArgumentNullException(nameof(insumo));
             }
-            return await query.AsNoTracking().ToListAsync();
-        }
 
-        public async Task<InsumosModel?> BuscarPorIdAsync(int id)
-        {
-            return await _dbSet.FindAsync(id);
-        }
-
-        public async Task<InsumosModel> CriarAsync(InsumosModel entity)
-        {
-            await _dbSet.AddAsync(entity);
+            await _context.Insumos.AddAsync(insumo);
             await _context.SaveChangesAsync();
-            return entity;
+            return insumo;
+
         }
 
-        public async Task<InsumosModel> AtualizarAsync(InsumosModel entity)
+
+        public async Task<InsumosModel> UpdateAsync(InsumosModel Insumo)
         {
-            
-            var entry = _context.Entry(entity);
-            if (entry.State == EntityState.Detached)
+            if (Insumo is null)
             {
-                _dbSet.Attach(entity);
+                throw new ArgumentException(null, nameof(Insumo));
             }
-            entry.State = EntityState.Modified;
-
+            _context.Entry(Insumo).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return entity;
+            return Insumo;
         }
 
-        public async Task<bool> DeletarAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            // A lógica de soft delete será tratada no SERVICE.
-            // O repositório apenas executa o que o service manda.
-            // Seguindo o padrão de Produtos, o service buscará,
-            // marcará IsDeleted e chamará AtualizarAsync.
+            var Insumosrepository = await _context.Insumos.FindAsync(id);
 
-            // Se o padrão fosse hard delete no repositório:
-            // var entity = await BuscarPorIdAsync(id);
-            // if (entity == null) return false;
-            // _dbSet.Remove(entity);
-            // await _context.SaveChangesAsync();
-            // return true;
+            if (Insumosrepository is null)
+            {
+                throw new ArgumentException(nameof(Insumosrepository));
+            }
 
-            // No seu padrão (ProdutosService), DeletarAsync do repositório
-            // nem é chamado. O service chama BuscarPorIdAsync e AtualizarAsync.
-            // Vou manter este método por consistência, mas o service fará soft-delete
-            // via AtualizarAsync.
-
-            var entity = await BuscarPorIdAsync(id);
-            if (entity == null) return false;
-
-            _dbSet.Remove(entity);
+            _context.Insumos.Remove(Insumosrepository);
             await _context.SaveChangesAsync();
             return true;
-            // NOTA: O InsumosService NÃO usará este método se seguir o padrão 
-            // de soft-delete do ProdutosService.
+        }
+
+        public async Task<IEnumerable<InsumosModel>> GetAsync(InsumosFiltroDTO filtro)
+        {
+            ArgumentNullException.ThrowIfNull(filtro);
+
+            var query = _context.Insumos
+                .Include(i => i.ItensEstoque)
+                .Include(i => i.ItemNivelEstoque)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filtro.CodInsumo))
+                query = query.Where(p => p.CodInsumo!.Contains(filtro.CodInsumo));
+
+            if (!string.IsNullOrWhiteSpace(filtro.DescricaoSimplificada))
+                query = query.Where(p => p.DescricaoSimplificada!.Contains(filtro.DescricaoSimplificada));
+
+            if (!string.IsNullOrWhiteSpace(filtro.NFe))
+                query = query.Where(p => p.ItensEstoque!.Any(p => p.NFe.Contains(filtro.NFe)));
+
+            if (Enum.IsDefined(typeof(UnidadeInsumosEnum), filtro.Unidade))
+                query = query.Where(p => p.Unidade == (UnidadeInsumosEnum)filtro.Unidade);
+
+            if (filtro.DataEntrega != null)
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataEntrega == filtro.DataEntrega));
+
+
+            if (filtro.DataValidade != null)
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataValidade == filtro.DataValidade));
+
+            var insumos = await query.ToListAsync();
+            return insumos;
         }
     }
 }
+
+
+

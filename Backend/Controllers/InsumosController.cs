@@ -1,86 +1,81 @@
-﻿using Backend.Services.Interfaces;
+﻿using Backend.Models.Insumos;
+using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Shared.DTOs;
-using System.Threading.Tasks;
+using Shared.DTOs.Insumos;
 
 namespace Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Protegendo os endpoints
+    [Authorize]
     public class InsumosController : ControllerBase
     {
-        private readonly IInsumosService _insumosService;
-
-        public InsumosController(IInsumosService insumosService)
+        private readonly IInsumosService _service;
+        public InsumosController(IInsumosService service)
         {
-            _insumosService = insumosService;
+            _service = service;
         }
 
         [HttpGet]
-        public async Task<IActionResult> BuscarTodos()
+        public async Task<ActionResult<IEnumerable<InsumosCadastroDTO>>> Get([FromQuery] InsumosFiltroDTO filtro)
         {
-            var insumos = await _insumosService.BuscarTodosAsync();
-            return Ok(insumos);
+            var filteredRequest = HttpContext.Request.GetDisplayUrl().Contains('?');
+
+            if (filteredRequest)
+                return Ok(await _service.BuscarTodosAsync(filtro));
+            else
+                return Ok(await _service.BuscarTodosAsync());
         }
 
+
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> BuscarPorId(int id)
+        public async Task<ActionResult<InsumosCadastroDTO>> GetById(int id)
         {
-            var insumo = await _insumosService.BuscarPorIdAsync(id);
+            var insumo = await _service.BuscarPorIdAsync(id);
             if (insumo == null)
             {
-                return NotFound();
+                return NotFound($"Insumo com o ID {id} não foi encontrado.");
             }
             return Ok(insumo);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Criar([FromBody] InsumosDTO dto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
 
-            var novoInsumo = await _insumosService.CriarAsync(dto);
-            // Retorna o objeto criado e um status 201 (Created)
-            return CreatedAtAction(nameof(BuscarPorId), new { id = novoInsumo.CodigoId }, novoInsumo);
+        [HttpPost]
+        public async Task<ActionResult<InsumosCadastroDTO>> Post(InsumosCadastroDTO insumoDto)
+        {
+            InsumosModel model = insumoDto;
+            var novoInsumo = await _service.CriarAsync(model);
+            return CreatedAtAction(nameof(GetById), new { id = novoInsumo.IdItem }, novoInsumo);
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Atualizar(int id, [FromBody] InsumosDTO dto)
+        [HttpPut]
+        public async Task<ActionResult<InsumosCadastroDTO>> Put(InsumosCadastroDTO insumoDto)
         {
-            if (id != dto.CodigoId)
+            var insumosAtualizado = await _service.AtualizarAsync(insumoDto);
+            if (insumosAtualizado == null)
             {
-                return BadRequest("O ID da rota e o ID do objeto não correspondem.");
+                return NotFound($"Insumo com o ID não foi encontrado.");
             }
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var insumoAtualizado = await _insumosService.AtualizarAsync(dto);
-            if (insumoAtualizado == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(insumoAtualizado); // Pode retornar Ok() ou o objeto (Ok(insumoAtualizado))
+            return Ok(insumosAtualizado);
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Deletar(int id)
+
+        public async Task<ActionResult<bool>> Delete(int id)
         {
-            var sucesso = await _insumosService.DeletarAsync(id);
+            var sucesso = await _service.DeletarAsync(id);
             if (!sucesso)
             {
-                return NotFound();
+                return NotFound($"Insumo com o ID {id} não foi encontrado.");
             }
 
-            return NoContent(); 
+            return NoContent();
         }
     }
 }
+
+
+

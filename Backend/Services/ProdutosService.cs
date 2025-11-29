@@ -1,139 +1,42 @@
-﻿using Backend.Models.Medicamentos;
-using Backend.Models.Produtos;
-using Backend.Repositories.Interfaces; // (Namespace do seu IMedicamentosRepository)
+﻿using Backend.Exceptions;
+using Backend.Repositories.Interfaces;
 using Backend.Services.Interfaces;
-using Shared.DTOs;
-using System.Globalization;
+using Shared.DTOs.Produtos;
+using Shared.Enums;
 
 namespace Backend.Services
 {
     public class ProdutosService : IProdutosService
     {
-        // Agora injeta o repositório que fala com o SQLite
-        private readonly IProdutosRepository _produtosRepository;
+        private readonly IProdutosRepository _repository;
 
-        public ProdutosService(IProdutosRepository produtosRepository)
+        public ProdutosService(IProdutosRepository repository) 
         {
-            _produtosRepository = produtosRepository;
+            _repository = repository;
         }
 
-        public async Task<IEnumerable<ProdutosDTO>> BuscarTodosAsync()
+        public async Task<IEnumerable<ProdutosLeituraDTO>> BuscarTodosAsync() => (await _repository.GetAsync()).Select(p => (ProdutosLeituraDTO)p);
+
+        public async Task<ProdutosLeituraDTO?> BuscarPorIdAsync(int id) => (await _repository.GetByIdAsync(id))!;
+
+        public async Task<ProdutosLeituraDTO?> CriarAsync(ProdutosCadastroDTO dto)
         {
-            // 1. Busca MODELOS do repositório local
-            // (Adicionando filtro de soft delete)
-            var models = await _produtosRepository.BuscarTodosAsync(m => m.IsDeleted == false);
-
-            // 2. Converte Modelos para DTOs para o Controller
-            return models.Select(model => ToDTO(model));
-        }
-
-        public async Task<ProdutosDTO?> BuscarPorIdAsync(string id)
-        {
-         
-
-            var model = await _produtosRepository.BuscarPorIdAsync(id);
-
-            // Ignora se estiver deletado
-            if (model == null || model.IsDeleted)
+            if (string.IsNullOrWhiteSpace(dto.CodProduto)
+                || string.IsNullOrWhiteSpace(dto.DescricaoSimples)
+                || !Enum.IsDefined(typeof(UnidadeEnum), (int)dto.Unidade)
+                || !Enum.IsDefined(typeof(CategoriaEnum), (int)dto.Categoria)
+                || string.IsNullOrWhiteSpace(dto.Lote))
             {
-                return null;
+                throw new ModelIncompletaException("Um ou mais campos obrigatórios não foram preenchidos");
             }
 
-            return ToDTO(model);
+            return await _repository.CreateAsync(dto);
         }
 
-        public async Task<ProdutosDTO> CriarAsync(ProdutosDTO medicamentoDto)
-        {
-            // 1. Converte DTO para Modelo
-            var model = ToModel(medicamentoDto);
+        public async Task<ProdutosLeituraDTO?> AtualizarAsync(ProdutosCadastroDTO dto) => (await _repository.UpdateAsync(dto))!;
 
-            // 2. Define o timestamp para sincronização
-            model.DataAtualizacao = DateTime.UtcNow;
-            model.IsDeleted = false; // Garante que não está deletado
+        public async Task<bool> DeletarAsync(int id) => await _repository.DeleteAsync(id);
 
-            // 3. Salva Modelo no repositório local
-            var novoModel = await _produtosRepository.CriarAsync(model);
-
-            // 4. Converte Modelo de volta para DTO
-            return ToDTO(novoModel);
-        }
-
-        public async Task<ProdutosDTO?> AtualizarAsync(ProdutosDTO produtoDto)
-        {
-            var IdProdutoaux = produtoDto.IdProduto;
-            var modelExistente = await _produtosRepository.BuscarPorIdAsync(IdProdutoaux);
-            if (modelExistente == null || modelExistente.IsDeleted)
-            {
-                return null;
-            }
-
-            // 1. Converte DTO para Modelo
-            var modelParaAtualizar = ToModel(produtoDto);
-
-            // 2. Define o timestamp para sincronização
-            modelParaAtualizar.DataAtualizacao = DateTime.UtcNow;
-            modelParaAtualizar.IsDeleted = modelExistente.IsDeleted; // Mantém o status de delete
-
-            // 3. Atualiza Modelo no repositório local
-            await _produtosRepository.AtualizarAsync(modelParaAtualizar);
-
-            return ToDTO(modelParaAtualizar);
-        }
-
-        public async Task<bool> DeletarAsync(string id)
-        {
-         
-            // Implementando SOFT DELETE
-            var model = await _produtosRepository.BuscarPorIdAsync(id);
-            if (model == null || model.IsDeleted) // Se já foi deletado, retorna falso
-            {
-                return false;
-            }
-
-            // 1. Marca como deletado
-            model.IsDeleted = true;
-            model.DataAtualizacao = DateTime.UtcNow; // ESSENCIAL para sincronizar
-
-            // 2. Chama ATUALIZAR (não deletar)
-            await _produtosRepository.AtualizarAsync(model);
-            return true;
-        }
-
-
-        // --- MÉTODOS PRIVADOS DE MAPEAMENTO (Permanecem os mesmos) ---
-
-        private Produtos ToModel(ProdutosDTO dto)
-        {
-            return new Produtos
-            {
-                IdProduto = dto.IdProduto,
-                DescricaoSimples = dto.DescricaoSimples,
-                DescricaoDetalhada = dto.DescricaoDetalhada,
-                NFe = dto.NFe,
-                Unidade = dto.Unidade,
-                Categoria = dto.Categoria,
-                Quantidade = dto.Quantidade,
-                Validade = dto.Validade,
-                EstoqueDisponivel = dto.EstoqueDisponivel
-                // DataAtualizacao e IsDeleted são definidos nos métodos de CRUD
-            };
-        }
-
-        private ProdutosDTO ToDTO(Produtos model)
-        {
-          
-            return new ProdutosDTO
-            {
-                IdProduto = model.IdProduto,
-                DescricaoSimples=model.DescricaoSimples,
-                DescricaoDetalhada=model.DescricaoDetalhada,
-                NFe = model.NFe,
-                Unidade=model.Unidade,
-                Categoria = model.Categoria,
-                Quantidade = model.Quantidade,
-                Validade = model.Validade,
-                EstoqueDisponivel = model.EstoqueDisponivel
-            };
-        }
+        public async Task<IEnumerable<ProdutosLeituraDTO>> BuscarTodosAsync(ProdutosFiltroDTO filtro) => (await _repository.GetAsync(filtro)).Select(p => (ProdutosLeituraDTO)p);
     }
 }

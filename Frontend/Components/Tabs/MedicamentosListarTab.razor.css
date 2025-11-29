@@ -1,92 +1,155 @@
-﻿
-.row {
-    --bs-gutter-y: 20px; 
+﻿.caixaBranca {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    width: 100%;
+    text-align: center;
+    transition: all 0.3s ease;
 }
 
+/* Cards */
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
 
 .card {
-    border-radius: 10px;
-    border: none;
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
     }
 
+/* Cabeçalho do card */
 .card-header {
-    padding: 15px 20px; 
-    border-radius: 10px 10px 0 0 !important;
-    background-color: var(--bs-primary) !important; 
-    }
-}
-
-.card-body {
-    padding: 20px; 
-}
-
-
-.info-principal {
-    font-size: 0.95rem;
+    border-radius: 12px 12px 0 0;
     }
 
-    .info-principal label {
+.tituloCard h5 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.tituloCard small {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+/* Informações principais horizontais */
+.info-principal label {
+    font-weight: 600;
+}
+
+.info-principal span {
+    margin-left: 0.25rem;
+    }
+
+/* Informações extras */
+.maisInfo {
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 6px;
+    animation: fadeSlide 0.3s ease-in-out;
+}
+
+    .maisInfo label {
         display: block; 
+        font-weight: 600;
         font-size: 0.85rem;
         color: #6c757d;
 }
 
-
-.maisInfo label {
-    font-size: 0.9rem;
-    color: #495057;
-}
-
-.maisInfo div {
-    font-size: 0.95rem;
-}
-
-
-.card-footer {
-    border-top: 1px solid #f0f0f0;
-    padding: 10px 20px;
-    background-color: #fcfcfc;
-🛠️ Código CSS para a Animação do Card
-
-Adicione estas regras ao seu arquivo MedicamentosListarTab.razor.css:
-CSS
-
-.card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; 
-    border: none; 
-    border-radius: 10px; 
-    background-color: #ffffff;
-}
-
-.card:hover {
-    transform: translateY(-5px); 
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); 
-    cursor: pointer; 
-}
-
-
-.card:active {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    .maisInfo div {
+        margin-top: 0.25rem;
     }
 
-/
-.card-header {
-    background-color: var(--bs-primary); 
-    color: white;
-    padding: 1rem 1.25rem;
-    border-bottom: none; 
-    border-radius: 10px 10px 0 0; 
+/* Badges */
+.badge {
+    font-size: 0.85rem;
+    padding: 0.35em 0.6em;
 }
 
+/* Valores críticos */
+.text-danger {
+    color: #dc3545 !important;
+}
 
-.card-footer {
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-    background-color: #f8f9fa; 
-    border-top: 1px solid #e9ecef; 
-    border-radius: 0 0 10px 10px; 
+/* Animação ao abrir */
+@keyframes fadeSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Botão Ver Mais */
+.btn-light.btn-sm {
+    font-weight: 600;
+}
+
+.filtro-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background-color: #ffffff;
+    padding: 1.3rem 1.5rem;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+}
+
+.filtro-campos {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.filtro-select {
+    min-width: 220px;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+    .filtro-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13,110,253,.15);
+    }
+
+.filtro-input {
+    flex: 1;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+    .filtro-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13,110,253,.15);
+    }
+
+.filtro-botao {
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}

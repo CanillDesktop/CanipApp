@@ -1,20 +1,20 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 
-		<!-- Força build do executável para Windows -->
+		<!-- For�a build do execut�vel para Windows -->
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<SelfContained>false</SelfContained>
 		<UseAppHost>true</UseAppHost>
 
-		<!-- Garante saída como EXE e nome correto -->
+		<!-- Garante sa�da como EXE e nome correto -->
 		<OutputType>Exe</OutputType>
 		<AssemblyName>Backend</AssemblyName>
 
-		<!-- Necessário para ASP.NET no modo AppHost -->
+		<!-- Necess�rio para ASP.NET no modo AppHost -->
 		<IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
 
 		<Platforms>AnyCPU;x64</Platforms>
@@ -52,7 +52,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Migrations\" />
 		<Folder Include="Models\Interfaces\" />
 	</ItemGroup>
 

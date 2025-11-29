@@ -1,15 +1,10 @@
-﻿using Shared.DTOs;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Shared.DTOs.Insumos;
 
 namespace Backend.Services.Interfaces
 {
-    public interface IInsumosService
+    public interface IInsumosService : IService<InsumosCadastroDTO, InsumosLeituraDTO>
     {
-        Task<IEnumerable<InsumosDTO>> BuscarTodosAsync();
-        Task<InsumosDTO?> BuscarPorIdAsync(int id);
-        Task<InsumosDTO> CriarAsync(InsumosDTO dto);
-        Task<InsumosDTO?> AtualizarAsync(InsumosDTO dto);
-        Task<bool> DeletarAsync(int id);
+        Task<IEnumerable<InsumosLeituraDTO>> BuscarTodosAsync(InsumosFiltroDTO filtro);
     }
 }
+

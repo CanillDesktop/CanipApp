@@ -35,26 +35,15 @@
                    disabled="@ViewModel.IsLoading" />
         </div>
 
-        <button class="btn btn-primary w-100 mb-3"
-                @onclick="async () => await ViewModel.LoginCommand.ExecuteAsync(null)"
-                disabled="@ViewModel.IsLoading">
-            @if (ViewModel.IsLoading)
-            {
-                <span>⏳ Entrando...</span>
-            }
-            else
-            {
-                <span>Entrar</span>
-            }
-        </button>
-
-        <div class="text-center">
-            <button class="btn btn-link"
-                    @onclick="() => ViewModel.NavigateToRegisterCommand.Execute(null)"
-                    disabled="@ViewModel.IsLoading">
-                Não tem conta? Cadastre-se
-            </button>
-        </div>
+        @if(ViewModel.IsLoading)
+        {
+            <SpinnerComponent />
+        }
+        else
+        {
+            <button class="btn-primary" @onclick="async () => await ViewModel.LoginCommand.ExecuteAsync(null)">Entrar</button>
+            <button class="btn-secondary" @onclick="ViewModel.RegisterCommand.Execute">Registrar</button>
+        }
     </div>
 </div>
 

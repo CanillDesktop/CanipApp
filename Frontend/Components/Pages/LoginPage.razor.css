@@ -1,4 +1,5 @@
-﻿.login-wrapper {
+﻿/* Centralização do container */
+.login-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -7,6 +8,7 @@
     padding: 1rem;
 }
 
+/* Card de login */
 .login-container {
     background: var(--bg-card);
     border: 1px solid var(--cor-borda);
@@ -57,6 +59,7 @@
         border: none;
         font-size: 16px;
         cursor: pointer;
+        transition: background-color 0.2s ease;
     }
 
 .btn-primary {

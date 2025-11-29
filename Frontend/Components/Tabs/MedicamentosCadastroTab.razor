@@ -3,60 +3,64 @@
 
 <h3>Cadastro de Medicamentos</h3>
 <div class="caixaBranca">
-    <EditForm Model="@ViewModel.MedicamentoParaCadastro" OnValidSubmit=" () =>  ViewModel.CadastrarMedicamentoCommand.ExecuteAsync(ViewModel.MedicamentoParaCadastro)">
+    <EditForm Model="@ViewModel.MedicamentoCadastro" OnValidSubmit="() => ViewModel.CadastrarMedicamentoCommand.ExecuteAsync(ViewModel.MedicamentoCadastro)">
         <DataAnnotationsValidator />
 
-        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoParaCadastro.NomeComercial)</label>
-        <InputText @bind-Value="ViewModel.MedicamentoParaCadastro.NomeComercial" class="form-control" />
-        <ValidationMessage For="@(() => ViewModel.MedicamentoParaCadastro.NomeComercial)" class="text-danger" />
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.NomeComercial)</label>
+        <InputText @bind-Value="ViewModel.MedicamentoCadastro.NomeComercial" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.NomeComercial)" class="text-danger" />
 
-        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoParaCadastro.DataDeEntradaDoMedicamento)</label>
-        <InputDate @bind-Value="ViewModel.MedicamentoParaCadastro.DataDeEntradaDoMedicamento" TValue="DateTime" class="form-control" />
-        <ValidationMessage For="@(() => ViewModel.MedicamentoParaCadastro.DataDeEntradaDoMedicamento)" class="text-danger" />
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.Formula)</label>
+        <InputText @bind-Value="ViewModel.MedicamentoCadastro.Formula" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.Formula)" class="text-danger" />
 
-        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoParaCadastro.NotaFiscal)</label>
-        <InputText @bind-Value="ViewModel.MedicamentoParaCadastro.NotaFiscal" class="form-control" />
-        <ValidationMessage For="@(() => ViewModel.MedicamentoParaCadastro.NotaFiscal)" class="text-danger" />
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.DescricaoMedicamento)</label>
+        <InputText @bind-Value="ViewModel.MedicamentoCadastro.DescricaoMedicamento" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.DescricaoMedicamento)" class="text-danger" />
 
-        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoParaCadastro.DescricaoMedicamentos)</label>
-        <InputText @bind-Value="ViewModel.MedicamentoParaCadastro.DescricaoMedicamentos" class="form-control" />
-        <ValidationMessage For="@(() => ViewModel.MedicamentoParaCadastro.DescricaoMedicamentos)" class="text-danger" />
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.Lote)</label>
+        <InputText @bind-Value="ViewModel.MedicamentoCadastro.Lote" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.Lote)" class="text-danger" />
 
-        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoParaCadastro.PublicoAlvo)</label>
-        <InputSelect @bind-Value="ViewModel.MedicamentoParaCadastro.PublicoAlvo" TValue="PublicoAlvoMedicamentoEnum" class="form-select">
-            <option value="">-- Escolha uma opcao --</option>
-            @foreach (var publico in Enum.GetValues<PublicoAlvoMedicamentoEnum>())
-            {
-                <option value="@publico">@publico.GetDescription()</option>
-            }
-        </InputSelect>
-        <ValidationMessage For="@(() => ViewModel.MedicamentoParaCadastro.PublicoAlvo)" class="text-danger" />
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.DataEntrega)</label>
+        <InputDate @bind-Value="ViewModel.MedicamentoCadastro.DataEntrega" TValue="DateTime" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.DataEntrega)" class="text-danger" />
 
-        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoParaCadastro.Prioridade)</label>
-        <InputSelect @bind-Value="ViewModel.MedicamentoParaCadastro.Prioridade" TValue="PrioridadeEnum" class="form-select">
-            <option value="">-- Escolha uma opcaoo --</option>
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.NFe)</label>
+        <InputText @bind-Value="ViewModel.MedicamentoCadastro.NFe" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.NFe)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.Prioridade)</label>
+        <InputSelect @bind-Value="ViewModel.MedicamentoCadastro.Prioridade" TValue="PrioridadeEnum" class="form-select">
+            <option value="">-- Escolha uma opção --</option>
             @foreach (var prioridade in Enum.GetValues<PrioridadeEnum>())
             {
-                <option value="@prioridade">@prioridade.GetDescription()</option>
+                <option value="@prioridade">@prioridade</option>
             }
         </InputSelect>
-        <ValidationMessage For="@(() => ViewModel.MedicamentoParaCadastro.Prioridade)" class="text-danger" />
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.Prioridade)" class="text-danger" />
 
-        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoParaCadastro.EntradaEstoque)</label>
-        <InputNumber @bind-Value="ViewModel.MedicamentoParaCadastro.EntradaEstoque" min="0" class="form-control" />
-        <ValidationMessage For="@(() => ViewModel.MedicamentoParaCadastro.EntradaEstoque)" class="text-danger" />
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.PublicoAlvo)</label>
+        <InputSelect @bind-Value="ViewModel.MedicamentoCadastro.PublicoAlvo" TValue="PublicoAlvoMedicamentoEnum" class="form-select">
+            <option value="">-- Escolha uma opção --</option>
+            @foreach (var publicoAlvo in Enum.GetValues<PublicoAlvoMedicamentoEnum>())
+            {
+                <option value="@publicoAlvo">@publicoAlvo.GetDescription()</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.PublicoAlvo)" class="text-danger" />
 
-        @*@<label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoParaCadastro.ValidadeMedicamento)</label>
-        <InputDate @bind-Value:culture="pt-BR" @bind-Value:format="dd/MM/yyyy" @bind-Value="ViewModel.MedicamentoParaCadastro.ValidadeMedicamento" TValue="DateOnly?" class="form-control" />
-        <ValidationMessage For="@(() => ViewModel.MedicamentoParaCadastro.ValidadeMedicamento)" class="text-danger" />*@ @*Comentei pq to tentando ahcar um jeito de resolver o problema de conversao*@
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.Quantidade)</label>
+        <InputNumber @bind-Value="ViewModel.MedicamentoCadastro.Quantidade" min="0" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.Quantidade)" class="text-danger" />
 
-        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoParaCadastro.EstoqueDisponivel)</label>
-        <InputNumber @bind-Value="ViewModel.MedicamentoParaCadastro.EstoqueDisponivel" min="0" class="form-control" />
-        <ValidationMessage For="@(() => ViewModel.MedicamentoParaCadastro.EstoqueDisponivel)" class="text-danger" />
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.MedicamentoCadastro.DataValidade)</label>
+        <InputDate @bind-Value:culture="pt-BR" @bind-Value:format="dd/MM/yyyy" @bind-Value="ViewModel.MedicamentoCadastro.DataValidade" TValue="DateTime?" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.MedicamentoCadastro.DataValidade)" class="text-danger" />
 
         @if (ViewModel.Cadastrando)
         {
-            <div class="spinner"></div>
+            <SpinnerComponent />
         }
         else
         {
@@ -65,7 +69,6 @@
             </div>
         }
     </EditForm>
-    -->
 </div>        
 
 @code {

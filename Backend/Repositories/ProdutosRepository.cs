@@ -3,7 +3,7 @@ using Backend.Exceptions;
 using Backend.Models.Produtos;
 using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Shared.DTOs;
+using Shared.DTOs.Produtos;
 using Shared.Enums;
 using System.Linq;
 using System.Linq.Expressions;
@@ -19,56 +19,90 @@ namespace Backend.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Produtos>> BuscarTodosAsync(Expression<Func<Produtos, bool>>? filter = null)
+        public async Task<IEnumerable<ProdutosModel>> GetAsync()
         {
-            IQueryable<Produtos> query = _context.Produtos;
+            var produtos = await _context.Produtos
+                .Include(p => p.ItemNivelEstoque)
+                .Include(p => p.ItensEstoque)
+                .ToListAsync();
 
-            if (filter != null)
-            {
-                query = query.Where(filter);
-            }
-
-            return await query.AsNoTracking().ToListAsync();
+            return produtos;
         }
 
-        public async Task<Produtos?> BuscarPorIdAsync(string id)
+        public async Task<ProdutosModel?> GetByIdAsync(int id)
         {
-             return await _context.Produtos.FindAsync(id);
+            var produto = await _context.Produtos
+                .Include(p => p.ItensEstoque)
+                .Include(p => p.ItemNivelEstoque)
+                .FirstOrDefaultAsync(p => p.IdItem == id);
+
+            ArgumentNullException.ThrowIfNull(produto);
+
+            return produto;
         }
 
-        public async Task<Produtos> CriarAsync(Produtos model)
+        public async Task<ProdutosModel> CreateAsync(ProdutosModel model)
         {
-            await _context.Produtos.AddAsync(model);
+                ArgumentNullException.ThrowIfNull(model);
+
+                _context.Produtos.Add(model);
             await _context.SaveChangesAsync();
+
             return model;
         }
 
 
-        public async Task<Produtos?> AtualizarAsync(Produtos model)
+        public async Task<ProdutosModel?> UpdateAsync(ProdutosModel model)
         {
+            ArgumentNullException.ThrowIfNull(model);
+
             _context.Entry(model).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return model;
         }
 
-        public async Task<bool> DeletarAsync(string id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            // AVISO: Isto é um "Hard Delete".
-            // Para "Soft Delete", você deve implementar essa lógica no SERVIÇO,
-            // chamando o método AtualizarAsync() deste repositório.
+            var produto = await _context.Produtos.FindAsync(id);
 
-            var model = await _context.Produtos.FindAsync(id);
-            if (model == null)
-            {
-                return false;
-            }
+            ArgumentNullException.ThrowIfNull(produto);
 
-            _context.Produtos.Remove(model);
+            _context.Produtos.Remove(produto);
             await _context.SaveChangesAsync();
             return true;
         }
 
+        public async Task<IEnumerable<ProdutosModel>> GetAsync(ProdutosFiltroDTO filtro)
+        {
+            ArgumentNullException.ThrowIfNull(filtro);
 
+            var query = _context.Produtos
+                .Include(p => p.ItensEstoque)
+                .Include(p => p.ItemNivelEstoque)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filtro.CodProduto))
+                query = query.Where(p => p.CodProduto!.Contains(filtro.CodProduto));
+
+            if (!string.IsNullOrWhiteSpace(filtro.DescricaoSimples))
+                query = query.Where(p => p.DescricaoSimples!.Contains(filtro.DescricaoSimples));
+
+            if (!string.IsNullOrWhiteSpace(filtro.NFe))
+                query = query.Where(p => p.ItensEstoque!.Any(p => p.NFe.Contains(filtro.NFe)));
+
+            if (Enum.IsDefined(typeof(CategoriaEnum), filtro.Categoria))
+                query = query.Where(p => p.Categoria == (CategoriaEnum)filtro.Categoria);
+
+            if (filtro.DataEntrega != null)
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataEntrega == filtro.DataEntrega));
+
+
+            if (filtro.DataValidade != null)
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataValidade == filtro.DataValidade));
+
+            var produtos = await query.ToListAsync();
+            return produtos;
+        }
 
     }
 }

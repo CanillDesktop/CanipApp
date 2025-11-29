@@ -49,12 +49,12 @@ namespace Frontend.ViewModels
             _httpClient = httpClientFactory.CreateClient("ApiClient");
             _authProvider = authProvider;
             LoginCommand = new AsyncRelayCommand(LoginAsync);
-            NavigateToRegisterCommand = new RelayCommand(NavigateToRegister);
+            RegisterCommand = new RelayCommand(NavigateToRegister);
             LimparCacheCommand = new RelayCommand(LimparCache); // NOVO - Debug
         }
 
         public IAsyncRelayCommand LoginCommand { get; }
-        public IRelayCommand NavigateToRegisterCommand { get; }
+        public IRelayCommand RegisterCommand { get; }
         public IRelayCommand LimparCacheCommand { get; } // NOVO - Debug
 
         private async Task LoginAsync()

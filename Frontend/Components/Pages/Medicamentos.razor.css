@@ -21,8 +21,8 @@
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     width: 100%;
-    margin-bottom: 10px;
-    justify-content: space-evenly;
+    text-align: center;
+    transition: all 0.3s ease;
 }
 
 .spinner {
@@ -91,36 +91,38 @@ li {
 }
 
 
+
+
+/* Cada item de medicamento */
 .Item {
     background-color: var(--bg-card);
-    margin: 10px;
-    padding: 20px;
-    border-radius: 10px;
-    flex: 2;
-    border: solid 1px var(--cor-primaria);
-    border-radius: 1px;
     color: var(--text);
+    border: solid 1px var(--cor-primaria);
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
-
    
+    /* Parte de informações principais */
     .Item .info p {
         margin: 3px 0;
     }
 
-
+/* Parte de informações extras (quando "Ver Mais") */
 .maisInfo p {
     margin: 2px 0;
     font-size: 14px;
 }
 
-
+/* Área dos botões */
 .botoesItem {
     margin-top: 10px;
     display: flex;
     justify-content: space-around;
 }
 
-  
+    /* Estilo dos botões */
     .botoesItem button {
         background-color: white;
         color: #0078D7;

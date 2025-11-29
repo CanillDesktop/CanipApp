@@ -43,6 +43,9 @@ public static class MauiProgram
         CultureInfo.DefaultThreadCurrentCulture = culture;
         CultureInfo.DefaultThreadCurrentUICulture = culture;
 
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+
         builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG
@@ -74,30 +77,34 @@ public static class MauiProgram
         builder.Services.AddAuthorizationCore();
 
         // ============================================================================
-        // 🔥 REGISTRA DELEGATING HANDLER
+        // 🔥 REGISTRA DELEGATING HANDLER NO DI
         // ============================================================================
-
+        builder.Services.AddTransient<AuthDelegatingHandler>();
 
         // ============================================================================
         // 🔥 VIEWMODELS
         // ============================================================================
         builder.Services.AddScoped<ProdutosViewModel>();
         builder.Services.AddScoped<MedicamentosViewModel>();
+        builder.Services.AddScoped<InsumosViewModel>();
         builder.Services.AddScoped<LoginViewModel>();
         builder.Services.AddScoped<CadastroViewModel>();
-        builder.Services.AddScoped<InsumosViewModel>();
+        builder.Services.AddScoped<EstoqueDetailViewModel>();
+        builder.Services.AddScoped<AddLoteEstoqueViewModel>();
 
         // ============================================================================
-        // 🔥 HTTPCLIENT COM URL DINÂMICA E AUTH HANDLER
+        // 🔥 HTTPCLIENT COM URL DINÂMICA E AUTH HANDLER VIA DI
         // ============================================================================
         builder.Services.AddHttpClient("ApiClient", (sp, client) =>
         {
             var cfg = sp.GetRequiredService<BackendConfig>();
             client.BaseAddress = new Uri(cfg.Url);
             client.Timeout = TimeSpan.FromMinutes(4);
+
+            Console.WriteLine($"🌐 [HttpClient] Configurado com BaseAddress: {cfg.Url}");
         })
-   .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler())   // obrigatório
-  .AddHttpMessageHandler(() => new AuthDelegatingHandler());
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler())
+        .AddHttpMessageHandler<AuthDelegatingHandler>();  // ✅ USA DI - CRITICAL FIX
 
         var app = builder.Build();
 

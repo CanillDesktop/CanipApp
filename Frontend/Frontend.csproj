@@ -1,7 +1,4 @@
-﻿
-
-
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 	<PropertyGroup>
 		<TargetFrameworks>net8.0-windows10.0.19041.0</TargetFrameworks>
 		<UseMaui>true</UseMaui>
@@ -37,6 +34,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="4.0.4.4" />
+		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.90" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.90" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="8.0.90" />
@@ -109,7 +107,7 @@
 		<Message Text="✅ Backend publicado em: $(BackendPublishDestination)" Importance="high" />
 	</Target>
 
-<Target Name="KillBackendBeforeBuild" BeforeTargets="Build">
-    <Exec Command="taskkill /IM Backend.exe /F" ContinueOnError="true" />
-</Target>
+	<Target Name="KillBackendBeforeBuild" BeforeTargets="Build">
+		<Exec Command="taskkill /IM Backend.exe /F" ContinueOnError="true" />
+	</Target>
 </Project>

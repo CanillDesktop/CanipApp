@@ -1,0 +1,104 @@
+﻿@page "/estoque/detalhes/{Tipo}/{IdItem:int}/novoLote"
+@using System.ComponentModel
+@using Shared.Helpers
+@inject NavigationManager Navigation
+@inject AddLoteEstoqueViewModel ViewModel
+@implements IDisposable
+
+<h3>Cadastrar novo lote para "@NomeItem"</h3>
+<div class="caixaBranca">
+    <EditForm Model="@ViewModel.EstoqueItemCadastro" OnValidSubmit="() => ViewModel.CadastrarLoteCommand.ExecuteAsync(ViewModel.EstoqueItemCadastro)">
+        <DataAnnotationsValidator />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.EstoqueItemCadastro!.CodItem)</label>
+        <input value="@CodItem" class="form-control" readonly />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.EstoqueItemCadastro!.Lote)</label>
+        <InputText @bind-Value="ViewModel.EstoqueItemCadastro!.Lote" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.EstoqueItemCadastro.Lote)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.EstoqueItemCadastro.DataEntrega)</label>
+        <InputDate @bind-Value="ViewModel.EstoqueItemCadastro.DataEntrega" TValue="DateTime" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.EstoqueItemCadastro.DataEntrega)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.EstoqueItemCadastro.NFe)</label>
+        <InputText @bind-Value="ViewModel.EstoqueItemCadastro.NFe" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.EstoqueItemCadastro.NFe)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.EstoqueItemCadastro.Quantidade)</label>
+        <InputNumber @bind-Value="ViewModel.EstoqueItemCadastro.Quantidade" min="0" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.EstoqueItemCadastro.Quantidade)" class="text-danger" />
+
+        <label>@DisplayNameHelper.DisplayNameFor(() => ViewModel.EstoqueItemCadastro.DataValidade)</label>
+        <InputDate @bind-Value:culture="pt-BR" @bind-Value:format="dd/MM/yyyy" @bind-Value="ViewModel.EstoqueItemCadastro.DataValidade" TValue="DateTime?" class="form-control" />
+        <ValidationMessage For="@(() => ViewModel.EstoqueItemCadastro.DataValidade)" class="text-danger" />
+
+        <div class="mt-4 text-end">
+            @if (ViewModel.Cadastrando)
+            {
+                <SpinnerComponent />
+            }
+            else
+            {
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Cadastrar Novo Lote
+                </button>
+            }
+            <button type="button" class="btn btn-secondary" @onclick="Voltar">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public string Tipo { get; set; } = string.Empty;
+
+    [Parameter]
+    public int IdItem { get; set; }
+
+    public string NomeItem { get; set; } = string.Empty;
+    public string CodItem { get; set; } = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("nomeItem", out var nomeValue))
+        {
+            NomeItem = nomeValue.FirstOrDefault() ?? string.Empty;
+        }
+
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("codItem", out var codValue))
+        {
+            CodItem = codValue.FirstOrDefault() ?? string.Empty;
+        }
+
+        if (ViewModel is INotifyPropertyChanged notify)
+        {
+            notify.PropertyChanged += OnVmPropertyChanged;
+        }
+
+        ViewModel.EstoqueItemCadastro!.IdItem = IdItem;
+        ViewModel.EstoqueItemCadastro!.CodItem = CodItem;
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (ViewModel is INotifyPropertyChanged notify)
+        {
+            notify.PropertyChanged -= OnVmPropertyChanged;
+        }
+    }
+
+    void Voltar()
+    {
+        Navigation.NavigateTo($"/estoque/detalhes/{Tipo}/{IdItem}");
+    }
+}

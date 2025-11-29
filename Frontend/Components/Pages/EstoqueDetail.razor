@@ -1,0 +1,196 @@
+﻿@page "/estoque/detalhes/{Tipo}/{IdItem:int}"
+@using Shared.DTOs
+@using Shared.Models.Interfaces
+@using System.ComponentModel
+@using Shared.Helpers
+@inject NavigationManager Navigation
+@inject EstoqueDetailViewModel VM
+@implements IDisposable
+
+
+<h3 class="mb-4"><i class="bi bi-box-seam"></i> Detalhes do Estoque</h3>
+
+@if (VM.Carregando)
+{
+    <SpinnerComponent />
+}
+else if (VM.EstoqueItem == null)
+{
+    <div class="alert alert-warning text-center shadow-sm">
+        <i class="bi bi-exclamation-triangle-fill"></i> Item não encontrado ou erro ao carregar dados.
+    </div>
+}
+else
+{
+    <div class="caixaBranca p-4 shadow-sm rounded">
+
+
+        <h4 class="fw-bold mb-4">@VM.EstoqueItem.NomeItem</h4>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <h5 class="mb-3"><i class="bi bi-info-circle"></i> Informações Gerais</h5>
+                <table class="table table-bordered table-striped">
+                    <tbody>
+                        <tr>
+                            <th scope="row" class="w-40">@DisplayNameHelper.DisplayNameFor(() => VM.EstoqueItem.CodItem)</th>
+                            <td>@VM.EstoqueItem.CodItem</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Total em Estoque</th>
+                            <td>
+                                @(VM.EstoqueItem.ItensEstoque?.Sum(i => i.Quantidade) ?? 0)
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">@DisplayNameHelper.DisplayNameFor(() => VM.EstoqueItem.ItemNivelEstoque!.NivelMinimoEstoque)</th>
+                            <td>
+                                @if (VM.EstoqueItem.ItemNivelEstoque != null)
+                                {
+                                    <span>@VM.EstoqueItem.ItemNivelEstoque.NivelMinimoEstoque</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Não definido</span>
+                                }
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="col-lg-6">
+                <h5 class="mb-3"><i class="bi bi-card-text"></i>@DisplayNameHelper.DisplayNameFor(() => VM.EstoqueItem.NomeItem)</h5>
+                <p class="text-muted">@VM.EstoqueItem.NomeItem</p>
+            </div>
+        </div>
+
+        @if (VM.EstoqueItem.ItensEstoque?.Any() == true)
+        {
+            <h5 class="mt-5 mb-3"><i class="bi bi-list-columns"></i> Detalhes por Lote</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Lote</th>
+                            <th>Quantidade do Lote</th>
+                            <th>Data Entrega do Lote</th>
+                            <th>NFe/DOC</th>
+                            <th>Data Validade do Lote</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var itemEstoque in VM.EstoqueItem.ItensEstoque)
+                        {
+                            var isVencido = itemEstoque.DataValidade.HasValue && itemEstoque.DataValidade.Value < DateTime.Today;
+                            var rowClass = isVencido ? "table-danger fw-bold" : "";
+
+                            <tr class="@rowClass">
+                                <td>@itemEstoque.Lote</td>
+                                <td>@itemEstoque.Quantidade</td>
+                                <td>@itemEstoque.DataEntrega.ToShortDateString()</td>
+                                <td>@itemEstoque.NFe</td>
+                                <td>
+                                    @if (itemEstoque.DataValidade.HasValue)
+                                    {
+                                        <span>@itemEstoque.DataValidade.Value.ToShortDateString()</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sem Validade</span>
+                                    }
+                                </td>
+
+                                <td class="text-center">
+                                    <button class="btn btn-success btn-sm me-2"
+                                            title="Retirar quantidade"
+                                            @onclick="() => VM.RetirarQtdCommand.ExecuteAsync(itemEstoque)">
+                                        <i class="bi bi-box-arrow-up"></i>
+                                    </button>
+
+                                    <button class="btn btn-danger btn-sm"
+                                            title="Remover lote"
+                                            @onclick="() => VM.DeletarLoteCommand.ExecuteAsync(itemEstoque.Lote)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info mt-5">
+                Nenhum lote/entrada de estoque detalhado encontrado para este item.
+            </div>
+        }
+
+        <div class="mt-4 text-end">
+            <button class="btn btn-primary"
+                    @onclick="() => AdicionarLote()">
+                <i class="bi bi-plus-circle"></i> Abrir Formulário de Cadastro
+            </button>
+            <button class="btn btn-secondary" @onclick="Voltar">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </button>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public string Tipo { get; set; } = string.Empty;
+
+    [Parameter]
+    public int IdItem { get; set; }
+
+    protected override void OnInitialized()
+    {
+        VM.OnDeleted += StateHasChanged;
+        VM.OnRemoval += StateHasChanged;
+        if (VM is INotifyPropertyChanged notify)
+        {
+            notify.PropertyChanged += OnVmPropertyChanged;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IdItem > 0 && !string.IsNullOrEmpty(Tipo))
+        {
+            await VM.BuscarItemPorCodigoAsync(IdItem, Tipo);
+        }
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        VM.OnDeleted -= StateHasChanged;
+        VM.OnRemoval -= StateHasChanged;
+        if (VM is INotifyPropertyChanged notify)
+        {
+            notify.PropertyChanged -= OnVmPropertyChanged;
+        }
+    }
+
+    void Voltar()
+    {
+        Navigation.NavigateTo($"/{Tipo}");
+    }
+
+    void AdicionarLote()
+    {
+        Navigation.NavigateTo($"/estoque/detalhes/{Tipo}/{IdItem}/novoLote?nomeItem={VM.EstoqueItem.NomeItem}&codItem={VM.EstoqueItem.CodItem}");
+    }
+}
+

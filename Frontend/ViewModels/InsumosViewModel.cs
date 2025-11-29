@@ -1,58 +1,74 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Frontend.Models;
-using Frontend.ViewModels.Interfaces;
-using Shared.DTOs;
-using Shared.Models;
+using Frontend.Models.Insumos;
 using Frontend.Records;
+using Frontend.ViewModels.Interfaces;
+using Shared.DTOs.Insumos;
+using Shared.Models;
 using System.Collections.ObjectModel;
 using System.Net.Http.Json;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Diagnostics; // CORREÇÃO: Adicionado para Debug.WriteLine
-
-// CORREÇÃO: Adicionado o record que estava faltando, igual ao de Medicamentos
-public record PesquisaInsumos(string Chave, string Valor);
 
 namespace Frontend.ViewModels
 {
     public partial class InsumosViewModel : ObservableObject, ILoadableViewModel, ITabableViewModel
     {
         private readonly HttpClient _http;
+
         private bool _hasTabs;
         private readonly ObservableCollection<TabItemModel> _tabsShowing =
         [
             new TabItemModel("Insumos", true),
-            // CORREÇÃO: Aba de cadastro agora é visível por padrão
-            new TabItemModel("Cadastrar", true)
+            new TabItemModel("Cadastrar")
         ];
         private string _activeTab = "Insumos";
+
         private bool _carregando;
         private bool _cadastrando;
-        private InsumosModel _insumo = new();
+        private bool _deletando;
+
+        private InsumosModel _insumoCadastro = new();
+
         private InsumosFiltroModel _filtro = new();
         private string _chavePesquisa = string.Empty;
         private string _valorPesquisa = string.Empty;
 
-        public ObservableCollection<InsumosDTO> Insumos { get; } = [];
+        public ObservableCollection<InsumosLeituraDTO> Insumos { get; } = [];
 
         public bool Carregando
         {
             get => _carregando;
-            set => SetProperty(ref _carregando, value);
+            set
+            {
+                SetProperty(ref _carregando, value);
+        }
         }
 
         public bool Cadastrando
         {
             get => _cadastrando;
-            set => SetProperty(ref _cadastrando, value);
+            set
+            {
+                SetProperty(ref _cadastrando, value);
+        }
+        }
+
+        public bool Deletando
+        {
+            get => _deletando;
+            set
+            {
+                SetProperty(ref _deletando, value);
+            }
         }
 
         public bool HasTabs
         {
             get => _hasTabs;
-            set => SetProperty(ref _hasTabs, value);
+            set
+            {
+                SetProperty(ref _hasTabs, value);
+        }
         }
 
         public ObservableCollection<TabItemModel> TabsShowing
@@ -72,28 +88,40 @@ namespace Frontend.ViewModels
             }
         }
 
-        public InsumosModel Insumo
+        public InsumosModel InsumoCadastro
         {
-            get => _insumo;
-            set => SetProperty(ref _insumo, value);
+            get => _insumoCadastro;
+            set
+            {
+                SetProperty(ref _insumoCadastro, value);
+        }
         }
 
         public InsumosFiltroModel Filtro
         {
             get => _filtro;
-            set => SetProperty(ref _filtro, value);
+            set
+            {
+                SetProperty(ref _filtro, value);
+        }
         }
 
         public string ValorPesquisa
         {
             get => _valorPesquisa;
-            set => SetProperty(ref _valorPesquisa, value);
+            set
+            {
+                SetProperty(ref _valorPesquisa, value);
+        }
         }
 
         public string ChavePesquisa
         {
             get => _chavePesquisa;
-            set => SetProperty(ref _chavePesquisa, value);
+            set
+            {
+                SetProperty(ref _chavePesquisa, value);
+        }
         }
 
         public Action? OnTabChanged { get; set; }
@@ -101,20 +129,19 @@ namespace Frontend.ViewModels
 
         public IAsyncRelayCommand CarregarInsumosCommand;
         public IAsyncRelayCommand<InsumosModel?> CadastrarInsumoCommand;
-        public IAsyncRelayCommand<PesquisaInsumos?> FiltrarInsumosCommand;
-        public IAsyncRelayCommand SincronizarInsumosCommand { get; }
+        public IAsyncRelayCommand<PesquisaProduto?> FiltrarInsumosCommand;
+        public IAsyncRelayCommand<InsumosLeituraDTO?> DeletarInsumoCommand;
 
         public InsumosViewModel(IHttpClientFactory httpClientFactory)
         {
             _http = httpClientFactory.CreateClient("ApiClient");
             CarregarInsumosCommand = new AsyncRelayCommand(CarregarInsumosAsync);
             CadastrarInsumoCommand = new AsyncRelayCommand<InsumosModel?>(CadastrarInsumoAsync);
-            SincronizarInsumosCommand = new AsyncRelayCommand(SincronizarInsumosAsyncFront);
-            FiltrarInsumosCommand = new AsyncRelayCommand<PesquisaInsumos?>(BuscarInsumosFiltradosAsync);
+            FiltrarInsumosCommand = new AsyncRelayCommand<PesquisaProduto?>(BuscarInsumosFiltradosAsync);
+            DeletarInsumoCommand = new AsyncRelayCommand<InsumosLeituraDTO?>(DeletarInsumoAsync);
         }
 
-        #region Metodos Principais
-
+        #region metodos
         private async Task CarregarInsumosAsync()
         {
             try
@@ -123,7 +150,7 @@ namespace Frontend.ViewModels
                     return;
 
                 Carregando = true;
-                var insumos = await _http.GetFromJsonAsync<InsumosDTO[]>("api/insumos");
+                var insumos = await _http.GetFromJsonAsync<InsumosLeituraDTO[]>("api/insumos");
 
                 Insumos.Clear();
                 foreach (var i in insumos ?? [])
@@ -131,8 +158,7 @@ namespace Frontend.ViewModels
             }
             catch (Exception ex)
             {
-                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine para evitar crash no reload
-                Debug.WriteLine($"Erro ao carregar insumos: {ex.Message}");
+                await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
             }
             finally
             {
@@ -157,45 +183,36 @@ namespace Frontend.ViewModels
         {
             try
             {
-                if (Cadastrando || insumo == null)
+                if (Cadastrando)
                     return;
 
-                var dto = (InsumosDTO)insumo;
+                var dto = (InsumosCadastroDTO)insumo;
 
                 Cadastrando = true;
                 var response = await _http.PostAsJsonAsync("api/insumos", dto);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // CORREÇÃO: Lógica alinhada com MedicamentosViewModel
-                    Debug.WriteLine("Insumo cadastrado com sucesso!");
-                    var itemSalvo = await response.Content.ReadFromJsonAsync<InsumosDTO>();
-                    if (itemSalvo != null) Insumos.Add(itemSalvo);
-
-                    // Volta para a aba de listagem
-                    ActiveTab = "Insumos";
-                    OnTabChanged?.Invoke();
+                    await Application.Current!.MainPage!.DisplayAlert("Sucesso", "Insumo cadastrado com sucesso!", "OK");
                 }
                 else
                 {
-                    // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
                     var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-                    Debug.WriteLine($"Erro: {error?.Title} - {error?.Message}");
+                    await Application.Current!.MainPage!.DisplayAlert(error!.Title, error!.Message, "OK");
                 }
             }
             catch (Exception ex)
             {
-                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
-                Debug.WriteLine($"Erro ao cadastrar insumo: {ex.Message}");
+                await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
             }
             finally
             {
-                Insumo = new(); // Limpa o formulário
+                InsumoCadastro = new();
                 Cadastrando = false;
             }
         }
 
-        private async Task BuscarInsumosFiltradosAsync(PesquisaInsumos? pesquisa)
+        private async Task BuscarInsumosFiltradosAsync(PesquisaProduto? pesquisa)
         {
             try
             {
@@ -209,15 +226,12 @@ namespace Frontend.ViewModels
 
                 if (string.IsNullOrWhiteSpace(ChavePesquisa) || string.IsNullOrWhiteSpace(ValorPesquisa))
                 {
-                    // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
-                    Debug.WriteLine("Aviso: Escolha um campo e preencha o valor.");
-                    await CarregarInsumosAsync(); // Carrega todos se o filtro for inválido
+                    await Application.Current!.MainPage!.DisplayAlert("Aviso", "Escolha um campo e preencha o valor.", "OK");
                     return;
                 }
 
-                // A sua lógica de filtro com EscapeDataString já estava correta!
-                var url = $"api/insumos?{ChavePesquisa}={Uri.EscapeDataString(ValorPesquisa)}";
-                var insumos = await _http.GetFromJsonAsync<InsumosDTO[]>(url);
+                var url = $"api/insumos?{ChavePesquisa}={Uri.UnescapeDataString(ValorPesquisa)}";
+                var insumos = await _http.GetFromJsonAsync<InsumosLeituraDTO[]>(url);
 
                 Insumos.Clear();
                 foreach (var i in insumos ?? [])
@@ -225,8 +239,7 @@ namespace Frontend.ViewModels
             }
             catch (Exception ex)
             {
-                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
-                Debug.WriteLine($"Erro ao filtrar insumos: {ex.Message}");
+                await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
             }
             finally
             {
@@ -234,38 +247,51 @@ namespace Frontend.ViewModels
             }
         }
 
-        private async Task SincronizarInsumosAsyncFront()
+        private async Task DeletarInsumoAsync(InsumosLeituraDTO? m)
         {
             try
             {
-                await _http.PostAsync("api/Sync", null);
-                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
-                Debug.WriteLine("Sincronização iniciada.");
+                if (Deletando)
+                    return;
+
+                Deletando = true;
+
+                var isExcluir = await Application.Current!.MainPage!.DisplayAlert("Confirmação de exclusão", $"Deseja realmente excluir o insumo \"{m.NomeItem}\"?", "Sim", "Não");
+
+                if (isExcluir)
+                {
+                    var result = await _http.DeleteAsync($"api/insumos/{m.IdItem}");
+                    await CarregarInsumosAsync();
+                }
             }
             catch (Exception ex)
             {
-                // CORREÇÃO: Substituído DisplayAlert por Debug.WriteLine
-                Debug.WriteLine($"Erro ao sincronizar: {ex.Message}");
+                await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
+            }
+            finally
+            {
+                Deletando = false;
             }
         }
 
-        #endregion
-
-        #region Metodos Auxiliares de Display
-
-        public static string DisplayNotaFiscal(InsumosDTO i) => string.IsNullOrEmpty(i.NotaFiscal) ? "-" : i.NotaFiscal;
-
-        public static string DisplayDescricaoDetalhada(InsumosDTO i) => string.IsNullOrEmpty(i.DescricaoDetalhada) ? "-" : i.DescricaoDetalhada;
-
-        public static string DisplayValidade(InsumosDTO i) =>
-            i.ValidadeInsumo.HasValue
-            ? i.ValidadeInsumo.Value.ToShortDateString()
+        public static string DisplayDataEntregaRecente(InsumosLeituraDTO i) =>
+            i.ItensEstoque.Length > 0 ?
+            i.ItensEstoque?
+            .Select(i => i.DataEntrega)?
+            .OrderDescending()?
+            .FirstOrDefault()
+            .ToShortDateString() ?? "-"
             : "-";
 
-        // Esta função já estava correta
-        public static string DisplayDataEntrada(InsumosDTO i) =>
-            i.DataDeEntradaDoInsumo?.ToString("d") ?? "-";
+        public static string DisplayDescricaoDetalhada(InsumosLeituraDTO i) => string.IsNullOrEmpty(i.DescricaoDetalhada) ? "-" : i.DescricaoDetalhada;
 
+        public static string DisplayDataValidadeRecente(InsumosLeituraDTO i) =>
+            i.ItensEstoque?
+            .Select(i => i.DataValidade)?
+            .OrderDescending()?
+            .FirstOrDefault()?
+            .ToShortDateString() ?? "-";
         #endregion
     }
+
 }

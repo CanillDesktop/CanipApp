@@ -1,5 +1,8 @@
-﻿using System.Diagnostics;
+﻿using Amazon.Auth.AccessControlPolicy;
+using Microsoft.Maui.Controls.PlatformConfiguration;
+using System.Diagnostics;
 using System.Text.Json;
+using Windows.System;
 
 namespace Frontend.Services;
 
@@ -91,7 +94,10 @@ public static class BackendStarter
             // ============================================================================
             // 🔥 ETAPA 2: LOCALIZA O EXECUTÁVEL DO BACKEND
             // ============================================================================
-            var baseDir = AppContext.BaseDirectory;
+            var baseDir = "C:\\Users\\Arthu\\source\\repos\\CanillDesktop\\CanipApp\\Frontend\\bin\\Debug\\net8.0-windows10.0.19041.0\\win10-x64\\Backend\\win-x64";
+    
+
+
 
             var possiblePaths = new[]
             {
@@ -171,7 +177,7 @@ public static class BackendStarter
 
             string? discoveredUrl = null;
             var startTime = DateTime.Now;
-            var timeout = TimeSpan.FromSeconds(30);
+            var timeout = TimeSpan.FromMinutes(30);
 
             // Thread para capturar stdout (fallback)
             var stdoutTask = Task.Run(() =>

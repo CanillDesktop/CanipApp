@@ -1,6 +1,10 @@
-﻿using Backend.Context;
+﻿
+using Backend.Context;
 using Backend.Models.Medicamentos;
+using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Shared.DTOs.Medicamentos;
+using Shared.Enums;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -10,6 +14,7 @@ namespace Backend.Repositories
 {
     public class MedicamentosRepository : IMedicamentosRepository
     {
+
         private readonly CanilAppDbContext _context;
 
         public MedicamentosRepository(CanilAppDbContext context)
@@ -17,53 +22,105 @@ namespace Backend.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<MedicamentosModel>> BuscarTodosAsync(Expression<Func<MedicamentosModel, bool>>? filter = null)
+        public async Task<IEnumerable<MedicamentosModel>> GetAsync()
         {
-            IQueryable<MedicamentosModel> query = _context.Medicamentos;
+            var medicamentosRepository = await _context.Medicamentos
+                .Include(m => m.ItemNivelEstoque)
+                .Include(m => m.ItensEstoque)
+                .ToListAsync();
 
-            if (filter != null)
-            {
-                query = query.Where(filter);
+            return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
             }
 
-            return await query.AsNoTracking().ToListAsync();
+        public async Task<MedicamentosModel?> GetByIdAsync(int id)
+        {
+            var medicamentosRepository = await _context.Medicamentos
+                .Include(m => m.ItensEstoque)
+                .Include(m => m.ItemNivelEstoque)
+                .FirstOrDefaultAsync(m => m.IdItem == id);
+
+            return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
         }
 
-        public async Task<MedicamentosModel?> BuscarPorIdAsync(int id)
+        public async Task<MedicamentosModel> CreateAsync(MedicamentosModel Medicamento)
         {
-            return await _context.Medicamentos.AsNoTracking()
-                                 .FirstOrDefaultAsync(m => m.CodigoId == id);
-        }
-
-        public async Task<MedicamentosModel> CriarAsync(MedicamentosModel model)
-        {
-            await _context.Medicamentos.AddAsync(model);
-            await _context.SaveChangesAsync();
-            return model;
-        }
-
-        public async Task<MedicamentosModel?> AtualizarAsync(MedicamentosModel model)
-        {
-            _context.Entry(model).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return model;
-        }
-
-        public async Task<bool> DeletarAsync(int id)
-        {
-            // AVISO: Isto é um "Hard Delete".
-            // Para "Soft Delete", você deve implementar essa lógica no SERVIÇO,
-            // chamando o método AtualizarAsync() deste repositório.
-
-            var model = await _context.Medicamentos.FindAsync(id);
-            if (model == null)
+            if (Medicamento is null)
             {
-                return false;
+                throw new ArgumentNullException(nameof(Medicamento));
+        }
+
+            await _context.Medicamentos.AddAsync(Medicamento);
+            await _context.SaveChangesAsync();
+            return Medicamento;
+
+        }
+
+
+        public async Task<MedicamentosModel?> UpdateAsync(MedicamentosModel Medicamento)
+        {
+            if (Medicamento is null)
+            {
+                throw new ArgumentException(null, nameof(Medicamento));
+            }
+            _context.Entry(Medicamento).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return Medicamento;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var medicamentosRepository = await _context.Medicamentos.FindAsync(id);
+
+            if (medicamentosRepository is null)
+            {
+                throw new ArgumentException(nameof(medicamentosRepository));
             }
 
-            _context.Medicamentos.Remove(model);
+            _context.Medicamentos.Remove(medicamentosRepository);
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<IEnumerable<MedicamentosModel>> GetAsync(MedicamentosFiltroDTO filtro)
+        {
+            ArgumentNullException.ThrowIfNull(filtro);
+
+            var query = _context.Medicamentos
+                .Include(m => m.ItensEstoque)
+                .Include(m => m.ItemNivelEstoque)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filtro.CodMedicamento))
+                query = query.Where(p => p.CodMedicamento!.Contains(filtro.CodMedicamento));
+
+            if (!string.IsNullOrWhiteSpace(filtro.NomeComercial))
+                query = query.Where(p => p.NomeComercial!.Contains(filtro.NomeComercial));
+
+            if (!string.IsNullOrWhiteSpace(filtro.Formula))
+                query = query.Where(p => p.Formula!.Contains(filtro.Formula));
+
+            if (!string.IsNullOrWhiteSpace(filtro.DescricaoMedicamento))
+                query = query.Where(p => p.DescricaoMedicamento!.Contains(filtro.DescricaoMedicamento));
+
+            if (!string.IsNullOrWhiteSpace(filtro.NFe))
+                query = query.Where(p => p.ItensEstoque!.Any(p => p.NFe.Contains(filtro.NFe)));
+
+            if (Enum.IsDefined(typeof(PrioridadeEnum), filtro.Prioridade))
+                query = query.Where(p => p.Prioridade == (PrioridadeEnum)filtro.Prioridade);
+
+            if (Enum.IsDefined(typeof(PublicoAlvoMedicamentoEnum), filtro.PublicoAlvo))
+                query = query.Where(p => p.PublicoAlvo == (PublicoAlvoMedicamentoEnum)filtro.PublicoAlvo);
+
+            if (filtro.DataEntrega != null)
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataEntrega == filtro.DataEntrega));
+
+
+            if (filtro.DataValidade != null)
+                query = query.Where(p => p.ItensEstoque!.Any(e => e.DataValidade == filtro.DataValidade));
+
+            var produtos = await query.ToListAsync();
+            return produtos;
+        }
+
     }
 }

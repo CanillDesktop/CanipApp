@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System.ComponentModel;
 
 namespace Shared.Enums
 {
  public enum UnidadeInsumosEnum
     {
-        Ampola=1,
-
-        Bandeja ,
-           
+        Ampola = 1,
+        Bandeja,
        Barra,
 
        Caixa,
@@ -20,9 +13,8 @@ namespace Shared.Enums
         Comprimido,
 
         Frasco,
-
-        Galão,
-
+        [Description("Galão")]
+        Galao,
         Kit,
 
         Par,

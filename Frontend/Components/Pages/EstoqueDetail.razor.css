@@ -1,0 +1,24 @@
+﻿.caixaBranca {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa !important;
+}
+
+.table-danger {
+    background-color: #ffe5e5 !important;
+}
+
+td button.btn-sm {
+    min-width: 36px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+td i {
+    font-size: 1rem;
+}
+

@@ -1,20 +1,10 @@
 ﻿using Backend.Models.Produtos;
-using Shared.DTOs;
-using System.Linq.Expressions;
+using Shared.DTOs.Produtos;
 
 namespace Backend.Repositories.Interfaces
 {
-    public interface IProdutosRepository 
+    public interface IProdutosRepository : IRepository<ProdutosModel>
     {
-        Task<IEnumerable<Produtos>> BuscarTodosAsync(Expression<Func<Produtos, bool>>? filter = null);
-
-        Task<Produtos?> BuscarPorIdAsync(string id);
-
-        Task<Produtos> CriarAsync(Produtos model);
-
-        Task<Produtos?> AtualizarAsync(Produtos model);
-
-        Task<bool> DeletarAsync(string id);
-
+        Task<IEnumerable<ProdutosModel>> GetAsync(ProdutosFiltroDTO filtro);
     }
 }

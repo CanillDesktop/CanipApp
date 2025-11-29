@@ -8,23 +8,19 @@
     transition: all 0.3s ease;
 }
 
-.spinner {
-    border: 8px solid #f3f3f3; /* Cor da borda clara */
-    border-top: 8px solid #3498db; /* Cor da borda superior (a parte que gira) */
-    border-radius: 50%; /* Deixa a div redonda */
-    width: 60px;
-    height: 60px;
-    animation: spin 1s linear infinite; /* Animação de rotação */
-    margin: auto; /* Centraliza horizontalmente */
+/* Cards */
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 @keyframes spin {
     0% {
         transform: rotate(0deg);
     }
 
-    100% {
-        transform: rotate(360deg);
-    }
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 }
 
 
@@ -108,4 +104,57 @@
 /* Botão Ver Mais */
 .btn-light.btn-sm {
     font-weight: 600;
+}
+
+.filtro-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background-color: #ffffff;
+    padding: 1.3rem 1.5rem;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+}
+
+.filtro-campos {
+    display: flex;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.filtro-select {
+    min-width: 220px;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+    .filtro-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13,110,253,.15);
+    }
+
+.filtro-input {
+    flex: 1;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+    .filtro-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13,110,253,.15);
+    }
+
+.filtro-botao {
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
 }
