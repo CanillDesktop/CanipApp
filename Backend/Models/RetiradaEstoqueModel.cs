@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Models
 {
+    [DynamoDBTable("RetiradaEstoque")]
     public class RetiradaEstoqueModel : ISaveInsertDateModel
     {
         private DateTime _dataHoraInsercaoRegistro;
@@ -12,20 +13,34 @@ namespace Backend.Models
         [Key]
         [DynamoDBHashKey("id")]
         public int IdRetirada { get; set; }
+
+        [DynamoDBProperty("CodItem")]
         public string CodItem { get; set; } = string.Empty;
+
+        [DynamoDBProperty("NomeItem")]
         public string NomeItem { get; set; } = string.Empty;
+
+        [DynamoDBProperty("Quantidade")]
         public int Quantidade { get; set; }
+
+        [DynamoDBProperty("Lote")]
         public string Lote { get; set; } = string.Empty;
+
+        [DynamoDBProperty("De")]
         public string De { get; set; } = string.Empty;
+
+        [DynamoDBProperty("Para")]
         public string Para { get; set; } = string.Empty;
-        public DateTime DataHoraInsercaoRegistro 
+
+        [DynamoDBProperty("DataHoraInsercaoRegistro")]
+        public DateTime DataHoraInsercaoRegistro
         {
             get => _dataHoraInsercaoRegistro;
             set
             {
                 if (value == DateTime.MinValue)
                 {
-                    _dataHoraInsercaoRegistro = DateTime.Now;
+                    _dataHoraInsercaoRegistro = DateTime.UtcNow;
                 }
                 else
                 {
@@ -34,6 +49,14 @@ namespace Backend.Models
             }
         }
 
+        // ✅ NOVOS CAMPOS PARA SINCRONIZAÇÃO
+        [DynamoDBProperty("DataAtualizacao")]
+        public DateTime DataAtualizacao { get; set; } = DateTime.UtcNow;
+
+        [DynamoDBProperty("IsDeleted")]
+        public bool IsDeleted { get; set; } = false;
+
+        // Conversões implícitas mantidas...
         public static implicit operator RetiradaEstoqueModel(RetiradaEstoqueDTO dto)
         {
             return new RetiradaEstoqueModel()
@@ -44,7 +67,8 @@ namespace Backend.Models
                 De = dto.De,
                 Para = dto.Para,
                 Quantidade = dto.Quantidade,
-                DataHoraInsercaoRegistro = dto.DataHoraInsercaoRegistro
+                DataHoraInsercaoRegistro = dto.DataHoraInsercaoRegistro,
+                DataAtualizacao = DateTime.UtcNow // ✅ Inicializar
             };
         }
 

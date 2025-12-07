@@ -36,7 +36,9 @@ namespace Backend.Migrations
                     Lote = table.Column<string>(type: "TEXT", nullable: false),
                     De = table.Column<string>(type: "TEXT", nullable: false),
                     Para = table.Column<string>(type: "TEXT", nullable: false),
-                    DataHoraInsercaoRegistro = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    DataHoraInsercaoRegistro = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DataAtualizacao = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValue: new DateTime(2025, 11, 29, 23, 54, 12, 762, DateTimeKind.Utc).AddTicks(8368)),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {

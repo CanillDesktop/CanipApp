@@ -1,13 +1,13 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
 using Backend.Context;
+using Backend.Helpers;
+using Backend.Models;
+using Backend.Models.Insumos;
 using Backend.Models.Medicamentos;
 using Backend.Models.Produtos;
-using Backend.Models.Insumos; 
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System; // Adicionado para Console.WriteLine
-using System.Linq; // Adicionado para ToDictionary, etc.
-using Backend.Services.Interfaces; // Adicionado para ISyncService
+using System.Diagnostics;
+
 namespace Backend.Services
 {
     public class SyncService : ISyncService
@@ -26,6 +26,7 @@ namespace Backend.Services
             await SincronizarMedicamentosAsync();
             await SincronizarProdutosAsync();
             await SincronizarInsumosAsync();
+            await SincronizarRetiradaEstoqueAsync();
         }
 
         public async Task LimparRegistrosExcluidosAsync()
@@ -34,294 +35,463 @@ namespace Backend.Services
             await LimparMedicamentosExcluidosAsync();
             await LimparProdutosExcluidosAsync();
             await LimparInsumosExcluidosAsync();
+            await LimparRetiradaEstoqueExcluidosAsync();
         }
 
-        private async Task SincronizarMedicamentosAsync()
+        // ==========================================================================================
+        // 🛠️ MÉTODOS AUXILIARES GENÉRICOS (Reutilizáveis para Insumos, Medicamentos e Produtos)
+        // ==========================================================================================
+
+        /// <summary>
+        /// Corrige o problema do SQLite retornar 'Unspecified', o que faz o Dynamo somar +3h erradamente.
+        /// </summary>
+        private void GarantirUtcLocal<T>(T item) where T : ItemComEstoqueBaseModel
         {
-            var localDbSet = _localDbContext.Medicamentos;
+            // Data de Inserção Base
+            item.DataHoraInsercaoRegistro = DateTime.SpecifyKind(item.DataHoraInsercaoRegistro, DateTimeKind.Utc);
 
-            var dynamoItens = await _dynamoDBContext.ScanAsync<MedicamentosModel>(new List<ScanCondition>()).GetRemainingAsync();
-            var localItens = await localDbSet.AsNoTracking().ToListAsync();
+            // Tenta achar a DataAtualizacao (que não está na base, mas nas classes filhas) via Reflection ou Cast
+            if (item is InsumosModel i) i.DataAtualizacao = DateTime.SpecifyKind(i.DataAtualizacao, DateTimeKind.Utc);
+            if (item is MedicamentosModel m) m.DataAtualizacao = DateTime.SpecifyKind(m.DataAtualizacao, DateTimeKind.Utc);
+            if (item is ProdutosModel p) p.DataAtualizacao = DateTime.SpecifyKind(p.DataAtualizacao, DateTimeKind.Utc);
 
-            var dynamoMap = dynamoItens
-                      .GroupBy(i => i.IdItem)
-                      .ToDictionary(g => g.Key, g => g.First());
+            // Nível Estoque
+            if (item.ItemNivelEstoque != null)
+                item.ItemNivelEstoque.DataHoraInsercaoRegistro = DateTime.SpecifyKind(item.ItemNivelEstoque.DataHoraInsercaoRegistro, DateTimeKind.Utc);
 
-            var localMap = localItens
-                    .GroupBy(i => i.IdItem)
-                    .ToDictionary(g => g.Key, g => g.First());
-
-            var dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<MedicamentosModel>();
-            bool changesToLocalDb = false;
-
-            foreach (var localItem in localMap.Values)
+            // Lotes
+            if (item.ItensEstoque != null)
             {
-                if (dynamoMap.TryGetValue(localItem.IdItem, out var dynamoItem))
+                foreach (var lote in item.ItensEstoque)
                 {
-                    if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
+                    lote.DataHoraInsercaoRegistro = DateTime.SpecifyKind(lote.DataHoraInsercaoRegistro, DateTimeKind.Utc);
+                    lote.DataEntrega = DateTime.SpecifyKind(lote.DataEntrega, DateTimeKind.Utc);
+                    if (lote.DataValidade.HasValue)
+                        lote.DataValidade = DateTime.SpecifyKind(lote.DataValidade.Value, DateTimeKind.Utc);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Mescla os lotes (ItensEstoque) comparando as datas individuais de cada lote.
+        /// Funciona para Insumos, Medicamentos e Produtos.
+        /// </summary>
+        private bool MesclarLotes<T>(T destino, T origem, bool ehDestinoLocal) where T : ItemComEstoqueBaseModel
+        {
+            var lotesDestinoCollection = ehDestinoLocal
+                ? destino.ItensEstoque
+                : destino.ItensEstoqueDynamo ?? new List<ItemEstoqueModel>();
+
+            var lotesOrigemCollection = ehDestinoLocal
+                ? origem.ItensEstoqueDynamo ?? new List<ItemEstoqueModel>()
+                : origem.ItensEstoque;
+
+            var lotesDestinoMap = lotesDestinoCollection.ToDictionary(l => l.Lote ?? string.Empty, l => l);
+            var lotesParaAdicionar = new List<ItemEstoqueModel>();
+            bool houveMudancas = false;
+
+            foreach (var loteOrigem in lotesOrigemCollection)
+            {
+                var chaveLote = loteOrigem.Lote ?? string.Empty;
+
+                if (lotesDestinoMap.TryGetValue(chaveLote, out var loteDestino))
+                {
+                    // LOTE EXISTE EM AMBOS - Vence o mais recente
+                    if (loteOrigem.DataHoraInsercaoRegistro > loteDestino.DataHoraInsercaoRegistro)
                     {
-                        dynamoBatchWriter.AddPutItem(localItem);
+                        // Atualizar dados do lote destino com os do lote origem
+                        loteDestino.Quantidade = loteOrigem.Quantidade;
+                        loteDestino.DataEntrega = loteOrigem.DataEntrega;
+                        loteDestino.DataValidade = loteOrigem.DataValidade;
+                        loteDestino.NFe = loteOrigem.NFe;
+                        loteDestino.DataHoraInsercaoRegistro = loteOrigem.DataHoraInsercaoRegistro;
+                        houveMudancas = true;
                     }
-                    else if (dynamoItem.DataAtualizacao > localItem.DataAtualizacao)
-                    {
-                        localDbSet.Update(dynamoItem);
-                        changesToLocalDb = true;
-                    }
-                    dynamoMap.Remove(localItem.IdItem);
                 }
                 else
                 {
-                    dynamoBatchWriter.AddPutItem(localItem);
+                    // LOTE SÓ NA ORIGEM - Adicionar
+                    var novoLote = new ItemEstoqueModel
+                    {
+                        IdItem = destino.IdItem,
+                        CodItem = loteOrigem.CodItem,
+                        Lote = loteOrigem.Lote,
+                        Quantidade = loteOrigem.Quantidade,
+                        DataEntrega = loteOrigem.DataEntrega,
+                        NFe = loteOrigem.NFe,
+                        DataValidade = loteOrigem.DataValidade,
+                        DataHoraInsercaoRegistro = loteOrigem.DataHoraInsercaoRegistro
+                    };
+                    lotesParaAdicionar.Add(novoLote);
+                    houveMudancas = true;
                 }
             }
 
-            foreach (var dynamoItem in dynamoMap.Values)
+            // Adicionar novos lotes à coleção correta
+            if (lotesParaAdicionar.Count > 0)
             {
-                await localDbSet.AddAsync(dynamoItem);
-                changesToLocalDb = true;
+                if (ehDestinoLocal)
+                {
+                    foreach (var l in lotesParaAdicionar) destino.ItensEstoque.Add(l);
+                }
+                else
+                {
+                    if (destino.ItensEstoqueDynamo == null) destino.ItensEstoqueDynamo = new List<ItemEstoqueModel>();
+                    destino.ItensEstoqueDynamo.AddRange(lotesParaAdicionar);
+                }
             }
 
-            await dynamoBatchWriter.ExecuteAsync();
-            if (changesToLocalDb)
-            {
-                await _localDbContext.SaveChangesAsync();
-            }
+            return houveMudancas;
         }
 
-        private async Task SincronizarProdutosAsync()
+        // ==========================================================================================
+        // 🔄 SINCRONIZAÇÃO DE INSUMOS
+        // ==========================================================================================
+        private async Task SincronizarInsumosAsync()
         {
             try
             {
-                Console.WriteLine("=== INÍCIO SINCRONIZAÇÃO PRODUTOS ===");
-                var localDbSet = _localDbContext.Produtos;
+                Console.WriteLine("=== SINCRONIZAÇÃO INSUMOS ===");
+                var localItens = await _localDbContext.Insumos
+                    .Include(i => i.ItemNivelEstoque).Include(i => i.ItensEstoque).ToListAsync();
 
-                // PASSO 1: Verificar itens locais
-                Console.WriteLine("📦 Carregando produtos locais...");
-                var localItens = await localDbSet.AsNoTracking().ToListAsync();
-                Console.WriteLine($"✅ {localItens.Count} produtos encontrados localmente");
-
-                // Verificar IDs vazios
-                var produtosSemId = localItens.Where(p => p.IdItem > 0).ToList();
-                if (produtosSemId.Any())
-                {
-                    throw new InvalidOperationException(
-                        $"❌ ERRO: {produtosSemId.Count} produtos com IdProduto vazio! " +
-                        $"Primeiro: '{produtosSemId.First().DescricaoSimples}'");
-                }
-
-                if (localItens.Any())
-                {
-                    Console.WriteLine($"   Exemplo de ID local: '{localItens.First().IdItem}'");
-                }
-
-                // PASSO 2: Buscar do DynamoDB
-                Console.WriteLine("☁️  Iniciando scan do DynamoDB...");
-                var dynamoItens = await _dynamoDBContext
-                    .ScanAsync<ProdutosModel>(new List<ScanCondition>())
-                    .GetRemainingAsync();
-
-                Console.WriteLine($"✅ {dynamoItens.Count} produtos encontrados no DynamoDB");
-
-                if (dynamoItens.Any())
-                {
-                    var primeiroItem = dynamoItens.First();
-                    Console.WriteLine($"   Exemplo de ID DynamoDB: '{primeiroItem.IdItem}'");
-                    Console.WriteLine($"   Descrição: '{primeiroItem.DescricaoSimples}'");
-                }
-
-                // PASSO 3: Criar dicionários
-                Console.WriteLine("🔄 Criando dicionários para comparação...");
+                var dynamoItens = await _dynamoDBContext.ScanAsync<InsumosModel>(new List<ScanCondition>()).GetRemainingAsync();
                 var dynamoMap = dynamoItens.ToDictionary(i => i.IdItem);
+                var itemsParaEnviar = new List<InsumosModel>();
 
-                var itemsParaEnviarAoDynamo = new List<ProdutosModel>();
-                bool changesToLocalDb = false;
-
-                // PASSO 4: Comparar e sincronizar
-                Console.WriteLine("🔍 Comparando itens locais vs DynamoDB...");
                 foreach (var localItem in localItens)
                 {
                     if (dynamoMap.TryGetValue(localItem.IdItem, out var dynamoItem))
                     {
-                        // Item existe em ambos
+                        // Tratar Exclusão
+                        if (dynamoItem.IsDeleted && !localItem.IsDeleted)
+                        {
+                            localItem.IsDeleted = true;
+                            dynamoMap.Remove(localItem.IdItem);
+                            continue;
+                        }
+
+                        // 🛠️ CORREÇÃO BUG UTC (SQLite retorna Unspecified)
+                        GarantirUtcLocal(localItem);
+
+                        // 1. LOCAL É MAIS RECENTE -> Envia para Nuvem
                         if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
                         {
-                            Console.WriteLine($"   ⬆️  Local mais novo: {localItem.IdItem}");
-                            itemsParaEnviarAoDynamo.Add(localItem);
+                            Console.WriteLine($"   ⬆️ Local vence: {localItem.IdItem}");
+                            // Garante que não perdemos lotes novos da nuvem mesmo se local venceu
+                            MesclarLotes(localItem, dynamoItem, ehDestinoLocal: true);
+
+                            SyncHelpers.PrepararParaDynamoDB(localItem);
+                            itemsParaEnviar.Add(localItem);
                         }
+                        // 2. NUVEM É MAIS RECENTE -> Atualiza Local
                         else if (dynamoItem.DataAtualizacao > localItem.DataAtualizacao)
                         {
-                            Console.WriteLine($"   ⬇️  DynamoDB mais novo: {localItem.IdItem}");
-                            localDbSet.Update(dynamoItem);
-                            changesToLocalDb = true;
+                            Console.WriteLine($"   ⬇️ Nuvem vence: {localItem.IdItem}");
+
+                            // Copiar escalares
+                            localItem.CodInsumo = dynamoItem.CodInsumo;
+                            localItem.DescricaoSimplificada = dynamoItem.DescricaoSimplificada;
+                            localItem.DescricaoDetalhada = dynamoItem.DescricaoDetalhada;
+                            localItem.Unidade = dynamoItem.Unidade;
+                            localItem.IsDeleted = dynamoItem.IsDeleted;
+                            localItem.DataAtualizacao = dynamoItem.DataAtualizacao; // Importante!
+
+                            // Nivel Estoque
+                            if (dynamoItem.ItemNivelEstoqueDynamo != null)
+                            {
+                                if (localItem.ItemNivelEstoque == null) localItem.ItemNivelEstoque = new ItemNivelEstoqueModel();
+                                localItem.ItemNivelEstoque.NivelMinimoEstoque = dynamoItem.ItemNivelEstoqueDynamo.NivelMinimoEstoque;
+                            }
+
+                            // Mesclar Lotes (Nuvem -> Local)
+                            bool mudouLotes = MesclarLotes(localItem, dynamoItem, ehDestinoLocal: true);
+
+                            // Se a mesclagem alterou algo localmente que precisa voltar pra nuvem (raro, mas seguro)
+                            if (mudouLotes)
+                            {
+                                SyncHelpers.PrepararParaDynamoDB(localItem);
+                                itemsParaEnviar.Add(localItem);
+                            }
                         }
-                        else
+                        else // DATAS IGUAIS
                         {
-                            Console.WriteLine($"   ✔️  Igual: {localItem.IdItem}");
+                            // Ainda assim verifica lotes
+                            bool mudouLotes = MesclarLotes(localItem, dynamoItem, ehDestinoLocal: true);
+                            if (mudouLotes)
+                            {
+                                SyncHelpers.PrepararParaDynamoDB(localItem);
+                                itemsParaEnviar.Add(localItem);
+                            }
                         }
                         dynamoMap.Remove(localItem.IdItem);
                     }
                     else
                     {
-                        // Item apenas local
-                        Console.WriteLine($"   🆕 Novo no local: {localItem.IdItem}");
-                        itemsParaEnviarAoDynamo.Add(localItem);
+                        // NOVO NO LOCAL -> ENVIA
+                        GarantirUtcLocal(localItem); // 🛠️ Correção UTC
+                        SyncHelpers.PrepararParaDynamoDB(localItem);
+                        itemsParaEnviar.Add(localItem);
                     }
                 }
 
-                // PASSO 5: Itens apenas no DynamoDB
+                // NOVO NO DYNAMO -> BAIXA
                 foreach (var dynamoItem in dynamoMap.Values)
                 {
-                    Console.WriteLine($"   ☁️  Novo no DynamoDB: {dynamoItem.IdItem}");
-                    await localDbSet.AddAsync(dynamoItem);
-                    changesToLocalDb = true;
-                }
-
-                // PASSO 6: Enviar para DynamoDB em lotes
-                if (itemsParaEnviarAoDynamo.Count > 0)
-                {
-                    Console.WriteLine($"📤 Enviando {itemsParaEnviarAoDynamo.Count} itens para DynamoDB...");
-                    var dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<ProdutosModel>();
-
-                    for (int i = 0; i < itemsParaEnviarAoDynamo.Count; i++)
+                    if (!await _localDbContext.Insumos.AnyAsync(i => i.IdItem == dynamoItem.IdItem))
                     {
-                        dynamoBatchWriter.AddPutItem(itemsParaEnviarAoDynamo[i]);
-
-                        if ((i + 1) % 25 == 0 || (i + 1) == itemsParaEnviarAoDynamo.Count)
-                        {
-                            Console.WriteLine($"   Enviando lote {(i / 25) + 1} ({Math.Min(i + 1, itemsParaEnviarAoDynamo.Count)} itens)...");
-                            await dynamoBatchWriter.ExecuteAsync();
-
-                            if ((i + 1) < itemsParaEnviarAoDynamo.Count)
-                            {
-                                dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<ProdutosModel>();
-                            }
-                        }
+                        SyncHelpers.PrepararParaEFCore(dynamoItem); // Prepara navegações
+                        await _localDbContext.Insumos.AddAsync(dynamoItem);
                     }
-                    Console.WriteLine("✅ Envio para DynamoDB concluído!");
-                }
-                else
-                {
-                    Console.WriteLine("ℹ️  Nenhum item para enviar ao DynamoDB");
                 }
 
-                // PASSO 7: Salvar mudanças locais
-                if (changesToLocalDb)
+                await EnviarLotesDynamo(itemsParaEnviar);
+                await _localDbContext.SaveChangesAsync();
+                Console.WriteLine("✅ Insumos Sincronizados");
+            }
+            catch (Exception ex) { Console.WriteLine($"❌ Erro Insumos: {ex.Message}"); throw; }
+        }
+
+        // ==========================================================================================
+        // 🔄 SINCRONIZAÇÃO DE MEDICAMENTOS (Mesma Lógica)
+        // ==========================================================================================
+        private async Task SincronizarMedicamentosAsync()
+        {
+            try
+            {
+                Console.WriteLine("=== SINCRONIZAÇÃO MEDICAMENTOS ===");
+                var localItens = await _localDbContext.Medicamentos
+                    .Include(m => m.ItemNivelEstoque).Include(m => m.ItensEstoque).ToListAsync();
+
+                var dynamoItens = await _dynamoDBContext.ScanAsync<MedicamentosModel>(new List<ScanCondition>()).GetRemainingAsync();
+                var dynamoMap = dynamoItens.ToDictionary(i => i.IdItem);
+                var itemsParaEnviar = new List<MedicamentosModel>();
+
+                foreach (var localItem in localItens)
                 {
-                    Console.WriteLine("💾 Salvando mudanças no banco local...");
-                    await _localDbContext.SaveChangesAsync();
-                    Console.WriteLine("✅ Banco local atualizado!");
-                }
-                else
-                {
-                    Console.WriteLine("ℹ️  Nenhuma mudança no banco local");
+                    if (dynamoMap.TryGetValue(localItem.IdItem, out var dynamoItem))
+                    {
+                        if (dynamoItem.IsDeleted && !localItem.IsDeleted)
+                        {
+                            localItem.IsDeleted = true; dynamoMap.Remove(localItem.IdItem); continue;
+                        }
+
+                        GarantirUtcLocal(localItem); // 🛠️ UTC Fix
+
+                        if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
+                        {
+                            Console.WriteLine($"   ⬆️ Local vence: {localItem.IdItem}");
+                            MesclarLotes(localItem, dynamoItem, ehDestinoLocal: true);
+                            SyncHelpers.PrepararParaDynamoDB(localItem);
+                            itemsParaEnviar.Add(localItem);
+                        }
+                        else if (dynamoItem.DataAtualizacao > localItem.DataAtualizacao)
+                        {
+                            Console.WriteLine($"   ⬇️ Nuvem vence: {localItem.IdItem}");
+                            // Atualizar Escalares
+                            localItem.CodMedicamento = dynamoItem.CodMedicamento;
+                            localItem.NomeComercial = dynamoItem.NomeComercial;
+                            localItem.DescricaoMedicamento = dynamoItem.DescricaoMedicamento;
+                            localItem.Formula = dynamoItem.Formula;
+                            localItem.IsDeleted = dynamoItem.IsDeleted;
+                            localItem.DataAtualizacao = dynamoItem.DataAtualizacao;
+
+                            if (dynamoItem.ItemNivelEstoqueDynamo != null)
+                            {
+                                if (localItem.ItemNivelEstoque == null) localItem.ItemNivelEstoque = new ItemNivelEstoqueModel();
+                                localItem.ItemNivelEstoque.NivelMinimoEstoque = dynamoItem.ItemNivelEstoqueDynamo.NivelMinimoEstoque;
+                            }
+
+                            bool mudou = MesclarLotes(localItem, dynamoItem, true);
+                            if (mudou) { SyncHelpers.PrepararParaDynamoDB(localItem); itemsParaEnviar.Add(localItem); }
+                        }
+                        else
+                        {
+                            bool mudou = MesclarLotes(localItem, dynamoItem, true);
+                            if (mudou) { SyncHelpers.PrepararParaDynamoDB(localItem); itemsParaEnviar.Add(localItem); }
+                        }
+                        dynamoMap.Remove(localItem.IdItem);
+                    }
+                    else
+                    {
+                        GarantirUtcLocal(localItem);
+                        SyncHelpers.PrepararParaDynamoDB(localItem);
+                        itemsParaEnviar.Add(localItem);
+                    }
                 }
 
-                Console.WriteLine("=== SINCRONIZAÇÃO PRODUTOS CONCLUÍDA ===");
+                foreach (var dynamoItem in dynamoMap.Values)
+                {
+                    if (!await _localDbContext.Medicamentos.AnyAsync(m => m.IdItem == dynamoItem.IdItem))
+                    {
+                        SyncHelpers.PrepararParaEFCore(dynamoItem);
+                        await _localDbContext.Medicamentos.AddAsync(dynamoItem);
+                    }
+                }
+
+                await EnviarLotesDynamo(itemsParaEnviar);
+                await _localDbContext.SaveChangesAsync();
+                Console.WriteLine("✅ Medicamentos Sincronizados");
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex) { Console.WriteLine($"❌ Erro Medicamentos: {ex.Message}"); throw; }
+        }
+
+        // ==========================================================================================
+        // 🔄 SINCRONIZAÇÃO DE PRODUTOS (Mesma Lógica)
+        // ==========================================================================================
+        private async Task SincronizarProdutosAsync()
+        {
+            try
             {
-                Console.WriteLine($"❌ ERRO DE OPERAÇÃO: {ex.Message}");
-                Console.WriteLine($"Stack: {ex.StackTrace}");
-                throw;
+                Console.WriteLine("=== SINCRONIZAÇÃO PRODUTOS ===");
+                var localItens = await _localDbContext.Produtos
+                    .Include(p => p.ItemNivelEstoque).Include(p => p.ItensEstoque).ToListAsync();
+
+                var dynamoItens = await _dynamoDBContext.ScanAsync<ProdutosModel>(new List<ScanCondition>()).GetRemainingAsync();
+                var dynamoMap = dynamoItens.ToDictionary(i => i.IdItem);
+                var itemsParaEnviar = new List<ProdutosModel>();
+
+                foreach (var localItem in localItens)
+                {
+                    if (dynamoMap.TryGetValue(localItem.IdItem, out var dynamoItem))
+                    {
+                        if (dynamoItem.IsDeleted && !localItem.IsDeleted)
+                        {
+                            localItem.IsDeleted = true; dynamoMap.Remove(localItem.IdItem); continue;
+                        }
+
+                        GarantirUtcLocal(localItem); // 🛠️ UTC Fix
+
+                        if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
+                        {
+                            Console.WriteLine($"   ⬆️ Local vence: {localItem.IdItem}");
+                            MesclarLotes(localItem, dynamoItem, true);
+                            SyncHelpers.PrepararParaDynamoDB(localItem);
+                            itemsParaEnviar.Add(localItem);
+                        }
+                        else if (dynamoItem.DataAtualizacao > localItem.DataAtualizacao)
+                        {
+                            Console.WriteLine($"   ⬇️ Nuvem vence: {localItem.IdItem}");
+                            // Escalares
+                            localItem.CodProduto = dynamoItem.CodProduto;
+                            localItem.DescricaoSimples = dynamoItem.DescricaoSimples;
+                            localItem.DescricaoDetalhada = dynamoItem.DescricaoDetalhada;
+                            localItem.Categoria = dynamoItem.Categoria;
+                            localItem.IsDeleted = dynamoItem.IsDeleted;
+                            localItem.DataAtualizacao = dynamoItem.DataAtualizacao;
+
+                            if (dynamoItem.ItemNivelEstoqueDynamo != null)
+                            {
+                                if (localItem.ItemNivelEstoque == null) localItem.ItemNivelEstoque = new ItemNivelEstoqueModel();
+                                localItem.ItemNivelEstoque.NivelMinimoEstoque = dynamoItem.ItemNivelEstoqueDynamo.NivelMinimoEstoque;
+                            }
+
+                            bool mudou = MesclarLotes(localItem, dynamoItem, true);
+                            if (mudou) { SyncHelpers.PrepararParaDynamoDB(localItem); itemsParaEnviar.Add(localItem); }
+                        }
+                        else
+                        {
+                            bool mudou = MesclarLotes(localItem, dynamoItem, true);
+                            if (mudou) { SyncHelpers.PrepararParaDynamoDB(localItem); itemsParaEnviar.Add(localItem); }
+                        }
+                        dynamoMap.Remove(localItem.IdItem);
+                    }
+                    else
+                    {
+                        GarantirUtcLocal(localItem);
+                        SyncHelpers.PrepararParaDynamoDB(localItem);
+                        itemsParaEnviar.Add(localItem);
+                    }
+                }
+
+                foreach (var dynamoItem in dynamoMap.Values)
+                {
+                    if (!await _localDbContext.Produtos.AnyAsync(p => p.IdItem == dynamoItem.IdItem))
+                    {
+                        SyncHelpers.PrepararParaEFCore(dynamoItem);
+                        await _localDbContext.Produtos.AddAsync(dynamoItem);
+                    }
+                }
+
+                await EnviarLotesDynamo(itemsParaEnviar);
+                await _localDbContext.SaveChangesAsync();
+                Console.WriteLine("✅ Produtos Sincronizados");
             }
-            catch (Amazon.DynamoDBv2.AmazonDynamoDBException ex)
+            catch (Exception ex) { Console.WriteLine($"❌ Erro Produtos: {ex.Message}"); throw; }
+        }
+
+        // ==========================================================================================
+        // AUXILIAR DE ENVIO LOTEADO (GENÉRICO)
+        // ==========================================================================================
+        private async Task EnviarLotesDynamo<T>(List<T> items) where T : class
+        {
+            if (items.Count == 0) return;
+            Console.WriteLine($"📤 Enviando {items.Count} itens para DynamoDB...");
+            var batchWriter = _dynamoDBContext.CreateBatchWrite<T>();
+
+            for (int i = 0; i < items.Count; i++)
             {
-                Console.WriteLine($"❌ ERRO DYNAMODB: {ex.Message}");
-                Console.WriteLine($"Código: {ex.ErrorCode}");
-                Console.WriteLine($"Status: {ex.StatusCode}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ ERRO GERAL: {ex.Message}");
-                Console.WriteLine($"Tipo: {ex.GetType().Name}");
-                Console.WriteLine($"Stack: {ex.StackTrace}");
-                throw;
+                batchWriter.AddPutItem(items[i]);
+                if ((i + 1) % 25 == 0 || (i + 1) == items.Count)
+                {
+                    await batchWriter.ExecuteAsync();
+                    if ((i + 1) < items.Count) batchWriter = _dynamoDBContext.CreateBatchWrite<T>();
+                }
             }
         }
 
-        private async Task SincronizarInsumosAsync()
+        // Mantive o SincronizarRetiradaEstoqueAsync e os métodos de LimparExcluidos inalterados...
+        // (Copie os métodos Limpar... e SincronizarRetirada... do seu código original, pois eles já estavam corretos)
+        private async Task SincronizarRetiradaEstoqueAsync()
         {
-            var localDbSet = _localDbContext.Insumos;
-
-            var dynamoItens = await _dynamoDBContext.ScanAsync<InsumosModel>(new List<ScanCondition>()).GetRemainingAsync();
-            var localItens = await localDbSet.AsNoTracking().ToListAsync();
-
-            var dynamoMap = dynamoItens
-                      .GroupBy(i => i.IdItem)
-                      .ToDictionary(g => g.Key, g => g.First());
-
-            var localMap = localItens
-                    .GroupBy(i => i.IdItem)
-                    .ToDictionary(g => g.Key, g => g.First());
-
-            var dynamoBatchWriter = _dynamoDBContext.CreateBatchWrite<InsumosModel>();
-            bool changesToLocalDb = false;
-
-            foreach (var localItem in localItens)
+            // ... (Manter o código de Retirada que você já tem, ele é mais simples e já estava OK)
+            try
             {
-                if (dynamoMap.TryGetValue(localItem.IdItem, out var dynamoItem))
+                Console.WriteLine("=== SINCRONIZAÇÃO RETIRADA ESTOQUE ===");
+                var localDbSet = _localDbContext.RetiradaEstoque;
+                var localItens = await localDbSet.ToListAsync();
+                var dynamoItens = await _dynamoDBContext.ScanAsync<RetiradaEstoqueModel>(new List<ScanCondition>()).GetRemainingAsync();
+                var dynamoMap = dynamoItens.ToDictionary(i => i.IdRetirada);
+                var itemsParaEnviar = new List<RetiradaEstoqueModel>();
+
+                foreach (var localItem in localItens)
                 {
-                    if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
+                    if (dynamoMap.TryGetValue(localItem.IdRetirada, out var dynamoItem))
                     {
-                        dynamoBatchWriter.AddPutItem(localItem);
+                        // Retirada não tem Lotes complexos, apenas comparação direta
+                        if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
+                        {
+                            itemsParaEnviar.Add(localItem);
+                        }
+                        else if (dynamoItem.DataAtualizacao > localItem.DataAtualizacao)
+                        {
+                            _localDbContext.Entry(localItem).CurrentValues.SetValues(dynamoItem);
+                        }
+                        dynamoMap.Remove(localItem.IdRetirada);
                     }
-                    else if (dynamoItem.DataAtualizacao > localItem.DataAtualizacao)
+                    else
                     {
-                        localDbSet.Update(dynamoItem);
-                        changesToLocalDb = true;
+                        itemsParaEnviar.Add(localItem);
                     }
-                    dynamoMap.Remove(localItem.IdItem);
                 }
-                else
+
+                foreach (var dynamoItem in dynamoMap.Values)
                 {
-                    dynamoBatchWriter.AddPutItem(localItem);
+                    if (!await localDbSet.AnyAsync(r => r.IdRetirada == dynamoItem.IdRetirada))
+                        await localDbSet.AddAsync(dynamoItem);
                 }
-            }
 
-            foreach (var dynamoItem in dynamoMap.Values)
-            {
-                await localDbSet.AddAsync(dynamoItem);
-                changesToLocalDb = true;
-            }
-
-            // Precisamos lidar com lotes se a lista for grande
-           
-           
-                await dynamoBatchWriter.ExecuteAsync();
-            
-
-            if (changesToLocalDb)
-            {
+                await EnviarLotesDynamo(itemsParaEnviar);
                 await _localDbContext.SaveChangesAsync();
             }
+            catch (Exception ex) { Console.WriteLine($"❌ Erro Retiradas: {ex.Message}"); throw; }
         }
 
-        private async Task LimparMedicamentosExcluidosAsync()
-        {
-            var localDbSet = _localDbContext.Medicamentos;
-            var itensParaDeletar = await localDbSet
-                .Where(m => m.IsDeleted == true)
-                .ToListAsync();
 
-            if (itensParaDeletar.Count == 0) return;
-
-            var dynamoBatchDeleter = _dynamoDBContext.CreateBatchWrite<MedicamentosModel>();
-            foreach (var item in itensParaDeletar)
-            {
-                dynamoBatchDeleter.AddDeleteItem(item);
-            }
-
-            localDbSet.RemoveRange(itensParaDeletar);
-            await dynamoBatchDeleter.ExecuteAsync();
-            await _localDbContext.SaveChangesAsync();
-        }
-
+        // Métodos de limpeza mantidos...
         private async Task LimparProdutosExcluidosAsync()
         {
-            var localDbSet = _localDbContext.Produtos;
-
-            var itensParaDeletar = await localDbSet
+            var itensParaDeletar = await _localDbContext.Produtos
                 .Where(m => m.IsDeleted == true)
                 .ToListAsync();
 
@@ -333,30 +503,89 @@ namespace Backend.Services
                 dynamoBatchDeleter.AddDeleteItem(item);
             }
 
-            localDbSet.RemoveRange(itensParaDeletar);
+            _localDbContext.Produtos.RemoveRange(itensParaDeletar);
             await dynamoBatchDeleter.ExecuteAsync();
             await _localDbContext.SaveChangesAsync();
         }
 
-        private async Task LimparInsumosExcluidosAsync()
+        private async Task LimparMedicamentosExcluidosAsync()
         {
-            var localDbSet = _localDbContext.Insumos;
-
-            var itensParaDeletar = await localDbSet
+            var itensParaDeletar = await _localDbContext.Medicamentos
                 .Where(m => m.IsDeleted == true)
                 .ToListAsync();
 
             if (itensParaDeletar.Count == 0) return;
 
-            var dynamoBatchDeleter = _dynamoDBContext.CreateBatchWrite<InsumosModel>();
+            var batchDeleter = _dynamoDBContext.CreateBatchWrite<MedicamentosModel>();
             foreach (var item in itensParaDeletar)
             {
-                dynamoBatchDeleter.AddDeleteItem(item);
+                batchDeleter.AddDeleteItem(item);
             }
 
-            localDbSet.RemoveRange(itensParaDeletar);
-            await dynamoBatchDeleter.ExecuteAsync();
+            _localDbContext.Medicamentos.RemoveRange(itensParaDeletar);
+            await batchDeleter.ExecuteAsync();
             await _localDbContext.SaveChangesAsync();
+        }
+
+        private async Task LimparInsumosExcluidosAsync()
+        {
+            var itensParaDeletar = await _localDbContext.Insumos
+                .Where(m => m.IsDeleted == true)
+                .ToListAsync();
+
+            if (itensParaDeletar.Count == 0) return;
+
+            var batchDeleter = _dynamoDBContext.CreateBatchWrite<InsumosModel>();
+            foreach (var item in itensParaDeletar)
+            {
+                batchDeleter.AddDeleteItem(item);
+            }
+
+            _localDbContext.Insumos.RemoveRange(itensParaDeletar);
+            await batchDeleter.ExecuteAsync();
+            await _localDbContext.SaveChangesAsync();
+        }
+
+        private async Task LimparRetiradaEstoqueExcluidosAsync()
+        {
+            try
+            {
+                Console.WriteLine("=== LIMPEZA RETIRADA ESTOQUE (SOFT DELETE) ===");
+
+                var localDbSet = _localDbContext.RetiradaEstoque;
+
+                var itensParaDeletar = await localDbSet
+                    .Where(r => r.IsDeleted == true)
+                    .ToListAsync();
+
+                if (itensParaDeletar.Count == 0)
+                {
+                    Console.WriteLine("ℹ️  Nenhuma retirada marcada para exclusão");
+                    return;
+                }
+
+                Console.WriteLine($"🗑️  {itensParaDeletar.Count} retiradas marcadas para exclusão");
+
+                var dynamoBatchDeleter = _dynamoDBContext.CreateBatchWrite<RetiradaEstoqueModel>();
+                foreach (var item in itensParaDeletar)
+                {
+                    dynamoBatchDeleter.AddDeleteItem(item);
+                }
+
+                await dynamoBatchDeleter.ExecuteAsync();
+                Console.WriteLine("✅ Retiradas excluídas do DynamoDB");
+
+                localDbSet.RemoveRange(itensParaDeletar);
+                await _localDbContext.SaveChangesAsync();
+                Console.WriteLine("✅ Retiradas excluídas do banco local");
+
+                Console.WriteLine("=== LIMPEZA CONCLUÍDA ===");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erro: {ex.Message}");
+                throw;
+            }
         }
     }
 }

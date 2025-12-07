@@ -12,6 +12,7 @@ namespace Shared.DTOs.Insumos
         public InsumosCadastroDTO(string descricaoSimplificada, string? descricaoDetalhada, string? lote, int quantidade, DateTime dataEntrega, string? nFE, UnidadeInsumosEnum unidade, 
             DateTime? dataValidade, int nivelMinimoEstoque)
         {
+
             CodInsumo = GeraIdentificador();
             DescricaoSimplificada = descricaoSimplificada;
             DescricaoDetalhada = descricaoDetalhada;

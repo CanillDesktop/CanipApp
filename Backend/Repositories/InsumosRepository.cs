@@ -97,8 +97,7 @@ namespace Backend.Repositories
             if (!string.IsNullOrWhiteSpace(filtro.NFe))
                 query = query.Where(p => p.ItensEstoque!.Any(p => p.NFe.Contains(filtro.NFe)));
 
-            if (Enum.IsDefined(typeof(UnidadeInsumosEnum), filtro.Unidade))
-                query = query.Where(p => p.Unidade == (UnidadeInsumosEnum)filtro.Unidade);
+        
 
             if (filtro.DataEntrega != null)
                 query = query.Where(p => p.ItensEstoque!.Any(e => e.DataEntrega == filtro.DataEntrega));

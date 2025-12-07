@@ -21,12 +21,8 @@ namespace Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<InsumosCadastroDTO>>> Get([FromQuery] InsumosFiltroDTO filtro)
         {
-            var filteredRequest = HttpContext.Request.GetDisplayUrl().Contains('?');
-
-            if (filteredRequest)
+         
                 return Ok(await _service.BuscarTodosAsync(filtro));
-            else
-                return Ok(await _service.BuscarTodosAsync());
         }
 
 

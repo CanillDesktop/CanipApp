@@ -91,12 +91,22 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("DataAtualizacao")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue(new DateTime(2025, 11, 29, 23, 54, 12, 762, DateTimeKind.Utc).AddTicks(8368));
+
                     b.Property<DateTime>("DataHoraInsercaoRegistro")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("De")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Lote")
                         .IsRequired()

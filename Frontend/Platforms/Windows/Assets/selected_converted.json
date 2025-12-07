@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "CodInsumo": "INS1268495514485025708412",
+    "DataAtualizacao": "2025-11-30T02:57:23.610Z",
+    "DataHoraInsercaoRegistro": "2025-11-29T23:57:23.610Z",
+    "DescricaoDetalhada": "Batata frita",
+    "DescricaoSimplificada": "BATATA",
+    "IsDeleted": 0,
+    "ItemNivelEstoque": "{\"DataHoraInsercaoRegistro\":{\"S\":\"2025-11-30T02:57:23.610Z\"},\"NivelMinimoEstoque\":{\"N\":\"0\"},\"IdItem\":{\"N\":\"1\"}}",
+    "ItensEstoque": "[{\"M\":{\"Lote\":{\"S\":\"BT6543543\"},\"DataValidade\":{\"S\":\"2028-12-10T03:00:00.000Z\"},\"CodItem\":{\"S\":\"INS1268495514485025708412\"},\"DataHoraInsercaoRegistro\":{\"S\":\"2025-11-30T02:57:23.610Z\"},\"IdItem\":{\"N\":\"1\"},\"DataEntrega\":{\"S\":\"2025-11-29T23:56:46.280Z\"},\"NFe\":{\"S\":\"NFW543243\"},\"Quantidade\":{\"N\":\"45\"}}}]",
+    "Unidade": 16
+  }
+]

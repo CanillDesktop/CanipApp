@@ -106,7 +106,7 @@
                                                      ((DateTime.TryParse(InsumosViewModel.DisplayDataValidadeRecente(i), out DateTime r) ? r : DateTime.Today)
                                                       < DateTime.Today)
                                                       ? "text-danger fw-bold" : ""
-                                                                                                )">
+                                                                                                                                                                                                )">
                                                 @InsumosViewModel.DisplayDataValidadeRecente(i)
                                             </div>
                                         </div>
@@ -134,20 +134,47 @@
                 }
             </div>
 
-            <button class="btn btn-success mt-3"
-                    disabled="@ViewModel.Carregando">
-                @(ViewModel.Carregando ? "Sincronizando..." : "Sincronizar na nuvem")
-            </button>
+            @* ════════════════════════════════════════════════════════════ *@
+            @* ← BOTÃO DE SINCRONIZAÇÃO CORRIGIDO *@
+            @* ════════════════════════════════════════════════════════════ *@
+            <div class="sync-container mt-4">
+                <button class="btn btn-success sync-button"
+                        @onclick="SincronizarAsync"
+                        disabled="@ViewModel.Sincronizando">
+                    @if (ViewModel.Sincronizando)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        <span>Sincronizando com AWS...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-cloud-upload"></i>
+                        <span>Sincronizar na nuvem</span>
+                    }
+                </button>
+
+                @* Indicador de status da sincronização *@
+                @if (!string.IsNullOrEmpty(_statusSync))
+                {
+                    <div class="alert @(_statusSyncSucesso ? "alert-success" : "alert-danger") mt-2 fade-in" role="alert">
+                        <i class="bi @(_statusSyncSucesso ? "bi-check-circle" : "bi-exclamation-triangle")"></i>
+                        @_statusSync
+                    </div>
+                }
+            </div>
         }
     </div>
 
-    <div class="mt-4">
-        <button class="btn btn-primary mb-3" @onclick="ViewModel.CarregarInsumosCommand.ExecuteAsync">
-            Atualizar Dados
+    <div class="mt-4 action-buttons">
+        <button class="btn btn-primary mb-3"
+                @onclick="ViewModel.CarregarInsumosCommand.ExecuteAsync"
+                disabled="@ViewModel.Carregando">
+            <i class="bi bi-arrow-clockwise"></i> Atualizar Dados
         </button>
 
-        <button class="btn btn-primary mb-3" @onclick="(() => ViewModel.AbreAbaCadastro())">
-            Cadastrar Novo Insumo
+        <button class="btn btn-primary mb-3"
+                @onclick="(() => ViewModel.AbreAbaCadastro())">
+            <i class="bi bi-plus-circle"></i> Cadastrar Novo Insumo
         </button>
     </div>
 }
@@ -157,6 +184,9 @@
     public InsumosViewModel ViewModel { get; set; } = default!;
 
     public Dictionary<string, bool> ItensAbertos { get; set; } = new();
+
+    private string _statusSync = string.Empty;
+    private bool _statusSyncSucesso = false;
 
     void Toggle(string codigo)
     {
@@ -170,4 +200,116 @@
     {
         Navigation.NavigateTo($"/estoque/detalhes/{tipo}/{idInsumo}");
     }
+
+    // ════════════════════════════════════════════════════════════
+    // ← MÉTODO DE SINCRONIZAÇÃO COM AWS
+    // ════════════════════════════════════════════════════════════
+    private async Task SincronizarAsync()
+    {
+        try
+        {
+            _statusSync = string.Empty;
+            _statusSyncSucesso = false;
+            StateHasChanged();
+
+            System.Diagnostics.Debug.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            System.Diagnostics.Debug.WriteLine("[InsumosListarTab] 🚀 Botão de sincronização clicado");
+            System.Diagnostics.Debug.WriteLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+            // Executar o comando de sincronização da ViewModel
+            await ViewModel.SincronizarInsumosCommand.ExecuteAsync(null);
+
+            _statusSync = "✅ Sincronização concluída com sucesso!";
+            _statusSyncSucesso = true;
+
+            System.Diagnostics.Debug.WriteLine("[InsumosListarTab] ✅ Sincronização concluída");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[InsumosListarTab] ❌ Erro na sincronização: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[InsumosListarTab] StackTrace: {ex.StackTrace}");
+
+            _statusSync = $"❌ Erro ao sincronizar: {ex.Message}";
+            _statusSyncSucesso = false;
+        }
+        finally
+        {
+            StateHasChanged();
+
+            // Limpar mensagem após 5 segundos
+            await Task.Delay(5000);
+            _statusSync = string.Empty;
+            StateHasChanged();
+        }
+    }
 }
+
+<style>
+    /* ════════════════════════════════════════════════════════════ */
+    /* ESTILOS DO BOTÃO DE SINCRONIZAÇÃO */
+    /* ════════════════════════════════════════════════════════════ */
+    .sync-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .sync-button {
+        min-width: 250px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+        .sync-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .sync-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .sync-button i {
+            margin-right: 0.5rem;
+        }
+
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .action-buttons .btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+</style>

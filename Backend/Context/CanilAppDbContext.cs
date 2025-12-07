@@ -56,6 +56,21 @@ namespace Backend.Context
             modelBuilder.Entity<ProdutosModel>()
                 .HasBaseType<ItemComEstoqueBaseModel>();
 
+            modelBuilder.Entity<RetiradaEstoqueModel>()
+                .HasKey(r => r.IdRetirada);
+
+            modelBuilder.Entity<RetiradaEstoqueModel>()
+                .Property(r => r.IdRetirada)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<RetiradaEstoqueModel>()
+                .Property(r => r.DataAtualizacao)
+                .HasDefaultValue(DateTime.UtcNow);
+
+            modelBuilder.Entity<RetiradaEstoqueModel>()
+                .Property(r => r.IsDeleted)
+                .HasDefaultValue(false);
+
             var dateOnlyConverter = new ValueConverter<DateOnly?, string?>(
                 v => v.HasValue ? v.Value.ToString("o") : null,
                 v => string.IsNullOrEmpty(v) ? null : DateOnly.Parse(v)

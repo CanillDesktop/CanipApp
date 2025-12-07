@@ -136,7 +136,7 @@ namespace Backend
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
                             ValidateIssuer = true,
-                            ValidateAudience = true,
+                            ValidateAudience = false,
                             ValidateLifetime = true,
                             ValidateIssuerSigningKey = true,
 
@@ -144,7 +144,7 @@ namespace Backend
                             ValidIssuer = $"https://cognito-idp.{region}.amazonaws.com/{userPoolId}",
 
                             // Audience é o Client ID do Cognito User Pool
-                            ValidAudience = clientId,
+                          
 
                             // Margem de tempo para evitar rejeições por clock skew
                             ClockSkew = TimeSpan.FromMinutes(5)
@@ -223,7 +223,19 @@ namespace Backend
            
 
                 builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
-                builder.Services.AddAWSService<IAmazonDynamoDB>();
+                builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
+                {
+                    var awsOptions = builder.Configuration.GetAWSOptions();
+
+                    var config = new AmazonDynamoDBConfig
+                    {
+                        RegionEndpoint = awsOptions.Region,
+                        Timeout = TimeSpan.FromSeconds(30),  // ✅ 30s!
+                        MaxErrorRetry = 3
+                    };
+
+                    return new AmazonDynamoDBClient(awsOptions.Credentials, config);
+                });
                 builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>(); // NOVO
                 builder.Services.AddAWSService<IAmazonCognitoIdentity>(); // NOVO
 

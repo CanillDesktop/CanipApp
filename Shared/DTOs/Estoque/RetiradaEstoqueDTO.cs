@@ -2,6 +2,8 @@
 {
     public class RetiradaEstoqueDTO
     {
+        public int IdRetirada { get; set; }
+
         public string CodItem { get; set; } = string.Empty;
         public string NomeItem { get; set; } = string.Empty;
         public string Lote { get; set; } = string.Empty;

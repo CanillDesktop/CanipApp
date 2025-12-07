@@ -37,6 +37,18 @@ namespace Frontend.Services
 
             var response = await base.SendAsync(request, cancellationToken);
             Console.WriteLine($"📡 [Handler] Response: {(int)response.StatusCode} {response.StatusCode}");
+            Console.WriteLine($"HTTP {request.Method} {request.RequestUri} => {(int)response.StatusCode} {response.ReasonPhrase}");
+
+            // Leia o conteúdo de resposta (pode conter a mensagem de erro do servidor)
+            string responseBody = response.Content == null ? null : await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Response body:");
+            Console.WriteLine(responseBody ?? "<empty>");
+
+            // Se quiser lançar para ver stack no cliente
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"Request failed {(int)response.StatusCode} {response.ReasonPhrase} - Body: {responseBody}");
+            }
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {

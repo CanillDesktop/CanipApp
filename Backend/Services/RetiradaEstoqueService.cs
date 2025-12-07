@@ -23,7 +23,25 @@ namespace Backend.Services
                 throw new ModelIncompletaException("Um ou mais campos obrigatórios não foram preenchidos");
             }
 
+            // ✅ Garantir que DataHoraInsercaoRegistro está preenchida
+            if (dto.DataHoraInsercaoRegistro == DateTime.MinValue)
+            {
+                dto.DataHoraInsercaoRegistro = DateTime.UtcNow;
+            }
+
             return await _repository.CreateAsync(dto);
+        }
+
+        // ✅ ADICIONAR método de atualização (se necessário)
+        public async Task<RetiradaEstoqueDTO?> AtualizarAsync(RetiradaEstoqueDTO dto)
+        {
+            return await _repository.UpdateAsync(dto);
+        }
+
+        // ✅ ADICIONAR soft delete
+        public async Task<bool> DeletarAsync(int id)
+        {
+            return await _repository.DeleteAsync(id);
         }
     }
 }
