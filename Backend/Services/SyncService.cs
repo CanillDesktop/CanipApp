@@ -23,15 +23,17 @@ namespace Backend.Services
 
         public async Task SincronizarTabelasAsync()
         {
+           
             await SincronizarMedicamentosAsync();
             await SincronizarProdutosAsync();
             await SincronizarInsumosAsync();
             await SincronizarRetiradaEstoqueAsync();
+            await LimparRegistrosExcluidosAsync();
         }
 
         public async Task LimparRegistrosExcluidosAsync()
         {
-            await SincronizarTabelasAsync();
+         
             await LimparMedicamentosExcluidosAsync();
             await LimparProdutosExcluidosAsync();
             await LimparInsumosExcluidosAsync();
@@ -173,6 +175,11 @@ namespace Backend.Services
 
                         // 🛠️ CORREÇÃO BUG UTC (SQLite retorna Unspecified)
                         GarantirUtcLocal(localItem);
+                        if (localItem.ItensEstoque.Sum(x => x.Quantidade) <= 0)
+                        {
+                            localItem.IsDeleted = true;
+                            // O Sync vai enviar como deletado mesmo se o banco local disser que não.
+                        }
 
                         // 1. LOCAL É MAIS RECENTE -> Envia para Nuvem
                         if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
@@ -310,6 +317,11 @@ namespace Backend.Services
                             bool mudou = MesclarLotes(localItem, dynamoItem, true);
                             if (mudou) { SyncHelpers.PrepararParaDynamoDB(localItem); itemsParaEnviar.Add(localItem); }
                         }
+                        if (localItem.ItensEstoque.Sum(x => x.Quantidade) <= 0)
+                        {
+                            localItem.IsDeleted = true;
+                            
+                        }
                         dynamoMap.Remove(localItem.IdItem);
                     }
                     else
@@ -361,6 +373,11 @@ namespace Backend.Services
                         }
 
                         GarantirUtcLocal(localItem); // 🛠️ UTC Fix
+                        if (localItem.ItensEstoque.Sum(x => x.Quantidade) <= 0)
+                        {
+                            localItem.IsDeleted = true;
+                            // O Sync vai enviar como deletado mesmo se o banco local disser que não.
+                        }
 
                         if (localItem.DataAtualizacao > dynamoItem.DataAtualizacao)
                         {

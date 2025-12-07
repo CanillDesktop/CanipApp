@@ -24,6 +24,7 @@ namespace Backend.Repositories
             var insumosRepository = await _context.Insumos
                 .Include(i => i.ItensEstoque)
                 .Include(i => i.ItemNivelEstoque)
+                .Where(i => i.IsDeleted == false)
                 .ToListAsync();
 
             return insumosRepository is null ? throw new InvalidOperationException("Insumos é null") : insumosRepository;
@@ -34,7 +35,7 @@ namespace Backend.Repositories
 
             var insumosRepository = await _context.Insumos
                 .Include(i => i.ItensEstoque)
-                .Include(i => i.ItemNivelEstoque)
+                .Include(i => i.ItemNivelEstoque).Where(i=>i.IsDeleted == false)
                 .FirstOrDefaultAsync(i => i.IdItem == id);
 
             return insumosRepository is null ? throw new InvalidOperationException("Insumos é null") : insumosRepository;
@@ -74,7 +75,10 @@ namespace Backend.Repositories
                 throw new ArgumentException(nameof(Insumosrepository));
             }
 
-            _context.Insumos.Remove(Insumosrepository);
+            Insumosrepository.IsDeleted = true;
+            Insumosrepository.DataAtualizacao = DateTime.UtcNow;
+
+            _context.Insumos.Update(Insumosrepository);
             await _context.SaveChangesAsync();
             return true;
         }

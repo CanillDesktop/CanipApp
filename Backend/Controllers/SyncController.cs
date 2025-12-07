@@ -27,6 +27,7 @@ public class SyncController : ControllerBase
         try
         {
             await _syncService.SincronizarTabelasAsync();
+        
             return Ok(new { message = "Sincronização concluída." });
         }
         catch (Exception ex)

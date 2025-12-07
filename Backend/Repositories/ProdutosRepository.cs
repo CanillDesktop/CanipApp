@@ -24,6 +24,7 @@ namespace Backend.Repositories
             var produtos = await _context.Produtos
                 .Include(p => p.ItemNivelEstoque)
                 .Include(p => p.ItensEstoque)
+                .Where(p => p.IsDeleted == false) // ✅ FILTRO DELETADOS
                 .ToListAsync();
 
             return produtos;
@@ -34,23 +35,22 @@ namespace Backend.Repositories
             var produto = await _context.Produtos
                 .Include(p => p.ItensEstoque)
                 .Include(p => p.ItemNivelEstoque)
+                .Where(p => p.IsDeleted == false) // ✅ FILTRO DELETADOS
                 .FirstOrDefaultAsync(p => p.IdItem == id);
 
-            ArgumentNullException.ThrowIfNull(produto);
-
+            // Nota: Se retornar null aqui porque foi deletado, o Service/Controller deve tratar como 404.
             return produto;
         }
 
         public async Task<ProdutosModel> CreateAsync(ProdutosModel model)
         {
-                ArgumentNullException.ThrowIfNull(model);
+            ArgumentNullException.ThrowIfNull(model);
 
-                _context.Produtos.Add(model);
+            _context.Produtos.Add(model);
             await _context.SaveChangesAsync();
 
             return model;
         }
-
 
         public async Task<ProdutosModel?> UpdateAsync(ProdutosModel model)
         {
@@ -65,10 +65,22 @@ namespace Backend.Repositories
         {
             var produto = await _context.Produtos.FindAsync(id);
 
-            ArgumentNullException.ThrowIfNull(produto);
+            if (produto == null) return false;
 
-            _context.Produtos.Remove(produto);
+            // ════════════════════════════════════════════════════════════
+            // ✅ SOFT DELETE (Essencial para o Sync funcionar)
+            // ════════════════════════════════════════════════════════════
+
+            // 1. Marca como deletado
+            produto.IsDeleted = true;
+
+            // 2. Atualiza a data para vencer a versão da Nuvem
+            produto.DataAtualizacao = DateTime.UtcNow;
+
+            // 3. Atualiza em vez de remover
+            _context.Produtos.Update(produto);
             await _context.SaveChangesAsync();
+
             return true;
         }
 
@@ -79,6 +91,7 @@ namespace Backend.Repositories
             var query = _context.Produtos
                 .Include(p => p.ItensEstoque)
                 .Include(p => p.ItemNivelEstoque)
+                .Where(p => p.IsDeleted == false) // ✅ FILTRO DELETADOS
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filtro.CodProduto))
@@ -96,13 +109,11 @@ namespace Backend.Repositories
             if (filtro.DataEntrega != null)
                 query = query.Where(p => p.ItensEstoque!.Any(e => e.DataEntrega == filtro.DataEntrega));
 
-
             if (filtro.DataValidade != null)
                 query = query.Where(p => p.ItensEstoque!.Any(e => e.DataValidade == filtro.DataValidade));
 
             var produtos = await query.ToListAsync();
             return produtos;
         }
-
     }
 }

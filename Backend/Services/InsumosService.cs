@@ -152,6 +152,20 @@ namespace Backend.Services
 
                         Debug.WriteLine($"   DataHoraInsercaoRegistro: {novoLote.DataHoraInsercaoRegistro}");
                     }
+
+                    var quantidadeTotal = insumoExistente.ItensEstoque?.Sum(x => x.Quantidade) ?? 0;
+
+                    if (quantidadeTotal <= 0)
+                    {
+                        // Marca como deletado
+                        insumoExistente.IsDeleted = true;
+                        Debug.WriteLine($"[Service] 🗑️ Estoque zerado (Total: {quantidadeTotal}). Marcando {insumoExistente.CodInsumo} como deletado.");
+                    }
+                    else
+                    {
+                        // Garante que, se aumentou o estoque, ele deixa de ser deletado (Opcional, mas seguro)
+                        insumoExistente.IsDeleted = false;
+                    }
                 }
 
                 // ════════════════════════════════════════════════════════════

@@ -1,20 +1,18 @@
-﻿
-using Backend.Context;
+﻿using Backend.Context;
 using Backend.Models.Medicamentos;
 using Backend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Shared.DTOs.Medicamentos;
 using Shared.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Backend.Repositories
 {
     public class MedicamentosRepository : IMedicamentosRepository
     {
-
         private readonly CanilAppDbContext _context;
 
         public MedicamentosRepository(CanilAppDbContext context)
@@ -27,19 +25,23 @@ namespace Backend.Repositories
             var medicamentosRepository = await _context.Medicamentos
                 .Include(m => m.ItemNivelEstoque)
                 .Include(m => m.ItensEstoque)
+                .Where(m => m.IsDeleted == false) // ✅ FILTRO DELETADOS
                 .ToListAsync();
 
-            return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
-            }
+           
+            return medicamentosRepository;
+        }
 
         public async Task<MedicamentosModel?> GetByIdAsync(int id)
         {
             var medicamentosRepository = await _context.Medicamentos
                 .Include(m => m.ItensEstoque)
                 .Include(m => m.ItemNivelEstoque)
+                .Where(m => m.IsDeleted == false) // ✅ FILTRO DELETADOS
                 .FirstOrDefaultAsync(m => m.IdItem == id);
 
-            return medicamentosRepository is null ? throw new InvalidOperationException("Medicamentos é null") : medicamentosRepository;
+            
+            return medicamentosRepository;
         }
 
         public async Task<MedicamentosModel> CreateAsync(MedicamentosModel Medicamento)
@@ -47,14 +49,12 @@ namespace Backend.Repositories
             if (Medicamento is null)
             {
                 throw new ArgumentNullException(nameof(Medicamento));
-        }
+            }
 
             await _context.Medicamentos.AddAsync(Medicamento);
             await _context.SaveChangesAsync();
             return Medicamento;
-
         }
-
 
         public async Task<MedicamentosModel?> UpdateAsync(MedicamentosModel Medicamento)
         {
@@ -69,15 +69,29 @@ namespace Backend.Repositories
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var medicamentosRepository = await _context.Medicamentos.FindAsync(id);
+            var medicamento = await _context.Medicamentos.FindAsync(id);
 
-            if (medicamentosRepository is null)
+            if (medicamento is null)
             {
-                throw new ArgumentException(nameof(medicamentosRepository));
+                // Se já não existe, retorna false ou lança erro (conforme sua preferência)
+                // Mantendo sua lógica de exceção se preferir, ou retornando false.
+                return false;
             }
 
-            _context.Medicamentos.Remove(medicamentosRepository);
+            // ════════════════════════════════════════════════════════════
+            // ✅ SOFT DELETE (Essencial para o Sync funcionar)
+            // ════════════════════════════════════════════════════════════
+
+            // 1. Marca como deletado
+            medicamento.IsDeleted = true;
+
+            // 2. Atualiza a data para vencer a versão da Nuvem
+            medicamento.DataAtualizacao = DateTime.UtcNow;
+
+            // 3. Atualiza em vez de remover
+            _context.Medicamentos.Update(medicamento);
             await _context.SaveChangesAsync();
+
             return true;
         }
 
@@ -88,6 +102,7 @@ namespace Backend.Repositories
             var query = _context.Medicamentos
                 .Include(m => m.ItensEstoque)
                 .Include(m => m.ItemNivelEstoque)
+                .Where(m => m.IsDeleted == false) // ✅ FILTRO DELETADOS
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filtro.CodMedicamento))
@@ -114,13 +129,11 @@ namespace Backend.Repositories
             if (filtro.DataEntrega != null)
                 query = query.Where(p => p.ItensEstoque!.Any(e => e.DataEntrega == filtro.DataEntrega));
 
-
             if (filtro.DataValidade != null)
                 query = query.Where(p => p.ItensEstoque!.Any(e => e.DataValidade == filtro.DataValidade));
 
-            var produtos = await query.ToListAsync();
-            return produtos;
+            var medicamentos = await query.ToListAsync();
+            return medicamentos;
         }
-
     }
 }
