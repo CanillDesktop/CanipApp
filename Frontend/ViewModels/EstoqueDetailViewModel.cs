@@ -176,7 +176,7 @@ namespace Frontend.ViewModels
                         NomeItem = EstoqueItem!.NomeItem,
                         Lote = estoque.Lote!,
                         Quantidade = quantidade,
-                        De = Preferences.Get("user_fullname", ""),
+                        De = Preferences.Get("user_email", "Arthur"),
                         Para = nomeDestinatario
                     };
 

@@ -20,6 +20,7 @@ using Shared.Models;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 
 namespace Backend
 {
@@ -189,11 +190,24 @@ namespace Backend
                 // Rate Limiter
                 builder.Services.AddRateLimiter(options =>
                 {
-                    options.AddFixedWindowLimiter("sync-policy", opt =>
+                    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                 
+                    options.AddPolicy("sync-policy", context =>
                     {
-                        opt.PermitLimit = 1;
-                        opt.Window = TimeSpan.FromSeconds(30);
-                        opt.QueueLimit = 0;
+                      
+                        string username = context.User.Identity?.Name ?? context.Request.Headers.Host.ToString();
+
+                        return RateLimitPartition.GetFixedWindowLimiter(
+                            partitionKey: username,
+                            factory: partition => new FixedWindowRateLimiterOptions
+                            {
+                                AutoReplenishment = true,
+                                PermitLimit = 5,    // Permite 5 requisições (muito mais seguro que 1)
+                                Window = TimeSpan.FromSeconds(10), // A cada 10 segundos
+                                QueueLimit = 2,     // Aguarda até 2 na fila se estourar
+                                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+                            });
                     });
                 });
 
