@@ -89,6 +89,15 @@
     margin: auto;
 }
 
+.cadastro-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: #ffffff;
+    padding: 1rem;
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);

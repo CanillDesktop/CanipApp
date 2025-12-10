@@ -1,4 +1,4 @@
-﻿@page "/login" 
+﻿@page "/login"
 @layout LoginLayout
 @using Frontend.ViewModels
 @using Microsoft.JSInterop
@@ -6,8 +6,8 @@
 @inject IJSRuntime JS
 @implements IDisposable
 
-<div class="login-container">
-    <div class="login-card">
+<div class="login-wrapper">
+    <div class="login-container">
         <h2>CanilApp - Login</h2>
 
         @if (!string.IsNullOrEmpty(ViewModel.ErrorMessage))
@@ -35,7 +35,7 @@
                    disabled="@ViewModel.IsLoading" />
         </div>
 
-        @if(ViewModel.IsLoading)
+        @if (ViewModel.IsLoading)
         {
             <SpinnerComponent />
         }
@@ -63,7 +63,3 @@
         ViewModel.NavigationRequested -= HandleNavigation;
     }
 }
-
-<style>
-    /* ... mesmo CSS anterior ... */
-</style>
