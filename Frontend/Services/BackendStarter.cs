@@ -1,4 +1,4 @@
-﻿using Amazon.Auth.AccessControlPolicy;
+using Amazon.Auth.AccessControlPolicy;
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using System.Diagnostics;
 using System.Text.Json;
@@ -92,45 +92,67 @@ public static class BackendStarter
             }
 
             // ============================================================================
-            // 🔥 ETAPA 2: LOCALIZA O EXECUTÁVEL DO BACKEND
+            // 🔥 ETAPA 2: LOCALIZA O EXECUTÁVEL DO BACKEND (caminhos relativos ao app)
             // ============================================================================
-            var baseDir = "C:\\Users\\Arthu\\source\\repos\\CanillDesktop\\CanipApp\\Frontend\\bin\\Debug\\net8.0-windows10.0.19041.0\\win10-x64\\Backend\\win-x64";
-    
-
-
-
-            var possiblePaths = new[]
+            // Usa o diretório da aplicação para funcionar em qualquer máquina (dev, publish, outra pasta)
+            var appDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var parentDir = Path.GetDirectoryName(appDir);
+            var candidateBaseDirs = new[]
             {
-                Path.Combine(baseDir, "Backend.exe"),
-                Path.Combine(baseDir, "Backend", "Backend.exe"),
-                Path.Combine(baseDir, "win-x64", "Backend.exe"),
-                Path.Combine(baseDir, "Backend", "win-x64", "Backend.exe"),
-                Path.Combine(baseDir, "Backend.dll"),
-                Path.Combine(baseDir, "Backend", "Backend.dll"),
-                Path.Combine(baseDir, "win-x64", "Backend.dll"),
-                Path.Combine(baseDir, "Backend", "win-x64", "Backend.dll")
+                appDir,
+                parentDir ?? appDir,
+                Path.Combine(appDir, "Backend"),
+                Path.Combine(parentDir ?? appDir, "Backend"),
+                Path.GetFullPath(Path.Combine(appDir, "..", "Backend")),
+                Path.Combine(appDir, "Backend", "win-x64"),
+                Path.Combine(parentDir ?? appDir, "Backend", "win-x64"),
+                Path.GetFullPath(Path.Combine(appDir, "..", "Backend", "win-x64"))
             };
 
             string? backendPath = null;
             bool isDll = false;
+            var allTriedPaths = new List<string>();
 
-            foreach (var path in possiblePaths)
+            foreach (var baseDir in candidateBaseDirs)
             {
-                if (File.Exists(path))
+                if (string.IsNullOrEmpty(baseDir) || !Directory.Exists(baseDir))
+                    continue;
+
+                var possiblePaths = new[]
                 {
-                    backendPath = path;
-                    isDll = path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
-                    Console.WriteLine($"✅ Backend encontrado em: {path}");
-                    break;
+                    Path.Combine(baseDir, "Backend.exe"),
+                    Path.Combine(baseDir, "Backend.dll"),
+                    Path.Combine(baseDir, "Backend", "Backend.exe"),
+                    Path.Combine(baseDir, "Backend", "Backend.dll"),
+                    Path.Combine(baseDir, "win-x64", "Backend.exe"),
+                    Path.Combine(baseDir, "win-x64", "Backend.dll"),
+                    Path.Combine(baseDir, "Backend", "win-x64", "Backend.exe"),
+                    Path.Combine(baseDir, "Backend", "win-x64", "Backend.dll")
+                };
+
+                foreach (var path in possiblePaths)
+                {
+                    allTriedPaths.Add(path);
+                    if (File.Exists(path))
+                    {
+                        backendPath = path;
+                        isDll = path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
+                        Console.WriteLine($"✅ Backend encontrado em: {path}");
+                        break;
+                    }
                 }
+
+                if (backendPath != null)
+                    break;
             }
 
             if (backendPath == null)
             {
-                var searchedPaths = string.Join("\n  - ", possiblePaths);
+                var searchedPaths = string.Join("\n  - ", allTriedPaths.Distinct());
                 throw new FileNotFoundException(
-                    $"❌ Backend não encontrado em nenhum destes locais:\n  - {searchedPaths}\n\n" +
-                    $"BaseDirectory: {baseDir}"
+                    $"❌ Backend não encontrado. Verifique se a pasta Backend foi copiada junto ao executável.\n\n" +
+                    $"Diretório do app: {appDir}\n\n" +
+                    $"Locais verificados:\n  - {searchedPaths}"
                 );
             }
 

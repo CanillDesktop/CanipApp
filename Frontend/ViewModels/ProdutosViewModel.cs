@@ -6,8 +6,8 @@ using Frontend.Records;
 using Frontend.ViewModels.Interfaces;
 using Shared.DTOs.Produtos;
 using Shared.Models;
-using Frontend.Records;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Net.Http.Json;
 
 namespace Frontend.ViewModels
@@ -27,6 +27,7 @@ namespace Frontend.ViewModels
         private bool _carregando;
         private bool _cadastrando;
         private bool _deletando;
+        private bool _sincronizando; // ← NOVO
 
         private ProdutosModel _produtoCadastro = new();
 
@@ -39,43 +40,35 @@ namespace Frontend.ViewModels
         public bool Carregando
         {
             get => _carregando;
-            set
-            {
-                SetProperty(ref _carregando, value);
-            }
+            set => SetProperty(ref _carregando, value);
         }
 
         public bool Cadastrando
         {
             get => _cadastrando;
-            set
-            {
-                SetProperty(ref _cadastrando, value);
-            }
+            set => SetProperty(ref _cadastrando, value);
         }
 
         public bool Deletando
         {
             get => _deletando;
-            set
-            {
-                SetProperty(ref _deletando, value);
-            }
+            set => SetProperty(ref _deletando, value);
+        }
+
+        // ← NOVA PROPRIEDADE
+        public bool Sincronizando
+        {
+            get => _sincronizando;
+            set => SetProperty(ref _sincronizando, value);
         }
 
         public bool HasTabs
         {
             get => _hasTabs;
-            set
-            {
-                SetProperty(ref _hasTabs, value);
-            }
+            set => SetProperty(ref _hasTabs, value);
         }
 
-        public ObservableCollection<TabItemModel> TabsShowing
-        {
-            get => _tabsShowing;
-        }
+        public ObservableCollection<TabItemModel> TabsShowing => _tabsShowing;
 
         public string ActiveTab
         {
@@ -92,37 +85,25 @@ namespace Frontend.ViewModels
         public ProdutosModel ProdutoCadastro
         {
             get => _produtoCadastro;
-            set
-            {
-                SetProperty(ref _produtoCadastro, value);
-            }
+            set => SetProperty(ref _produtoCadastro, value);
         }
 
         public ProdutosFiltroModel Filtro
         {
             get => _filtro;
-            set
-            {
-                SetProperty(ref _filtro, value);
-            }
+            set => SetProperty(ref _filtro, value);
         }
 
         public string ValorPesquisa
         {
             get => _valorPesquisa;
-            set
-            {
-                SetProperty(ref _valorPesquisa, value);
-            }
+            set => SetProperty(ref _valorPesquisa, value);
         }
 
         public string ChavePesquisa
         {
             get => _chavePesquisa;
-            set
-            {
-                SetProperty(ref _chavePesquisa, value);
-            }
+            set => SetProperty(ref _chavePesquisa, value);
         }
 
         public Action? OnTabChanged { get; set; }
@@ -132,15 +113,16 @@ namespace Frontend.ViewModels
         public IAsyncRelayCommand<ProdutosModel?> CadastrarProdutoCommand;
         public IAsyncRelayCommand<PesquisaProduto?> FiltrarProdutosCommand;
         public IAsyncRelayCommand<ProdutosLeituraDTO?> DeletarProdutoCommand;
+        public IAsyncRelayCommand SincronizarProdutosCommand; // ← NOVO COMANDO
 
         public ProdutosViewModel(IHttpClientFactory httpClientFactory)
         {
             _http = httpClientFactory.CreateClient("ApiClient");
             CarregarProdutosCommand = new AsyncRelayCommand(CarregarProdutosAsync);
             CadastrarProdutoCommand = new AsyncRelayCommand<ProdutosModel?>(CadastrarProdutoAsync);
-            //SincronizarProdutosCommand = new AsyncRelayCommand(SincronizarProdutosAsyncFront);
             FiltrarProdutosCommand = new AsyncRelayCommand<PesquisaProduto?>(BuscarProdutosFiltradosAsync);
             DeletarProdutoCommand = new AsyncRelayCommand<ProdutosLeituraDTO?>(DeletarProdutoAsync);
+            SincronizarProdutosCommand = new AsyncRelayCommand(SincronizarProdutosAsync); // ← NOVO
         }
 
         #region metodos
@@ -166,6 +148,50 @@ namespace Frontend.ViewModels
             finally
             {
                 Carregando = false;
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // ← MÉTODO DE SINCRONIZAÇÃO (Replicado de InsumosViewModel)
+        // ════════════════════════════════════════════════════════════
+        private async Task SincronizarProdutosAsync()
+        {
+            try
+            {
+                if (Sincronizando)
+                    return;
+
+                Debug.WriteLine("[ProdutosViewModel] 🔄 INICIANDO SINCRONIZAÇÃO COM AWS");
+                Sincronizando = true;
+
+                var response = await _http.PostAsync("api/sync", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Usa a classe SyncResponse definida em InsumosViewModel ou no namespace
+                    var resultado = await response.Content.ReadFromJsonAsync<SyncResponse>();
+
+                    await Application.Current!.MainPage!.DisplayAlert(
+                        "Sucesso",
+                        "Sincronização com AWS concluída com sucesso!\n\nTodas as tabelas foram atualizadas.",
+                        "OK");
+
+                    await CarregarProdutosAsync();
+                }
+                else
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    await Application.Current!.MainPage!.DisplayAlert("Erro na Sincronização", $"Erro: {error}", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[ProdutosViewModel] ❌ Erro: {ex.Message}");
+                await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
+            }
+            finally
+            {
+                Sincronizando = false;
             }
         }
 
@@ -197,6 +223,7 @@ namespace Frontend.ViewModels
                 if (response.IsSuccessStatusCode)
                 {
                     await Application.Current!.MainPage!.DisplayAlert("Sucesso", "Produto cadastrado com sucesso!", "OK");
+                    await CarregarProdutosAsync(); // Recarrega após cadastro
                 }
                 else
                 {

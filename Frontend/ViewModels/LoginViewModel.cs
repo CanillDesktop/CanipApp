@@ -84,10 +84,6 @@ namespace Frontend.ViewModels
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadFromJsonAsync<LoginResponseModel>();
-
-                    // ============================================================================
-                    // 🔥 VALIDAÇÕES DA RESPOSTA
-                    // ============================================================================
                     if (result?.Token == null)
                     {
                         ErrorMessage = "Resposta inválida: Token ausente";

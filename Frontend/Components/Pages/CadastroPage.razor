@@ -1,12 +1,13 @@
 ﻿@page "/cadastro"
+@layout LoginLayout
 @using Frontend.ViewModels
 @using Microsoft.JSInterop
 @inject CadastroViewModel ViewModel
 @inject IJSRuntime JS
 @implements IDisposable
 
-<div class="cadastro-container">
-    <div class="cadastro-card">
+<div class="cadastro-wrapper">
+    <div class="cadastro-container">
         <h2>CanilApp - Cadastro</h2>
 
         @if (!string.IsNullOrEmpty(ViewModel.ErrorMessage))
@@ -71,18 +72,6 @@
                    disabled="@ViewModel.IsLoading" />
         </div>
 
-        <div class="form-group">
-            <label>Permissão</label>
-            <select class="form-control"
-                    @bind="ViewModel.PermissaoSelecionada"
-                    disabled="@ViewModel.IsLoading">
-                @foreach (var permissao in ViewModel.Permissoes)
-                {
-                    <option value="@permissao">@permissao</option>
-                }
-            </select>
-        </div>
-
         <button class="btn btn-success w-100 mb-3"
                 @onclick="async () => await ViewModel.RegistrarCommand.ExecuteAsync(null)"
                 disabled="@ViewModel.IsLoading">
@@ -122,7 +111,3 @@
         ViewModel.NavigationRequested -= HandleNavigation;
     }
 }
-
-<style>
-    /* ... mesmo CSS anterior ... */
-</style>

@@ -51,6 +51,14 @@
 		<ProjectReference Include="..\Shared\Shared.csproj" />
 	</ItemGroup>
 
+	<!-- Garante que appsettings sejam copiados no publish (necessário em outras máquinas) -->
+	<ItemGroup>
+		<Content Update="appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+
 	<ItemGroup>
 		<Folder Include="Models\Interfaces\" />
 	</ItemGroup>

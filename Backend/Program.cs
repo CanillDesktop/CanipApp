@@ -203,9 +203,9 @@ namespace Backend
                             factory: partition => new FixedWindowRateLimiterOptions
                             {
                                 AutoReplenishment = true,
-                                PermitLimit = 5,    // Permite 5 requisições (muito mais seguro que 1)
-                                Window = TimeSpan.FromSeconds(10), // A cada 10 segundos
-                                QueueLimit = 2,     // Aguarda até 2 na fila se estourar
+                                PermitLimit = 5,  
+                                Window = TimeSpan.FromSeconds(10),
+                                QueueLimit = 3,     
                                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst
                             });
                     });

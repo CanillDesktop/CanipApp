@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 	<PropertyGroup>
 		<TargetFrameworks>net8.0-windows10.0.19041.0</TargetFrameworks>
 		<UseMaui>true</UseMaui>
@@ -78,7 +78,8 @@
 	</Target>
 
 	<!-- ============================================================================ -->
-	<!-- 🔥 TARGET PARA COPIAR BACKEND APÓS PUBLISH                                  -->
+	<!-- 🔥 TARGET PARA COPIAR BACKEND APÓS PUBLISH (Front + Back empacotados juntos) -->
+	<!-- Backend é publicado self-contained quando Frontend publica com SelfContained -->
 	<!-- ============================================================================ -->
 	<Target Name="CopyBackendAfterPublish" AfterTargets="Publish" Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">
 		<PropertyGroup>
@@ -88,23 +89,23 @@
 			<BackendPublishDestination>$(FrontendPublishPath)Backend\</BackendPublishDestination>
 		</PropertyGroup>
 
-		<Message Text="🔥 Publicando Backend..." Importance="high" />
+		<Message Text="🔥 Publicando Backend (self-contained=$(SelfContained))..." Importance="high" />
 
-		<!-- Publica o backend -->
-		<MSBuild Projects="$(BackendProjectPath)" Targets="Publish" Properties="Configuration=$(Configuration);PublishDir=$(BackendPublishOutput)\;TargetFramework=net8.0" />
-
+		<!-- Publica o backend: mesmo SelfContained que o Frontend (empacota runtime junto) -->
+		<MSBuild Projects="$(BackendProjectPath)" Targets="Publish"
+			Properties="Configuration=$(Configuration);TargetFramework=net8.0;RuntimeIdentifier=win-x64;SelfContained=$(SelfContained);PublishDir=$(BackendPublishOutput)\;PublishSingleFile=false" />
 
 		<!-- Cria pasta de destino -->
 		<MakeDir Directories="$(BackendPublishDestination)" />
 
-		<!-- Copia todos os arquivos publicados -->
+		<!-- Copia todos os arquivos publicados do Backend para pasta Backend\ ao lado do exe do Frontend -->
 		<ItemGroup>
 			<BackendPublishFiles Include="$(BackendPublishOutput)\**\*.*" />
 		</ItemGroup>
 
 		<Copy SourceFiles="@(BackendPublishFiles)" DestinationFolder="$(BackendPublishDestination)\%(RecursiveDir)" SkipUnchangedFiles="true" />
 
-		<Message Text="✅ Backend publicado em: $(BackendPublishDestination)" Importance="high" />
+		<Message Text="✅ Backend publicado em: $(BackendPublishDestination) (rode apenas Frontend.exe)" Importance="high" />
 	</Target>
 
 	<Target Name="KillBackendBeforeBuild" BeforeTargets="Build">

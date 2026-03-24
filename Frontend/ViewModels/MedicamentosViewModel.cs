@@ -139,7 +139,7 @@ namespace Frontend.ViewModels
             CadastrarMedicamentoCommand = new AsyncRelayCommand<MedicamentosModel?>(CadastrarMedicamentoAsync);
             FiltrarMedicamentosCommand = new AsyncRelayCommand<PesquisaProduto?>(BuscarMedicamentosFiltradosAsync);
             DeletarMedicamentoCommand = new AsyncRelayCommand<MedicamentoLeituraDTO?>(DeletarMedicamentoAsync);
-            SincronizarMedicamentoCommand = new AsyncRelayCommand(SincronizarMedicamentoAsyncFront);
+            SincronizarMedicamentoCommand = new AsyncRelayCommand(SincronizarMedicamentosAsync);
         }
 
         #region Metodos
@@ -153,76 +153,43 @@ namespace Frontend.ViewModels
                 Carregando = true;
                 LimparMensagens();
 
-                // ============================================================================
-                // 🔥 DEBUG: VALIDAR AUTENTICAÇÃO ANTES DE FAZER REQUEST
-                // ============================================================================
                 var idToken = await SecureStorage.GetAsync("id_token");
-                Console.WriteLine($"🔍 [MedicamentosVM] CarregarMedicamentosAsync iniciado");
-                Console.WriteLine($"🔑 [MedicamentosVM] ID Token existe? {!string.IsNullOrWhiteSpace(idToken)}");
-
-                if (!string.IsNullOrWhiteSpace(idToken))
+                if (string.IsNullOrWhiteSpace(idToken))
                 {
-                    Console.WriteLine($"🔑 [MedicamentosVM] Token preview: {idToken.Substring(0, Math.Min(50, idToken.Length))}...");
-                }
-                else
-                {
-                    Console.WriteLine($"❌ [MedicamentosVM] ERRO: Usuário não autenticado!");
                     MensagemErro = "❌ Você precisa estar logado para visualizar medicamentos";
                     return;
                 }
 
-                Console.WriteLine($"🌐 [MedicamentosVM] BaseAddress: {_http.BaseAddress}");
-                Console.WriteLine($"📡 [MedicamentosVM] Fazendo GET /api/medicamentos...");
-
                 var medicamentos = await _http.GetFromJsonAsync<MedicamentoLeituraDTO[]>("api/medicamentos");
-
-                Console.WriteLine($"✅ [MedicamentosVM] Resposta recebida: {medicamentos?.Length ?? 0} medicamentos");
 
                 Medicamentos.Clear();
 
                 if (medicamentos != null && medicamentos.Length > 0)
                 {
                     foreach (var m in medicamentos)
-                    {
                         Medicamentos.Add(m);
-                        Console.WriteLine($"   - {m.NomeItem} (ID: {m.IdItem})");
-                    }
 
                     MensagemSucesso = $"✅ {medicamentos.Length} medicamento(s) carregado(s)";
                 }
                 else
                 {
-                    Console.WriteLine($"⚠️ [MedicamentosVM] Nenhum medicamento retornado");
                     MensagemSucesso = "ℹ️ Nenhum medicamento cadastrado";
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                MensagemErro = $"❌ Erro de conexão: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] HttpRequestException: {ex.Message}");
-                Console.WriteLine($"❌ [MedicamentosVM] StatusCode: {ex.StatusCode}");
-                Console.WriteLine($"❌ [MedicamentosVM] Stack: {ex.StackTrace}");
             }
             catch (Exception ex)
             {
                 MensagemErro = $"❌ Erro ao carregar medicamentos: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] Exception: {ex.GetType().Name}");
-                Console.WriteLine($"❌ [MedicamentosVM] Message: {ex.Message}");
-                Console.WriteLine($"❌ [MedicamentosVM] Stack: {ex.StackTrace}");
-
                 if (Application.Current?.MainPage != null)
                     await Application.Current.MainPage.DisplayAlert("Erro", ex.Message, "OK");
             }
             finally
             {
                 Carregando = false;
-                Console.WriteLine($"🏁 [MedicamentosVM] CarregarMedicamentosAsync finalizado");
             }
         }
 
         public async Task OnLoadedAsync()
         {
-            Console.WriteLine($"🔄 [MedicamentosVM] OnLoadedAsync chamado");
             await CarregarMedicamentosAsync();
             OnInitialLoad?.Invoke();
         }
@@ -249,20 +216,13 @@ namespace Frontend.ViewModels
 
                 LimparMensagens();
                 var dto = (MedicamentoCadastroDTO)med;
-
                 Cadastrando = true;
 
-                Console.WriteLine($"📤 [MedicamentosVM] Cadastrando medicamento: {dto.NomeComercial}");
-
                 var response = await _http.PostAsJsonAsync("api/medicamentos", dto);
-
-                Console.WriteLine($"📡 [MedicamentosVM] Response status: {response.StatusCode}");
 
                 if (response.IsSuccessStatusCode)
                 {
                     MensagemSucesso = "✅ Medicamento cadastrado com sucesso!";
-                    Console.WriteLine("✅ [MedicamentosVM] Medicamento cadastrado com sucesso!");
-
                     await Task.Delay(2000);
                     await CarregarMedicamentosAsync();
                     OnTabChanged?.Invoke();
@@ -274,22 +234,11 @@ namespace Frontend.ViewModels
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     MensagemErro = $"❌ Erro ao cadastrar: {errorContent}";
-                    Console.WriteLine($"❌ [MedicamentosVM] Erro: {errorContent}");
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                MensagemErro = $"❌ Erro de conexão: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] HttpRequestException ao cadastrar: {ex.Message}");
-
-                if (Application.Current?.MainPage != null)
-                    await Application.Current.MainPage.DisplayAlert("Erro de Conexão", ex.Message, "OK");
             }
             catch (Exception ex)
             {
                 MensagemErro = $"❌ Erro ao cadastrar medicamento: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] Exception ao cadastrar: {ex.Message}");
-
                 if (Application.Current?.MainPage != null)
                     await Application.Current.MainPage.DisplayAlert("Erro", ex.Message, "OK");
             }
@@ -305,27 +254,19 @@ namespace Frontend.ViewModels
             try
             {
                 if (Carregando) return;
-
                 Carregando = true;
                 LimparMensagens();
 
                 if (string.IsNullOrWhiteSpace(ChavePesquisa) || string.IsNullOrWhiteSpace(ValorPesquisa))
                 {
                     MensagemErro = "Escolha um campo e preencha o valor para pesquisar.";
-                    Console.WriteLine("⚠️ [MedicamentosVM] Filtro inválido");
-
                     if (Application.Current?.MainPage != null)
                         await Application.Current.MainPage.DisplayAlert("Aviso", "Escolha um campo e preencha o valor.", "OK");
-
                     return;
                 }
 
                 var url = $"api/medicamentos?{ChavePesquisa}={Uri.EscapeDataString(ValorPesquisa)}";
-                Console.WriteLine($"🔍 [MedicamentosVM] Filtrando: {url}");
-
                 var medicamentos = await _http.GetFromJsonAsync<MedicamentoLeituraDTO[]>(url);
-
-                Console.WriteLine($"✅ [MedicamentosVM] Filtro retornou: {medicamentos?.Length ?? 0} resultados");
 
                 Medicamentos.Clear();
                 foreach (var p in medicamentos ?? [])
@@ -336,16 +277,9 @@ namespace Frontend.ViewModels
                     MensagemSucesso = "Nenhum medicamento encontrado com os critérios informados.";
                 }
             }
-            catch (HttpRequestException ex)
-            {
-                MensagemErro = $"Erro de conexão: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] Erro ao filtrar: {ex.Message}");
-            }
             catch (Exception ex)
             {
                 MensagemErro = $"Erro ao filtrar: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] Exception ao filtrar: {ex.Message}");
-
                 if (Application.Current?.MainPage != null)
                     await Application.Current.MainPage.DisplayAlert("Erro", ex.Message, "OK");
             }
@@ -358,7 +292,6 @@ namespace Frontend.ViewModels
         private async Task DeletarMedicamentoAsync(MedicamentoLeituraDTO? m)
         {
             if (m == null || Carregando) return;
-
             Carregando = true;
             LimparMensagens();
 
@@ -367,21 +300,14 @@ namespace Frontend.ViewModels
                 if (Deletando) return;
                 Deletando = true;
 
-                bool isExcluir = false;
-                if (Application.Current?.MainPage != null)
-                {
-                    isExcluir = await Application.Current.MainPage.DisplayAlert(
+                bool isExcluir = await Application.Current!.MainPage!.DisplayAlert(
                         "Confirmação de exclusão",
                         $"Deseja realmente excluir o medicamento \"{m.NomeItem}\"?",
                         "Sim", "Não");
-                }
 
                 if (isExcluir)
                 {
-                    Console.WriteLine($"🗑️ [MedicamentosVM] Deletando ID: {m.IdItem}");
                     var result = await _http.DeleteAsync($"api/medicamentos/{m.IdItem}");
-
-                    Console.WriteLine($"📡 [MedicamentosVM] Delete response: {result.StatusCode}");
 
                     if (result.IsSuccessStatusCode)
                     {
@@ -394,16 +320,9 @@ namespace Frontend.ViewModels
                     }
                 }
             }
-            catch (HttpRequestException ex)
-            {
-                MensagemErro = $"❌ Erro de conexão: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] Erro ao deletar: {ex.Message}");
-            }
             catch (Exception ex)
             {
                 MensagemErro = $"❌ Erro ao deletar: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] Exception ao deletar: {ex.Message}");
-
                 if (Application.Current?.MainPage != null)
                     await Application.Current.MainPage.DisplayAlert("Erro", ex.Message, "OK");
             }
@@ -414,7 +333,10 @@ namespace Frontend.ViewModels
             }
         }
 
-        private async Task SincronizarMedicamentoAsyncFront()
+        // ════════════════════════════════════════════════════════════
+        // ← MÉTODO DE SINCRONIZAÇÃO (Padronizado)
+        // ════════════════════════════════════════════════════════════
+        private async Task SincronizarMedicamentosAsync()
         {
             try
             {
@@ -423,18 +345,21 @@ namespace Frontend.ViewModels
                 Sincronizando = true;
                 LimparMensagens();
 
-                Console.WriteLine($"🔄 [MedicamentosVM] Iniciando sincronização...");
+                Debug.WriteLine("[MedicamentosViewModel] 🔄 INICIANDO SINCRONIZAÇÃO COM AWS");
 
-                var response = await _http.PostAsync("api/Sync", null);
-
-                Console.WriteLine($"📡 [MedicamentosVM] Sync response: {response.StatusCode}");
+                var response = await _http.PostAsync("api/sync", null);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-                    MensagemSucesso = result != null && result.ContainsKey("message")
-                        ? result["message"]
+                    var result = await response.Content.ReadFromJsonAsync<SyncResponse>();
+                    MensagemSucesso = result != null && !string.IsNullOrEmpty(result.message)
+                        ? result.message
                         : "✅ Sincronização concluída com sucesso!";
+
+                    await Application.Current!.MainPage!.DisplayAlert(
+                        "Sucesso",
+                        "Sincronização com AWS concluída com sucesso!\n\nTodas as tabelas foram atualizadas.",
+                        "OK");
 
                     await CarregarMedicamentosAsync();
                 }
@@ -442,17 +367,14 @@ namespace Frontend.ViewModels
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     MensagemErro = $"❌ Erro na sincronização: {errorContent}";
+                    await Application.Current!.MainPage!.DisplayAlert("Erro na Sincronização", MensagemErro, "OK");
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                MensagemErro = $"❌ Erro de conexão com servidor: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] Erro ao sincronizar: {ex.Message}");
             }
             catch (Exception ex)
             {
                 MensagemErro = $"❌ Erro ao sincronizar: {ex.Message}";
-                Console.WriteLine($"❌ [MedicamentosVM] Exception ao sincronizar: {ex.Message}");
+                Debug.WriteLine($"❌ [MedicamentosViewModel] Erro: {ex.Message}");
+                await Application.Current!.MainPage!.DisplayAlert("Erro", ex.Message, "OK");
             }
             finally
             {
@@ -469,22 +391,14 @@ namespace Frontend.ViewModels
         public static string DisplayDataEntregaRecente(MedicamentoLeituraDTO m)
         {
             if (m.ItensEstoque == null || m.ItensEstoque.Length == 0) return "-";
-
-            var item = m.ItensEstoque
-                .OrderByDescending(i => i.DataEntrega)
-                .FirstOrDefault();
-
+            var item = m.ItensEstoque.OrderByDescending(i => i.DataEntrega).FirstOrDefault();
             return item != null ? item.DataEntrega.ToShortDateString() : "-";
         }
 
         public static string DisplayDataValidadeRecente(MedicamentoLeituraDTO m)
         {
             if (m.ItensEstoque == null || m.ItensEstoque.Length == 0) return "-";
-
-            var item = m.ItensEstoque
-                .OrderByDescending(i => i.DataValidade)
-                .FirstOrDefault();
-
+            var item = m.ItensEstoque.OrderByDescending(i => i.DataValidade).FirstOrDefault();
             return item != null && item.DataValidade.HasValue ? item.DataValidade.Value.ToShortDateString() : "-";
         }
 
