@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 
 namespace Frontend.Services
 {
@@ -79,6 +79,18 @@ namespace Frontend.Services
         /// </summary>
         public async Task<ClaimsPrincipal> GetUserClaimsAsync()
         {
+            if (Frontend.DevAuthBypass.SkipLogin)
+            {
+                Console.WriteLine("⚠️ [AuthStateService] DevAuthBypass.SkipLogin — usuário fake para desenvolvimento");
+                var devClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, "Dev (bypass)"),
+                    new Claim(ClaimTypes.Email, "dev@local"),
+                    new Claim("sub", "dev-bypass")
+                };
+                return new ClaimsPrincipal(new ClaimsIdentity(devClaims, authenticationType: "DevBypass"));
+            }
+
             var idToken = await SecureStorage.GetAsync("id_token");
 
             if (string.IsNullOrWhiteSpace(idToken))
@@ -110,6 +122,9 @@ namespace Frontend.Services
         /// </summary>
         public async Task<bool> IsAuthenticatedAsync()
         {
+            if (Frontend.DevAuthBypass.SkipLogin)
+                return true;
+
             var idToken = await SecureStorage.GetAsync("id_token");
             var isAuthenticated = !string.IsNullOrWhiteSpace(idToken);
 

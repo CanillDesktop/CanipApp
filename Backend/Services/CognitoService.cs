@@ -1,4 +1,4 @@
-﻿using Amazon.CognitoIdentityProvider;
+using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.CognitoIdentity;
 using Amazon.CognitoIdentity.Model;
@@ -96,15 +96,30 @@ public class CognitoService : ICognitoService
                 }
             };
         }
-        catch (Amazon.CognitoIdentity.Model.NotAuthorizedException ex)
+        catch (Amazon.CognitoIdentityProvider.Model.NotAuthorizedException ex)
         {
             _logger.LogWarning($"Autenticação falhou: {ex.Message}");
             throw new UnauthorizedAccessException("Usuário ou senha inválidos", ex);
         }
-        catch (UserNotFoundException ex)
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
         {
             _logger.LogWarning($"Usuário não encontrado: {ex.Message}");
             throw new UnauthorizedAccessException("Usuário não encontrado", ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.InvalidPasswordException ex)
+        {
+            _logger.LogWarning($"Senha inválida: {ex.Message}");
+            throw new UnauthorizedAccessException("Usuário ou senha inválidos", ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.InvalidParameterException ex)
+        {
+            _logger.LogWarning("Parâmetro inválido no Cognito (ex.: fluxo USER_PASSWORD_AUTH desabilitado no app client): {Message}", ex.Message);
+            throw new UnauthorizedAccessException("Configuração de autenticação inválida ou credenciais rejeitadas pelo provedor.", ex);
+        }
+        catch (AmazonServiceException ex)
+        {
+            _logger.LogError(ex, "Erro AWS Cognito");
+            throw new Exception("Erro ao comunicar com Cognito", ex);
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using Shared.Models;
+using Shared.Models;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -16,6 +16,15 @@ namespace Frontend.Services
             CancellationToken cancellationToken)
         {
             Console.WriteLine($"🔍 [Handler] Request: {request.Method} {request.RequestUri}");
+
+            var path = request.RequestUri?.AbsolutePath ?? "";
+            var isLoginFlow = path.Contains("/api/login", StringComparison.OrdinalIgnoreCase);
+
+            // Login/refresh usam só o body; não enviar JWT antigo (evita confusão e falhas no pipeline)
+            if (isLoginFlow)
+            {
+                return await base.SendAsync(request, cancellationToken);
+            }
 
             // ============================================================================
             // 🔥 SEMPRE USAR ID TOKEN (contém aud correto)

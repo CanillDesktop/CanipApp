@@ -1,4 +1,4 @@
-﻿using Backend.Services;
+using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs;
 using Shared.Models;
@@ -19,11 +19,21 @@ public class LoginController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
+    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest? request)
     {
         try
         {
-            _logger.LogInformation($"Login: {request.Login}");
+            if (request is null || string.IsNullOrWhiteSpace(request.Login) || string.IsNullOrWhiteSpace(request.Senha))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Title = "Requisição inválida",
+                    StatusCode = 400,
+                    Message = "Login e senha são obrigatórios"
+                });
+            }
+
+            _logger.LogInformation("Login: {Login}", request.Login);
 
             var result = await _cognitoService.AuthenticateAsync(request.Login, request.Senha);
 
