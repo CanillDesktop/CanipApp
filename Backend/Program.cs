@@ -1,4 +1,4 @@
-﻿using Amazon.CognitoIdentity;
+using Amazon.CognitoIdentity;
 using Amazon.CognitoIdentityProvider;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
@@ -229,8 +229,7 @@ namespace Backend
                 builder.Services.AddScoped<RetiradaEstoqueRepository>();
 
 
-                // AWS DynamoDB
-                builder.Services.AddHttpContextAccessor(); // NOVO - Necessário para SyncService
+                builder.Services.AddHttpContextAccessor(); 
 
                 builder.Services.AddSingleton<ICognitoService, CognitoService>();
 
@@ -244,34 +243,34 @@ namespace Backend
                     var config = new AmazonDynamoDBConfig
                     {
                         RegionEndpoint = awsOptions.Region,
-                        Timeout = TimeSpan.FromSeconds(30),  // ✅ 30s!
+                        Timeout = TimeSpan.FromSeconds(30), 
                         MaxErrorRetry = 3
                     };
 
                     return new AmazonDynamoDBClient(awsOptions.Credentials, config);
                 });
-                builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>(); // NOVO
-                builder.Services.AddAWSService<IAmazonCognitoIdentity>(); // NOVO
+                builder.Services.AddAWSService<IAmazonCognitoIdentityProvider>(); 
+                builder.Services.AddAWSService<IAmazonCognitoIdentity>(); 
 
                 builder.Services.AddScoped<IDynamoDBContext, DynamoDBContext>();
                 builder.Services.AddScoped<ISyncService, SyncService>();
 
                 var app = builder.Build();
 
-                // Migrations
-                //using (var scope = app.Services.CreateScope())
-                //{
-                //    var db = scope.ServiceProvider.GetRequiredService<CanilAppDbContext>();
-                //    try
-                //    {
-                //        db.Database.Migrate();
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        Log.Error(ex, "Erro ao aplicar migrations");
-                //        throw;
-                //    }
-                //}
+             
+                using (var scope = app.Services.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<CanilAppDbContext>();
+                    try
+                    {
+                        db.Database.Migrate();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Erro ao aplicar migrations");
+                        throw;
+                    }
+                }
 
                 // Pipeline
                 if (app.Environment.IsDevelopment())
@@ -308,11 +307,11 @@ namespace Backend
                 app.UseAuthorization();
                 app.MapControllers();
 
-                // Endpoints
+             
                 app.MapGet("/", () => new { status = "backend rodando", version = "1.0.0", timestamp = DateTime.UtcNow });
                 app.MapGet("/api/health", () => "OK");
 
-                // Shutdown
+            
                 app.MapPost("/internal/shutdown", async (IHostApplicationLifetime lifetime) =>
                 {
                     _ = Task.Run(async () =>
@@ -355,6 +354,7 @@ namespace Backend
                     if (File.Exists(_discoveryFilePath)) File.Delete(_discoveryFilePath);
                     File.Move(tempFile, _discoveryFilePath);
 
+                    // Contrato de uma linha no stdout, interpretado pelo host MAUI quando o JSON de descoberta atrasa; manter o prefixo exato.
                     Console.WriteLine($"BACKEND_URL:{httpUrl}");
                 });
 

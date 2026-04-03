@@ -3,10 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Shared.DTOs.Medicamentos;
-using System.Diagnostics;
-using System;
-using Microsoft.Extensions.DependencyInjection;
-using Backend.Repositories.Interfaces;
 using Backend.Models.Medicamentos;
 
 namespace Backend.Controllers
@@ -17,10 +13,12 @@ namespace Backend.Controllers
     public class MedicamentosController : ControllerBase
     {
         private readonly IMedicamentosService _service;
+        private readonly ILogger<MedicamentosController> _logger;
 
-        public MedicamentosController(IMedicamentosService service)
+        public MedicamentosController(IMedicamentosService service, ILogger<MedicamentosController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -61,7 +59,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"FALHA DE SYNC (Post): {ex.Message}");
+                _logger.LogError(ex, "Falha ao criar medicamento.");
                 return StatusCode(500);
             }
         }
@@ -83,7 +81,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Falha ao sincronizar (Atualizar): {ex.Message}");
+                _logger.LogError(ex, "Falha ao atualizar medicamento.");
                 return StatusCode(500);
             }
 
@@ -108,7 +106,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Falha ao sincronizar (Deletar): {ex.Message}");
+                _logger.LogError(ex, "Falha ao excluir medicamento {MedicamentoId}.", id);
                 return StatusCode(500);
             }
         }

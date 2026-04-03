@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Models;
 using Shared.DTOs.Produtos;
-using System.Diagnostics;
 using Backend.Exceptions;
 
 namespace Backend.Controllers
@@ -16,10 +15,12 @@ namespace Backend.Controllers
     public class ProdutosController : ControllerBase
     {
         private readonly IProdutosService _service;
+        private readonly ILogger<ProdutosController> _logger;
 
-        public ProdutosController(IProdutosService service)
+        public ProdutosController(IProdutosService service, ILogger<ProdutosController> logger)
         {
             _service = service;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -67,13 +68,9 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"FALHA DE SYNC (Post): {ex.Message}");
+                _logger.LogError(ex, "Falha ao criar produto.");
                 return StatusCode(500);
             }
-
-
-            
-         
         }
 
         [HttpPut("{id}")]
@@ -92,7 +89,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Falha ao sincronizar (Atualizar): {ex.Message}");
+                _logger.LogError(ex, "Falha ao atualizar produto {ProdutoId}.", id);
                 return StatusCode(500);
             }
         }
@@ -116,7 +113,7 @@ namespace Backend.Controllers
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Falha ao sincronizar (Deletar): {ex.Message}");
+                _logger.LogError(ex, "Falha ao excluir produto {ProdutoId}.", id);
                 return StatusCode(500);
             }
         }

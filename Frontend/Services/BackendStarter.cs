@@ -1,25 +1,23 @@
-using Amazon.Auth.AccessControlPolicy;
-using Microsoft.Maui.Controls.PlatformConfiguration;
 using System.Diagnostics;
 using System.Text.Json;
-using Windows.System;
+using Frontend.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace Frontend.Services;
 
 /// <summary>
-/// Serviço responsável por iniciar, descobrir e encerrar o backend ASP.NET Core
-/// Implementa discovery via arquivo JSON e kill switch automático
+/// Orquestração do host para a API embutida: descoberta via <c>backend.json</c>, linha de URL no stdout e encerramento.
 /// </summary>
 public static class BackendStarter
 {
+    private static readonly ILogger s_log = AppHostLogging.Create(nameof(BackendStarter));
+
     private static Process? _backendProcess;
     private static string? _discoveryFilePath;
     private static bool _ownedByThisProcess = false;
     private static readonly object _lock = new object();
 
-    /// <summary>
-    /// Classe para deserializar o arquivo backend.json
-    /// </summary>
+    /// <summary>Metadados de descoberta persistidos junto à API (ver <c>backend.json</c>).</summary>
     private class BackendDiscoveryInfo
     {
         public int port { get; set; }
@@ -29,9 +27,7 @@ public static class BackendStarter
         public string? url { get; set; }
     }
 
-    /// <summary>
-    /// Inicia o backend (se necessário) e retorna a URL dinamicamente descoberta
-    /// </summary>
+    /// <summary>Inicia a API se necessário e retorna o endereço HTTP base.</summary>
     public static string StartBackendAndGetUrl()
     {
         lock (_lock)
@@ -42,9 +38,6 @@ public static class BackendStarter
 
             _discoveryFilePath = Path.Combine(canilAppPath, "backend.json");
 
-            // ============================================================================
-            // 🔥 ETAPA 1: VERIFICA SE JÁ EXISTE INSTÂNCIA RODANDO
-            // ============================================================================
             if (File.Exists(_discoveryFilePath))
             {
                 try
@@ -57,44 +50,38 @@ public static class BackendStarter
                         // Verifica se o processo ainda está vivo
                         if (IsProcessAlive(info.pid))
                         {
-                            Console.WriteLine($"✅ Backend já está rodando (PID: {info.pid}, Porta: {info.port})");
+                            s_log.LogInformation(
+                                "Instância da API já em execução (PID {Pid}, porta {Port}).",
+                                info.pid,
+                                info.port);
 
-                            // Tenta validar se o backend está realmente respondendo
                             var url = $"http://127.0.0.1:{info.port}";
                             if (TestBackendConnection(url))
                             {
-                                Console.WriteLine($"✅ Backend validado e funcionando em: {url}");
-                                _ownedByThisProcess = false; // Não foi iniciado por nós
+                                s_log.LogInformation("Verificação de saúde concluída para {Url}.", url);
+                                _ownedByThisProcess = false;
                                 return url;
                             }
-                            else
-                            {
-                                Console.WriteLine($"⚠️ Backend não está respondendo, iniciando novo...");
-                                // Remove arquivo de discovery corrompido
-                                File.Delete(_discoveryFilePath);
-                            }
+
+                            s_log.LogWarning("Arquivo de descoberta existe, mas a API não respondeu; removendo dados obsoletos.");
+                            File.Delete(_discoveryFilePath);
                         }
                         else
                         {
-                            Console.WriteLine($"⚠️ Processo {info.pid} não existe mais, iniciando novo backend...");
-                            // Remove arquivo de discovery obsoleto
+                            s_log.LogWarning("O processo {Pid} do arquivo de descoberta não está em execução; iniciando nova instância da API.", info.pid);
                             File.Delete(_discoveryFilePath);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"⚠️ Erro ao ler backend.json: {ex.Message}");
+                    s_log.LogWarning(ex, "Falha ao ler o arquivo de descoberta da API.");
                     // Remove arquivo corrompido
                     if (File.Exists(_discoveryFilePath))
                         File.Delete(_discoveryFilePath);
                 }
             }
 
-            // ============================================================================
-            // 🔥 ETAPA 2: LOCALIZA O EXECUTÁVEL DO BACKEND (caminhos relativos ao app)
-            // ============================================================================
-            // Usa o diretório da aplicação para funcionar em qualquer máquina (dev, publish, outra pasta)
             var appDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             var parentDir = Path.GetDirectoryName(appDir);
             var candidateBaseDirs = new[]
@@ -137,7 +124,7 @@ public static class BackendStarter
                     {
                         backendPath = path;
                         isDll = path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
-                        Console.WriteLine($"✅ Backend encontrado em: {path}");
+                        s_log.LogInformation("Executável da API localizado: {Path}", path);
                         break;
                     }
                 }
@@ -150,22 +137,19 @@ public static class BackendStarter
             {
                 var searchedPaths = string.Join("\n  - ", allTriedPaths.Distinct());
                 throw new FileNotFoundException(
-                    $"❌ Backend não encontrado. Verifique se a pasta Backend foi copiada junto ao executável.\n\n" +
-                    $"Diretório do app: {appDir}\n\n" +
-                    $"Locais verificados:\n  - {searchedPaths}"
+                    "Executável da API não encontrado. Confirme se a pasta Backend foi publicada junto à aplicação.\n\n" +
+                    $"Diretório da aplicação: {appDir}\n\n" +
+                    $"Caminhos verificados:\n  - {searchedPaths}"
                 );
             }
 
-            // ============================================================================
-            // 🔥 ETAPA 3: CONFIGURA E INICIA O PROCESSO DO BACKEND
-            // ============================================================================
             var psi = new ProcessStartInfo
             {
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
-                WorkingDirectory = Path.GetDirectoryName(backendPath) // ✅ Define working directory
+                WorkingDirectory = Path.GetDirectoryName(backendPath)
             };
 
             if (isDll)
@@ -179,29 +163,23 @@ public static class BackendStarter
                 psi.Arguments = "--urls http://127.0.0.1:0";
             }
 
-            Console.WriteLine($"🚀 Iniciando backend: {psi.FileName} {psi.Arguments}");
+            s_log.LogInformation("Iniciando processo da API: {FileName} {Arguments}", psi.FileName, psi.Arguments);
 
             _backendProcess = Process.Start(psi);
 
             if (_backendProcess == null)
             {
-                throw new Exception("❌ Falha ao iniciar o backend.");
+                throw new InvalidOperationException("Não foi possível iniciar o processo da API.");
             }
 
-            _ownedByThisProcess = true; // Marcamos que iniciamos este processo
+            _ownedByThisProcess = true;
 
-            Console.WriteLine($"✅ Processo do backend iniciado (PID: {_backendProcess.Id})");
-
-            // ============================================================================
-            // 🔥 ETAPA 4: DESCOBERTA DINÂMICA DA PORTA
-            // ============================================================================
-            // Estratégia híbrida: Tenta arquivo JSON primeiro, fallback para stdout
+            s_log.LogInformation("Processo da API iniciado (PID {Pid}).", _backendProcess.Id);
 
             string? discoveredUrl = null;
             var startTime = DateTime.Now;
             var timeout = TimeSpan.FromMinutes(30);
 
-            // Thread para capturar stdout (fallback)
             var stdoutTask = Task.Run(() =>
             {
                 while (!_backendProcess.StandardOutput.EndOfStream)
@@ -209,7 +187,7 @@ public static class BackendStarter
                     var line = _backendProcess.StandardOutput.ReadLine();
                     if (line == null) continue;
 
-                    Console.WriteLine($"[Backend] {line}");
+                    s_log.LogDebug("[stdout da API] {Line}", line);
 
                     if (line.StartsWith("BACKEND_URL:", StringComparison.OrdinalIgnoreCase))
                     {
@@ -217,7 +195,7 @@ public static class BackendStarter
 
                         if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
                         {
-                            Console.WriteLine($"✅ URL capturada via stdout: {url}");
+                            s_log.LogInformation("URL base obtida pelo stdout da API: {Url}", url);
                             return url;
                         }
                     }
@@ -225,7 +203,6 @@ public static class BackendStarter
                 return null;
             });
 
-            // Espera discovery JSON ou stdout
             while (DateTime.Now - startTime < timeout)
             {
                 // Tenta ler arquivo JSON
@@ -239,7 +216,7 @@ public static class BackendStarter
                         if (info != null && !string.IsNullOrEmpty(info.url))
                         {
                             discoveredUrl = info.url;
-                            Console.WriteLine($"✅ URL descoberta via JSON: {discoveredUrl}");
+                            s_log.LogInformation("URL base lida do arquivo de descoberta: {Url}", discoveredUrl);
                             break;
                         }
                     }
@@ -259,7 +236,6 @@ public static class BackendStarter
                 Thread.Sleep(100);
             }
 
-            // Se não descobriu, tenta aguardar stdout
             if (discoveredUrl == null && !stdoutTask.IsCompleted)
             {
                 discoveredUrl = stdoutTask.Wait(5000) ? stdoutTask.Result : null;
@@ -268,40 +244,36 @@ public static class BackendStarter
             if (discoveredUrl == null)
             {
                 _backendProcess.Kill();
-                throw new Exception("❌ Timeout: Porta dinâmica não foi detectada após 30 segundos.");
+                throw new TimeoutException(
+                    "Tempo esgotado aguardando a publicação da URL base da API (arquivo de descoberta ou stdout).");
             }
 
-            Console.WriteLine($"🎉 Backend iniciado com sucesso: {discoveredUrl}");
+            s_log.LogInformation("API escutando em {Url}.", discoveredUrl);
 
             return discoveredUrl;
         }
     }
 
-    /// <summary>
-    /// Encerra o backend gracefully (kill switch)
-    /// </summary>
+    /// <summary>Encerra a API quando esta aplicação a iniciou (shutdown HTTP gracioso e, se preciso, término forçado).</summary>
     public static async Task ShutdownBackend()
     {
         lock (_lock)
         {
             if (_backendProcess == null || !_ownedByThisProcess)
             {
-                Console.WriteLine("ℹ️ Backend não foi iniciado por este processo, não será encerrado.");
+                s_log.LogDebug("Encerramento da API ignorado (não iniciada por esta sessão).");
                 return;
             }
 
             if (_backendProcess.HasExited)
             {
-                Console.WriteLine("ℹ️ Backend já foi encerrado.");
+                s_log.LogDebug("O processo da API já foi encerrado.");
                 return;
             }
 
-            Console.WriteLine($"🛑 Encerrando backend (PID: {_backendProcess.Id})...");
+            s_log.LogInformation("Encerrando API (PID {Pid}).", _backendProcess.Id);
         }
 
-        // ============================================================================
-        // 🔥 TENTATIVA 1: GRACEFUL SHUTDOWN VIA API
-        // ============================================================================
         bool shutdownSuccess = false;
 
         try
@@ -321,39 +293,31 @@ public static class BackendStarter
 
                     if (response.IsSuccessStatusCode)
                     {
-                        Console.WriteLine("✅ Shutdown graceful enviado ao backend");
-
-                        // Aguarda até 5 segundos para o processo encerrar
+                        s_log.LogInformation("Encerramento gracioso aceito; aguardando término do processo.");
                         shutdownSuccess = _backendProcess!.WaitForExit(5000);
-
                         if (shutdownSuccess)
-                        {
-                            Console.WriteLine("✅ Backend encerrado gracefully");
-                        }
+                            s_log.LogInformation("Processo da API encerrado após shutdown gracioso.");
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"⚠️ Erro ao tentar shutdown graceful: {ex.Message}");
+            s_log.LogWarning(ex, "Falha na requisição de encerramento gracioso.");
         }
 
-        // ============================================================================
-        // 🔥 TENTATIVA 2: FORCE KILL SE GRACEFUL FALHAR
-        // ============================================================================
         if (!shutdownSuccess && _backendProcess != null && !_backendProcess.HasExited)
         {
             try
             {
-                Console.WriteLine("⚠️ Forçando encerramento do backend...");
+                s_log.LogWarning("Encerrando o processo da API à força.");
                 _backendProcess.Kill();
                 _backendProcess.WaitForExit(2000);
-                Console.WriteLine("✅ Backend encerrado forçadamente");
+                s_log.LogInformation("Processo da API encerrado.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Erro ao forçar encerramento: {ex.Message}");
+                s_log.LogWarning(ex, "Falha ao encerrar o processo da API.");
             }
         }
 
@@ -362,9 +326,6 @@ public static class BackendStarter
         _ownedByThisProcess = false;
     }
 
-    /// <summary>
-    /// Verifica se um processo está vivo
-    /// </summary>
     private static bool IsProcessAlive(int pid)
     {
         try
@@ -378,9 +339,6 @@ public static class BackendStarter
         }
     }
 
-    /// <summary>
-    /// Testa se o backend está respondendo
-    /// </summary>
     private static bool TestBackendConnection(string url)
     {
         try

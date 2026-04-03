@@ -1,4 +1,5 @@
-﻿using Frontend.Services;
+using Frontend.Diagnostics;
+using Frontend.Services;
 using Frontend.ViewModels;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
@@ -8,23 +9,27 @@ namespace Frontend;
 
 public static class MauiProgram
 {
+    private static readonly ILogger s_log = AppHostLogging.Create(nameof(MauiProgram));
+
     public static MauiApp CreateMauiApp()
     {
-        Console.WriteLine("🚀 Iniciando MauiProgram...");
+        s_log.LogInformation("Inicializando o host da aplicação.");
 
-        // ============================================================================
-        // 🔥 ETAPA 1: INICIA BACKEND E OBTÉM URL DINÂMICA
-        // ============================================================================
         string backendUrl;
         try
         {
             backendUrl = BackendStarter.StartBackendAndGetUrl();
-            Console.WriteLine($"✅ Backend iniciado com sucesso: {backendUrl}");
+            s_log.LogInformation("API local pronta. URL base: {BackendUrl}", backendUrl);
+            StartupDiagnostics.BackendFailureUserMessage = null;
+            StartupDiagnostics.BackendFailureTechnicalSummary = null;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ ERRO CRÍTICO ao iniciar backend: {ex.Message}");
-            throw new Exception($"Falha ao iniciar backend: {ex.Message}", ex);
+            s_log.LogError(ex, "Falha ao iniciar ou descobrir a API local.");
+            StartupDiagnostics.BackendFailureUserMessage =
+                "O aplicativo depende de um serviço local (API) que não pôde ser iniciado. Sem ele, login e dados não funcionam.";
+            StartupDiagnostics.BackendFailureTechnicalSummary = ex.Message;
+            backendUrl = "http://127.0.0.1:1";
         }
 
         var builder = MauiApp.CreateBuilder();
@@ -36,9 +41,6 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
-        // ============================================================================
-        // 🔥 CULTURA PT-BR
-        // ============================================================================
         var culture = new CultureInfo("pt-BR");
         CultureInfo.DefaultThreadCurrentCulture = culture;
         CultureInfo.DefaultThreadCurrentUICulture = culture;
@@ -50,40 +52,23 @@ public static class MauiProgram
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
-        // Logging básico sem AddDebug
         builder.Logging.SetMinimumLevel(LogLevel.Information);
 #endif
 
-        // ============================================================================
-        // 🔥 REGISTRA URL DO BACKEND NO DI (USA CLASSE EXISTENTE)
-        // ============================================================================
         builder.Services.AddSingleton(new BackendConfig { Url = backendUrl });
 
-        // ============================================================================
-        // 🔥 AUTENTICAÇÃO E AUTORIZAÇÃO
-        // ============================================================================
-        // Registra ISecureStorage do MAUI para uso no AuthenticationStateService
         builder.Services.AddSingleton<ISecureStorage>(SecureStorage.Default);
 
-        // Registra AuthenticationStateService (gerencia tokens e estado de autenticação)
         builder.Services.AddScoped<AuthenticationStateService>();
 
-        // Registra CustomAuthenticationStateProvider (integra com sistema de autorização do Blazor)
         builder.Services.AddScoped<CustomAuthenticationStateProvider>();
         builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
             sp.GetRequiredService<CustomAuthenticationStateProvider>());
 
-        // Adiciona suporte a autorização no Blazor (permite uso de [Authorize] e <AuthorizeView>)
         builder.Services.AddAuthorizationCore();
 
-        // ============================================================================
-        // 🔥 REGISTRA DELEGATING HANDLER NO DI
-        // ============================================================================
         builder.Services.AddTransient<AuthDelegatingHandler>();
 
-        // ============================================================================
-        // 🔥 VIEWMODELS
-        // ============================================================================
         builder.Services.AddScoped<ProdutosViewModel>();
         builder.Services.AddScoped<MedicamentosViewModel>();
         builder.Services.AddScoped<InsumosViewModel>();
@@ -92,122 +77,101 @@ public static class MauiProgram
         builder.Services.AddScoped<EstoqueDetailViewModel>();
         builder.Services.AddScoped<AddLoteEstoqueViewModel>();
 
-        // ============================================================================
-        // 🔥 HTTPCLIENT COM URL DINÂMICA E AUTH HANDLER VIA DI
-        // ============================================================================
         builder.Services.AddHttpClient("ApiClient", (sp, client) =>
         {
             var cfg = sp.GetRequiredService<BackendConfig>();
             client.BaseAddress = new Uri(cfg.Url);
             client.Timeout = TimeSpan.FromMinutes(4);
 
-            Console.WriteLine($"🌐 [HttpClient] Configurado com BaseAddress: {cfg.Url}");
+            AppHostLogging.Create("HttpClient.ApiClient")
+                .LogInformation("HttpClient configurado com BaseAddress: {BaseAddress}", cfg.Url);
         })
         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler())
-        .AddHttpMessageHandler<AuthDelegatingHandler>();  // ✅ USA DI - CRITICAL FIX
+        .AddHttpMessageHandler<AuthDelegatingHandler>();
 
         var app = builder.Build();
 
-        // ============================================================================
-        // 🔥 REGISTRA KILL SWITCH NO ENCERRAMENTO DO APP
-        // ============================================================================
         RegisterKillSwitch();
 
-        Console.WriteLine("✅ MauiApp configurado com sucesso!");
+        s_log.LogInformation("Aplicação MAUI construída com sucesso.");
 
         return app;
     }
 
     /// <summary>
-    /// Registra kill switch para encerrar backend quando o app fechar
+    /// Garante que o processo da API embutida seja encerrado ao sair (hooks de encerramento).
     /// </summary>
     private static void RegisterKillSwitch()
     {
+        var killSwitchLog = AppHostLogging.Create("KillSwitch");
+
         try
         {
-            // ============================================================================
-            // 🔥 KILL SWITCH: ProcessExit é o evento mais confiável
-            // ============================================================================
-            AppDomain.CurrentDomain.ProcessExit += async (s, e) =>
+            AppDomain.CurrentDomain.ProcessExit += async (_, _) =>
             {
-                Console.WriteLine("🛑 Aplicação encerrando via ProcessExit, executando kill switch...");
+                killSwitchLog.LogInformation("Processo encerrando; parando a API local se pertencer a esta sessão.");
                 try
                 {
                     await BackendStarter.ShutdownBackend();
-                    Console.WriteLine("✅ Kill switch executado com sucesso");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"❌ Erro no kill switch: {ex.Message}");
+                    killSwitchLog.LogWarning(ex, "Falha no hook de encerramento durante ProcessExit.");
                 }
             };
 
-            // ============================================================================
-            // 🔥 FALLBACK: UnhandledException (app crashes)
-            // ============================================================================
-            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            AppDomain.CurrentDomain.UnhandledException += (_, _) =>
             {
-                Console.WriteLine("🛑 UnhandledException detectado, tentando kill switch...");
+                killSwitchLog.LogWarning("Exceção não tratada; tentando parar a API local.");
                 try
                 {
-                    // Tentativa síncrona de shutdown
                     var task = BackendStarter.ShutdownBackend();
                     task.Wait(TimeSpan.FromSeconds(3));
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"❌ Erro no kill switch (crash): {ex.Message}");
+                    killSwitchLog.LogWarning(ex, "Falha no hook de encerramento após exceção não tratada.");
                 }
             };
 
-            // ============================================================================
-            // 🔥 WINDOWS SPECIFIC: Window Closing Events
-            // ============================================================================
 #if WINDOWS
-            // Hook no evento de fechamento da janela principal
             Microsoft.Maui.Handlers.WindowHandler.Mapper.AppendToMapping("CloseWindow", (handler, view) =>
             {
                 var nativeWindow = handler.PlatformView;
 
-                nativeWindow.Closed += async (s, e) =>
+                nativeWindow.Closed += async (_, _) =>
                 {
-                    Console.WriteLine("🛑 Window.Closed detectado, executando kill switch...");
+                    killSwitchLog.LogInformation("Janela principal fechada; parando a API local quando aplicável.");
                     try
                     {
                         await BackendStarter.ShutdownBackend();
-                        Console.WriteLine("✅ Kill switch executado (Window.Closed)");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"❌ Erro no kill switch (Window.Closed): {ex.Message}");
+                        killSwitchLog.LogWarning(ex, "Falha no hook de encerramento ao fechar a janela.");
                     }
                 };
             });
 #endif
 
-            // ============================================================================
-            // 🔥 ASSEMBLY UNLOAD (Fallback genérico)
-            // ============================================================================
-            System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += async (ctx) =>
+            System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += async (_) =>
             {
-                Console.WriteLine("🛑 Assembly unloading, executando kill switch...");
+                killSwitchLog.LogInformation("Descarregando contexto de assembly; parando a API local quando aplicável.");
                 try
                 {
                     await BackendStarter.ShutdownBackend();
-                    Console.WriteLine("✅ Kill switch executado (Assembly unload)");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"❌ Erro no kill switch (Assembly unload): {ex.Message}");
+                    killSwitchLog.LogWarning(ex, "Falha no hook de encerramento durante descarga de assembly.");
                 }
             };
 
-            Console.WriteLine("✅ Kill switch registrado com sucesso");
+            killSwitchLog.LogDebug("Hooks de saída da aplicação registrados.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"⚠️ Erro ao registrar kill switch: {ex.Message}");
-            // Não impede a inicialização do app
+            killSwitchLog.LogWarning(ex, "Não foi possível registrar todos os hooks de saída.");
         }
     }
 }

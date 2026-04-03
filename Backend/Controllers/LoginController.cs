@@ -33,7 +33,7 @@ public class LoginController : ControllerBase
                 });
             }
 
-            _logger.LogInformation("Login: {Login}", request.Login);
+            _logger.LogInformation("Solicitação de login recebida para {Login}.", request.Login);
 
             var result = await _cognitoService.AuthenticateAsync(request.Login, request.Senha);
 
@@ -50,7 +50,7 @@ public class LoginController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro no login");
+            _logger.LogError(ex, "Falha no login por erro inesperado.");
             return StatusCode(500, new ErrorResponse
             {
                 Title = "Erro interno",
@@ -90,7 +90,7 @@ public class LoginController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro no refresh");
+            _logger.LogError(ex, "Falha na renovação do token por erro inesperado.");
             return StatusCode(500, new ErrorResponse
             {
                 Title = "Erro interno",

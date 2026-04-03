@@ -75,7 +75,7 @@ public class CognitoService : ICognitoService
             if (!Enum.TryParse<PermissoesEnum>(permissaoStr, out var permissao))
                 permissao = PermissoesEnum.LEITURA;
 
-            _logger.LogInformation($"✅ Usuário autenticado: {email}");
+            _logger.LogInformation("Usuário autenticado: {Email}", email);
 
             return new LoginResponseModel
             {
@@ -98,17 +98,17 @@ public class CognitoService : ICognitoService
         }
         catch (Amazon.CognitoIdentityProvider.Model.NotAuthorizedException ex)
         {
-            _logger.LogWarning($"Autenticação falhou: {ex.Message}");
+            _logger.LogWarning(ex, "Cognito recusou as credenciais (NotAuthorized).");
             throw new UnauthorizedAccessException("Usuário ou senha inválidos", ex);
         }
         catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
         {
-            _logger.LogWarning($"Usuário não encontrado: {ex.Message}");
+            _logger.LogWarning(ex, "Usuário não encontrado no Cognito.");
             throw new UnauthorizedAccessException("Usuário não encontrado", ex);
         }
         catch (Amazon.CognitoIdentityProvider.Model.InvalidPasswordException ex)
         {
-            _logger.LogWarning($"Senha inválida: {ex.Message}");
+            _logger.LogWarning(ex, "Cognito indicou senha inválida.");
             throw new UnauthorizedAccessException("Usuário ou senha inválidos", ex);
         }
         catch (Amazon.CognitoIdentityProvider.Model.InvalidParameterException ex)
@@ -143,28 +143,25 @@ public class CognitoService : ICognitoService
             if (response.AuthenticationResult == null)
                 throw new UnauthorizedAccessException("Falha ao obter resposta do Cognito.");
 
-            _logger.LogInformation("✅ Token renovado com sucesso.");
+            _logger.LogInformation("Token renovado com sucesso.");
 
             return new TokenResponse
             {
                 AccessToken = response.AuthenticationResult.AccessToken,
-                // CORREÇÃO 1: Verifica se o Cognito mandou um refresh token NOVO. 
-                // Se mandou, usa o novo. Se não (null), continua usando o atual.
+                // Se o Cognito devolver um refresh token novo, usa-o; caso contrário mantém o atual.
                 RefreshToken = response.AuthenticationResult.RefreshToken ?? refreshToken,
                 IdToken = response.AuthenticationResult.IdToken,
                 ExpiresIn = (int)response.AuthenticationResult.ExpiresIn
             };
         }
-        // CORREÇÃO 2: Captura a exceção do namespace CORRETO (IdentityProvider, não Identity)
         catch (Amazon.CognitoIdentityProvider.Model.NotAuthorizedException ex)
         {
-            _logger.LogWarning($"Refresh token rejeitado pela AWS: {ex.Message}");
-            // Lança a exceção correta para o Controller retornar 401
+            _logger.LogWarning(ex, "Refresh token rejeitado pelo Cognito.");
             throw new UnauthorizedAccessException("Sessão expirada. Por favor, faça login novamente.", ex);
         }
         catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
         {
-            _logger.LogWarning($"Usuário não existe mais: {ex.Message}");
+            _logger.LogWarning(ex, "Usuário não existe mais no Cognito.");
             throw new UnauthorizedAccessException("Usuário inválido.", ex);
         }
         catch (Exception ex)
@@ -201,7 +198,7 @@ public class CognitoService : ICognitoService
 
             await _cognitoProvider.AdminConfirmSignUpAsync(confirmRequest);
 
-            _logger.LogInformation($"✅ Usuário registrado: {dto.Email}");
+            _logger.LogInformation("Usuário registrado: {Email}", dto.Email);
 
             return new UsuarioResponseDTO
             {
@@ -254,7 +251,7 @@ public class CognitoService : ICognitoService
                 getCredsResponse.Credentials.SessionToken
             );
 
-            _logger.LogInformation($"✅ Credenciais temporárias obtidas");
+            _logger.LogInformation("Credenciais temporárias da AWS obtidas com sucesso.");
 
             return credentials;
         }

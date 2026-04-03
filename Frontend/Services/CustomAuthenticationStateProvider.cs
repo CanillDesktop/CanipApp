@@ -1,28 +1,28 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace Frontend.Services
 {
     /// <summary>
-    /// Provider customizado que integra AuthenticationStateService com o sistema de autenticação do Blazor
-    /// Permite proteção de rotas via [Authorize] e &lt;AuthorizeView&gt;
+    /// Integra <see cref="AuthenticationStateService"/> ao fluxo de autenticação do Blazor (rotas com [Authorize] e AuthorizeView).
     /// </summary>
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
         private readonly AuthenticationStateService _authService;
+        private readonly ILogger<CustomAuthenticationStateProvider> _logger;
         private ClaimsPrincipal _currentUser = new ClaimsPrincipal(new ClaimsIdentity());
 
-        public CustomAuthenticationStateProvider(AuthenticationStateService authService)
+        public CustomAuthenticationStateProvider(
+            AuthenticationStateService authService,
+            ILogger<CustomAuthenticationStateProvider> logger)
         {
             _authService = authService;
-
-            // Registra listener para mudanças de autenticação
+            _logger = logger;
             _authService.AuthenticationStateChanged += HandleAuthenticationStateChanged;
         }
 
-        /// <summary>
-        /// Retorna o estado atual de autenticação do usuário
-        /// </summary>
+        /// <summary>Retorna o estado atual de autenticação.</summary>
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var principal = await _authService.GetUserClaimsAsync();
@@ -30,38 +30,25 @@ namespace Frontend.Services
             return new AuthenticationState(principal);
         }
 
-        /// <summary>
-        /// Handler chamado quando o estado de autenticação muda (login/logout)
-        /// </summary>
+        /// <summary>Reage a login ou logout propagados pelo <see cref="AuthenticationStateService"/>.</summary>
         private async void HandleAuthenticationStateChanged(bool isAuthenticated)
         {
             ClaimsPrincipal principal;
 
             if (isAuthenticated)
             {
-                // Usuário fez login - carrega claims
                 principal = await _authService.GetUserClaimsAsync();
             }
             else
             {
-                // Usuário fez logout - limpa claims
                 principal = new ClaimsPrincipal(new ClaimsIdentity());
             }
 
             _currentUser = principal;
-
-            // Notifica o Blazor que o estado mudou
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(principal)));
         }
 
-        /// <summary>
-        /// Marca usuário como autenticado (chamado após login bem-sucedido)
-        /// </summary>
-        /// <param name="idToken">ID Token do AWS Cognito (usado para autenticação)</param>
-        /// <param name="accessToken">Access Token do AWS Cognito (usado para AWS APIs)</param>
-        /// <param name="refreshToken">Refresh Token para renovar sessão</param>
-        /// <param name="email">Email do usuário</param>
-        /// <param name="nome">Nome completo do usuário</param>
+        /// <summary>Persiste tokens e dados do usuário após login bem-sucedido.</summary>
         public async Task MarkUserAsAuthenticated(
             string idToken,
             string accessToken,
@@ -69,49 +56,36 @@ namespace Frontend.Services
             string email,
             string nome)
         {
-            Console.WriteLine($"✅ [AuthProvider] MarkUserAsAuthenticated chamado");
-            Console.WriteLine($"   - Email: {email}");
-            Console.WriteLine($"   - Nome: {nome}");
-            Console.WriteLine($"   - IdToken length: {idToken?.Length ?? 0}");
-            Console.WriteLine($"   - AccessToken length: {accessToken?.Length ?? 0}");
-            Console.WriteLine($"   - RefreshToken length: {refreshToken?.Length ?? 0}");
+            _logger.LogInformation("Marcando usuário como autenticado: {Email} ({Nome}).", email, nome);
+            _logger.LogDebug(
+                "Tamanhos dos tokens: IdToken {IdLen}, AccessToken {AccessLen}, RefreshToken {RefreshLen}.",
+                idToken?.Length ?? 0,
+                accessToken?.Length ?? 0,
+                refreshToken?.Length ?? 0);
 
             await _authService.SetAuthenticatedAsync(idToken, accessToken, refreshToken, email, nome);
-
-            // O evento AuthenticationStateChanged já vai disparar HandleAuthenticationStateChanged
         }
 
-        /// <summary>
-        /// Marca usuário como não autenticado (chamado no logout)
-        /// </summary>
+        /// <summary>Limpa a sessão (logout).</summary>
         public async Task MarkUserAsLoggedOut()
         {
-            Console.WriteLine("🔓 [AuthProvider] MarkUserAsLoggedOut chamado");
-
+            _logger.LogInformation("Marcando usuário como desconectado (logout).");
             await _authService.LogoutAsync();
-
-            // O evento AuthenticationStateChanged já vai disparar HandleAuthenticationStateChanged
         }
 
-        /// <summary>
-        /// Obtém o ID Token atual do usuário autenticado
-        /// </summary>
+        /// <summary>Obtém o ID token atual do armazenamento seguro.</summary>
         public async Task<string?> GetIdTokenAsync()
         {
             return await SecureStorage.GetAsync("id_token");
         }
 
-        /// <summary>
-        /// Obtém o Access Token atual do usuário autenticado
-        /// </summary>
+        /// <summary>Obtém o access token atual do armazenamento seguro.</summary>
         public async Task<string?> GetAccessTokenAsync()
         {
             return await SecureStorage.GetAsync("access_token");
         }
 
-        /// <summary>
-        /// Verifica se o usuário está autenticado
-        /// </summary>
+        /// <summary>Indica se existe ID token não vazio.</summary>
         public async Task<bool> IsAuthenticatedAsync()
         {
             var idToken = await SecureStorage.GetAsync("id_token");
